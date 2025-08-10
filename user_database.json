@@ -1,0 +1,15 @@
+[
+    {
+        "user_id": "friend_1",
+        "name": "Liam",
+        "contact_info": "placeholder",
+        "preferences": {
+            "cooking_style": "generally quick and easy but could dable with something new",
+            "protein_preferences": "chicken and a little fish but mostly chicken",
+            "adventure_level": "can do something small thats new but want some staples",
+            "dislikes": "dont love that many carbs"
+        },
+        "recommendation_history": [],
+        "feedback_history": []
+    }
+]

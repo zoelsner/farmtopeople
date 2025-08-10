@@ -1,0 +1,12 @@
+playwright
+python-dotenv
+openai
+pandas
+supabase 
+
+# Web server
+fastapi
+uvicorn[standard]
+
+# Twilio for SMS
+twilio 
