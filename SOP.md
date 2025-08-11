@@ -1,69 +1,58 @@
-# Farm to People AI Assistant - Standard Operating Procedure (SOP)
+# Farm to People AI Assistant - Standard Operating Procedure (SOP v2)
 
 _Last Updated: August 10, 2025_
 
-## 1. Executive Summary
+## 1. Core Product Vision: "The Thursday Afternoon Magic"
 
-This document outlines the architecture, operational flows, and future roadmap for the Farm to People AI Assistant. The system's primary goal is to increase customer retention and order value for Farm to People by providing a hyper-personalized, AI-driven meal planning and onboarding experience via SMS.
+The primary goal of this project is to transform the Farm to People weekly box experience. We will turn the moment of "what do I do with these ingredients?" into an exciting, engaging culinary journey that begins on Thursday afternoon, two days before the box even arrives. Our core strategy is **Reverse Meal Planning**: we start with the user's actual, confirmed box contents and build a personalized, beautiful, and actionable plan around them.
 
-## 2. Current State Architecture
+## 2. Technical Architecture & Project Structure
 
-The application is composed of several distinct Python scripts and a cloud database, orchestrated by a central web server.
+The application is being refactored into a professional, scalable structure to support our long-term vision of a multi-platform service (SMS, Web App, iOS App).
 
-### Core Components:
-*   **`server.py` (FastAPI Web Server):** The main entry point for all external interactions. It listens for incoming SMS messages from Twilio via a webhook.
-*   **`farmbox_optimizer.py` (The Scraper):** A Playwright-based script that can log into a user's Farm to People account, scrape their current cart and customizable box contents, and save the data to structured JSON files.
-*   **`meal_planner.py` (The Meal Planner AI):** Uses the scraped data and a master product catalog (`farmtopeople_products.csv`) to generate a validated and repaired meal plan via multiple calls to the OpenAI API (`gpt-4o-mini`).
-*   **`friend_flow.py` (The Onboarding AI):** Manages the conversational onboarding for new users, asking intake questions and providing a strategic, AI-driven box recommendation.
-*   **`supabase_client.py` (Database Client):** A dedicated helper module that handles all communication with the Supabase cloud database, including fetching and storing user credentials.
-*   **Supabase (PostgreSQL Database):** The cloud-based "source of truth" for all user data, including contact information, encrypted FTP credentials, and preferences.
+### Target Project Structure:
+```
+farm-to-people-assistant/
+├── backend/
+│   ├── server.py                 # FastAPI main server
+│   ├── scraper/
+│   │   ├── box_monitor.py        # Thursday afternoon scheduler
+│   │   └── farmbox_optimizer.py  # Playwright scraper
+│   ├── ai_engine/
+│   │   └── meal_planner.py       # OpenAI recipe generation
+│   ├── messaging/
+│   │   └── sms_handler.py        # Twilio integration
+│   └── database/
+│       └── supabase_client.py    # User data & preferences
+└── ... (other files)
+```
 
-### Main Operational Flow: The "Plan" Command
+## 3. The "Thursday Magic" User Flow
 
-This is the flow for an existing user who wants a meal plan.
+This is the primary operational flow of the application.
 
-1.  **User Texts "plan"**: A user sends an SMS with the word "plan" to the designated Twilio number.
-2.  **Twilio Webhook**: Twilio forwards the message content and the user's phone number to our `server.py`'s `/sms` endpoint.
-3.  **Credential Fetch**: `server.py` calls `supabase_client.py` to fetch the user's FTP credentials from the Supabase `users` table, using the phone number as the key.
-4.  **Scraper Execution**: The server triggers the `farmbox_optimizer.py` script as a background task, passing in the fetched credentials.
-5.  **Data Acquisition**: The scraper logs into farmtopeople.com, scrapes the cart and box contents, and saves them to `farm_box_data/`.
-6.  **Meal Plan Generation**: Upon successful completion of the scraper, the server triggers the `meal_planner.py` script.
-7.  **AI Meal Plan**: `meal_planner.py` uses the scraped data, the master product list, and the user's preferences (future state) to generate, validate, and repair a meal plan with OpenAI.
-8.  **SMS Reply**: The final, formatted meal plan is sent back to the user as a new SMS message via the Twilio API.
+1.  **Thursday 2 PM (Box Lock):** The user's Farm to People box for the upcoming weekend delivery is locked and can no longer be customized.
+2.  **Thursday 3 PM (Automated Scrape):** The `box_monitor.py` scheduler automatically triggers the `farmbox_optimizer.py` script for all active users. The scraper logs in, scrapes the final, confirmed contents of each user's box, and saves this data to our Supabase database.
+3.  **Thursday 3:05 PM (The Teaser SMS):** Immediately after the scrape, the system sends the first SMS to the user via Twilio.
+    *   **Example:** _"🌟 Zach, your Farm to People box is locked in! This week's stars include White Peaches and Organic Green Kale. How's your energy for the week? Reply: 1=Tired 😴, 2=Normal 😊, 3=Ambitious 🚀"_
+4.  **Thursday 6 PM (The Plan Delivery):** Based on the user's energy level response, the system sends the main event: a link to a beautifully generated PDF meal plan.
+    *   **Example:** _"🍽️ Your adventures await! Based on your 'Normal' energy, your personalized meal plan is ready. It includes a 35-min version of our Peach and Kale Salad. View your full visual guide here: [link-to-pdf]"_
+5.  **Weekend (Engagement & Learning):** The system can send follow-up tips and gather feedback on the meals.
 
-### Secondary Flow: The "New User" Onboarding
+## 4. Current State vs. Next Steps
 
-1.  **User Texts "new"**: A new user initiates contact.
-2.  **Server Recognizes New User**: The server checks Supabase, finds no existing user, and triggers the `friend_flow.py` logic.
-3.  **Secure Credential Link**: The server replies with the first intake question and a secure link to the `/login` web form to collect their FTP credentials.
-4.  **Intake Conversation**: A multi-step conversational intake is managed by `friend_flow.py` (currently simulated in the terminal, future state via SMS).
-5.  **AI Recommendation**: After intake, an AI-powered recommendation for a starting box is generated.
-6.  **Q&A Session**: A conversational agent is activated to answer any follow-up questions the new user might have.
+We have successfully built the foundational components for this vision. Now, we will execute a planned refactor to align our existing code with this new architecture.
 
-## 3. Future Roadmap: Next Steps
+### **Current State:**
+*   We have a functional, monolithic scraper (`farmbox_optimizer.py`).
+*   We have a powerful AI meal planner (`meal_planner.py`).
+*   We have a prototype server (`server.py`) and Supabase connection (`supabase_client.py`).
 
-The following are the next three major development phases to move the application from a functional proof-of-concept to a live, multi-user cloud service.
+### **Next Steps (The Refactor):**
 
-### Step 1: Full Cloud Deployment & Live SMS
-*   **Goal**: Get the application running 24/7 on a cloud server and make the SMS interaction fully live.
-*   **Tasks**:
-    1.  Deploy the `server.py` application to a hosting provider (e.g., Render, Railway).
-    2.  Configure all environment variables (`OPENAI_API_KEY`, `SUPABASE_URL`, etc.) in the production environment.
-    3.  Update the Twilio webhook to point to the new, permanent public URL of the deployed server (instead of the temporary `ngrok` URL).
-    4.  Implement a background job queue (e.g., using FastAPI's `BackgroundTasks`) to handle long-running tasks like scraping without timing out Twilio's webhook.
+1.  **Restructure the Project:** Create the new `backend/` sub-directory structure and move the existing `.py` files into their new, logical homes.
+2.  **Create the Box Monitor:** Build the `box_monitor.py` script with a scheduler (like `schedule`) to trigger the scraper.
+3.  **Refactor the Scraper for Automation:** Modify `farmbox_optimizer.py` to run "headless" and be importable as a module, so it can be called by the monitor.
+4.  **Integrate the Full SMS Flow:** Upgrade `server.py` to handle the multi-step "Thursday Magic" conversation, including the energy level reply and sending the final plan.
 
-### Step 2: Full Integration of `friend_flow.py` and Database
-*   **Goal**: Move beyond the terminal simulation and make the "Friend Flow" a true, stateful SMS conversation, with all data saved to Supabase.
-*   **Tasks**:
-    1.  Create a `sessions` table or use the `preferences` column in the `users` table to track a new user's progress through the intake questions.
-    2.  Modify `server.py` to handle a multi-step SMS conversation (e.g., "Question 1 -> User Answer -> Question 2 -> ...").
-    3.  Save the final, collected preferences to the `users` table in Supabase.
-    4.  Create the `meal_plans` and `recommendation_history` tables in Supabase and log every AI-generated plan and recommendation.
-
-### Step 3: Develop a Simple Web App (PWA)
-*   **Goal**: Create a mobile-friendly web interface as a faster, richer alternative to the pure SMS experience, proving product-market fit before committing to a native app.
-*   **Tasks**:
-    1.  Expand the FastAPI server with new API endpoints to serve data to a web front-end (e.g., `/api/get_meal_plan`, `/api/user_preferences`).
-    2.  Build a simple front-end using a modern framework (like React or Vue) that communicates with our existing API.
-    3.  Implement a simple login system on the web app that uses our `users` table.
-    4.  Deploy the web app on a service like Vercel or Netlify.
+This refactoring process will be our primary focus to transition from a successful prototype to the foundation of a real, scalable product.
