@@ -9,8 +9,11 @@ from twilio.twiml.messaging_response import MessagingResponse
 from dotenv import load_dotenv
 import supabase_client as db
 
-# Load environment variables from .env file
-load_dotenv()
+# More explicit .env loading
+from pathlib import Path
+env_path = Path('.') / '.env'
+load_dotenv(dotenv_path=env_path)
+
 
 app = FastAPI()
 
@@ -68,6 +71,7 @@ async def sms_reply(request: Request, From: str = Form(...), Body: str = Form(..
 def login_form(phone: str = ""):
     """Simple HTML form to collect FTP credentials securely over HTTPS."""
     phone_safe = phone
+    # More detailed HTML with CSS to match the Farm to People aesthetic
     return f"""
 <!doctype html>
 <html>
@@ -76,21 +80,80 @@ def login_form(phone: str = ""):
     <meta name='viewport' content='width=device-width, initial-scale=1'/>
     <title>Connect Farm to People</title>
     <style>
-      body {{ font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; padding: 24px; max-width: 640px; margin: auto; }}
-      form {{ display: grid; gap: 12px; }}
-      input, button {{ padding: 10px 12px; font-size: 16px; }}
-      .hint {{ color: #666; font-size: 14px; }}
+      body {{
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        padding: 24px;
+        max-width: 480px;
+        margin: 40px auto;
+        background-color: #f9f8f6; /* A common off-white color */
+        color: #333;
+      }}
+      .container {{
+        background-color: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      }}
+      h2 {{
+        font-size: 24px;
+        color: #2a6e3f; /* A dark green similar to FTP's branding */
+        margin-bottom: 8px;
+      }}
+      .hint {{
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 24px;
+      }}
+      form {{
+        display: grid;
+        gap: 16px;
+      }}
+      label {{
+        font-weight: 600;
+        font-size: 14px;
+      }}
+      input[type='email'], input[type='password'] {{
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box; /* Important for padding */
+        margin-top: 4px;
+      }}
+      button {{
+        padding: 14px 12px;
+        font-size: 16px;
+        font-weight: 700;
+        background-color: #2a6e3f; /* Matching green */
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }}
+      button:hover {{
+        background-color: #1e512d; /* A darker green for hover */
+      }}
     </style>
   </head>
   <body>
-    <h2>Connect your Farm to People account</h2>
-    <p class='hint'>Your credentials are used only to fetch your cart for meal planning. You can remove them anytime.</p>
-    <form method='post' action='/login'>
-      <input type='hidden' name='phone' value='{phone_safe}'/>
-      <label>Email<br/><input required type='email' name='email' placeholder='you@example.com'/></label>
-      <label>Password<br/><input required type='password' name='password' placeholder='••••••••'/></label>
-      <button type='submit'>Save & Connect</button>
-    </form>
+    <div class="container">
+      <h2>Connect your Account</h2>
+      <p class='hint'>Your credentials are used only to fetch your cart for meal planning and are stored securely.</p>
+      <form method='post' action='/login'>
+        <input type='hidden' name='phone' value='{phone_safe}'/>
+        <div>
+          <label for="email">Email</label>
+          <input required type='email' id='email' name='email' placeholder='you@example.com'/>
+        </div>
+        <div>
+          <label for="password">Password</label>
+          <input required type='password' id='password' name='password' placeholder='••••••••'/>
+        </div>
+        <button type='submit'>Save & Connect</button>
+      </form>
+    </div>
   </body>
 </html>
 """

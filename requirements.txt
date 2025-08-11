@@ -1,12 +1,22 @@
-playwright
-python-dotenv
+# OpenAI for AI-powered meal planning
 openai
-pandas
-supabase 
 
-# Web server
+# Playwright for browser automation and scraping
+playwright
+
+# For reading .env files
+python-dotenv
+
+# Pandas for data manipulation (reading CSV)
+pandas
+
+# Supabase for database integration
+supabase
+
+# FastAPI and server
 fastapi
 uvicorn[standard]
+python-multipart
 
 # Twilio for SMS
 twilio 

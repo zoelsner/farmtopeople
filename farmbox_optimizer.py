@@ -5,6 +5,8 @@ from pathlib import Path
 import json
 import re
 from datetime import datetime
+import supabase_client as db
+import sys
 
 # Load environment variables for login credentials
 load_dotenv()
@@ -61,17 +63,28 @@ def open_cart_sidebar(page) -> bool:
             pass
     return opened
 
-def scan_produce_box():
+def scan_farm_box(phone_number: str):
     """
-    Script to access the Farm to People box and scan its contents without trying to modify it.
+    Main function to run the scanner for a specific user.
     """
+    print(f"===== Starting Farm to People Box Scanner for {phone_number} =====")
     
-    # Get credentials from environment variables
-    email = os.getenv("EMAIL")
-    password = os.getenv("PASSWORD")
-    storage_state_path = Path("auth_state.json")
+    # --- Step 1: Get user credentials from Supabase ---
+    user = db.get_user_by_phone(phone_number)
+    if not user:
+        print(f"❌ Error: No user found in Supabase with phone number {phone_number}")
+        return
+
+    email = user.get("ftp_email")
+    password = user.get("ftp_password")  # The helper decodes this for us
+
+    if not email or not password:
+        print(f"❌ Error: User {phone_number} is missing FTP credentials in the database.")
+        return
+
+    print(f"✅ Found credentials for user: {email}")
     
-    # Create output directory for results
+    # Create output directories
     output_dir = Path("farm_box_data")
     output_dir.mkdir(exist_ok=True)
     
@@ -91,6 +104,7 @@ def scan_produce_box():
             browser = p.chromium.launch(headless=False)
             # Create browser context using stored session if available
             context_options = {}
+            storage_state_path = Path("auth_state.json")
             if storage_state_path.exists():
                 print(f"Found saved session at {storage_state_path}")
                 context_options["storage_state"] = str(storage_state_path)
@@ -103,27 +117,11 @@ def scan_produce_box():
             page.goto("https://farmtopeople.com/login")
             page.wait_for_load_state("networkidle")
             
-            # Step 2: Check if already logged in
-            print("Checking login status...")
-            is_logged_in = False
-            login_indicators = [
-                "text=Shopping for:",
-                "text=Hi Zachary",
-                "div.account-button",
-                "a[href='/account']"
-            ]
-            
-            for indicator in login_indicators:
-                if page.locator(indicator).count() > 0:
-                    print("Already logged in!")
-                    is_logged_in = True
-                    break
-            
-            # Step 3: Log in if needed
-            if not is_logged_in:
-                print("Not logged in. Proceeding to login...")
-                page.goto("https://farmtopeople.com/login")
-                page.wait_for_load_state("networkidle")
+            # Check if login is needed by looking for the password field. If it's not there, we're likely logged in.
+            if page.locator("input[type='password']").count() == 0:
+                 print("Already logged in or on the account page.")
+            else:
+                print("Logging in...")
                 
                 print("Entering email...")
                 page.fill("input[type='email']", email)
@@ -136,8 +134,8 @@ def scan_produce_box():
                 page.fill("input[placeholder='Password']", password)
                 
                 print("Clicking login button...")
-                page.click("button[native-type='button']")
-                page.wait_for_load_state("networkidle")
+                page.click("button:has-text('Log in')")
+                page.wait_for_url("**/account**", timeout=30000)
                 
                 # Save auth state for future runs when not using persistent context
                 if not persist_session:
@@ -771,4 +769,16 @@ def scan_produce_box():
                 print(f"Error during browser/context close: {e}")
 
 if __name__ == "__main__":
-    scan_produce_box()
+    if len(sys.argv) < 2:
+        print("Usage: python farmbox_optimizer.py <phone_number>")
+        # For easy testing, you can use a default number from your .env file
+        test_phone_number = os.getenv("YOUR_PHONE_NUMBER")
+        if not test_phone_number:
+            print("No phone number provided and YOUR_PHONE_NUMBER not set in .env. Exiting.")
+            sys.exit(1)
+        
+        print(f"\n📞 No phone number provided. Using test number from .env: {test_phone_number}")
+        scan_farm_box(phone_number=test_phone_number)
+    else:
+        phone_number_arg = sys.argv[1]
+        scan_farm_box(phone_number=phone_number_arg)

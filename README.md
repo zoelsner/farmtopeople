@@ -19,3 +19,4 @@ If you have questions about this policy, reply "HELP" in the SMS thread.
 You can link directly to this section in the Twilio form by using the repository URL with the anchor `#sms-opt-in-policy` (example: `https://github.com/<your-username>/farmtopeople#sms-opt-in-policy`).
 
 
+

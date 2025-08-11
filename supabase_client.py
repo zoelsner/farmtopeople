@@ -15,6 +15,13 @@ import os
 import base64
 from typing import Optional, Dict, Any
 
+# More explicit .env loading
+from dotenv import load_dotenv
+from pathlib import Path
+env_path = Path('.') / '.env'
+load_dotenv(dotenv_path=env_path)
+
+
 from supabase import create_client, Client
 
 
@@ -78,7 +85,6 @@ def upsert_user_credentials(
     res = (
         client.table("users")
         .upsert(payload, on_conflict="ftp_email")
-        .select("id, phone_number, ftp_email")
         .execute()
     )
     return res.data[0] if res.data else {}
