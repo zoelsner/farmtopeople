@@ -8,10 +8,14 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 from dotenv import load_dotenv
-import supabase_client as db
+from . import supabase_client as db
 
-import meal_planner
-import farmbox_optimizer
+from . import meal_planner
+# Import our current primary scraper
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from scrapers.complete_cart_scraper import main as run_cart_scraper
 
 # More explicit .env loading
 from pathlib import Path
@@ -33,10 +37,15 @@ def run_full_meal_plan_flow(phone_number: str):
     """
     print(f"BACKGROUND: Starting full meal plan flow for {phone_number}")
     
-    # Step 1: Run the scraper
-    # Note: We'll need to adapt the scraper to be importable and run without user input.
-    # For now, let's assume it runs and we get a new cart file.
-    farmbox_optimizer.scan_farm_box(phone_number)
+    # Step 1: Run the current primary scraper
+    print(f"🔍 Running complete cart scraper for user: {phone_number}")
+    try:
+        run_cart_scraper()  # This will scrape the cart and generate outputs
+        print("✅ Cart scraping completed successfully")
+    except Exception as e:
+        print(f"❌ Error running cart scraper: {e}")
+        # Continue with meal planning even if scraping fails
+        pass
     
     # Step 2: Run the meal planner with the new data
     plan = meal_planner.run_main_planner() # We'll create this helper function

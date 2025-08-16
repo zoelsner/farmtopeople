@@ -3,8 +3,8 @@ import glob
 from datetime import datetime, timedelta
 
 # Import the main functions from our other scripts
-import meal_planner
-import friend_flow
+from . import meal_planner
+from . import friend_flow
 
 FARM_BOX_DATA_DIR = "farm_box_data"
 
@@ -38,7 +38,7 @@ def main():
     """
     print("===== Welcome to the Farm to People AI Assistant =====")
     
-    # The scraper (farmbox_optimizer.py) must be run separately for now
+    # The scraper (complete_cart_scraper.py) is now integrated into server workflow
     # to generate the data files.
     
     has_recent_cart = get_latest_cart_file_status(FARM_BOX_DATA_DIR)

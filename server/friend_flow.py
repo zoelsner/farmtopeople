@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 # --- Configuration ---
 load_dotenv()
-DATABASE_FILE = "user_database.json"
+DATABASE_FILE = "../data/user_database.json"
 AVAILABLE_BOXES = [
     {
         "name": "Seasonal Produce Box - Small",

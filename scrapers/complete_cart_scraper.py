@@ -5,6 +5,7 @@ from pathlib import Path
 from datetime import datetime
 import json
 import re
+from auth_helper import ensure_logged_in
 
 load_dotenv()
 
@@ -317,8 +318,16 @@ def main():
         page = context.new_page()
         
         print("🌱 Opening Farm to People...")
-        page.goto("https://farmtopeople.com/home")
-        page.wait_for_timeout(3000)
+        
+        # Ensure we're logged in before proceeding
+        if not ensure_logged_in(page):
+            print("❌ Failed to log in to Farm to People")
+            print("   Please check your EMAIL and PASSWORD in .env file")
+            context.close()
+            return
+        
+        print("✅ Successfully logged in, proceeding with cart scraping...")
+        page.wait_for_timeout(2000)
         
         # Click cart button
         print("📦 Opening cart...")

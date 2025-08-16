@@ -10,7 +10,7 @@ import pandas as pd
 
 # --- Configuration ---
 FARM_BOX_DATA_DIR = "farm_box_data"
-PRODUCT_CATALOG_FILE = "farmtopeople_products.csv"
+PRODUCT_CATALOG_FILE = "../data/farmtopeople_products.csv"
 load_dotenv()
 
 # --- OpenAI Setup ---

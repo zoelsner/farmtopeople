@@ -182,7 +182,7 @@ def scrape_farm_to_people_catalog():
             writer.writerows(all_products)
     
     # Update the main products file
-    main_csv_file = Path("farmtopeople_products.csv")
+    main_csv_file = Path("../data/farmtopeople_products.csv")
     with open(main_csv_file, 'w', newline='', encoding='utf-8') as f:
         if all_products:
             fieldnames = ["name", "category", "vendor", "price", "product_url", "is_sold_out", "scraped_at"]

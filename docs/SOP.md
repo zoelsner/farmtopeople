@@ -21,18 +21,28 @@ The application is being refactored into a professional, scalable structure to s
 ### Current Project Structure:
 ```
 farmtopeople/
-├── server.py                          # FastAPI main server
-├── meal_planner.py                     # OpenAI recipe generation
-├── supabase_client.py                  # User data & preferences
-├── complete_cart_scraper.py            # PRIMARY SCRAPER (recommended)
-├── weekly_summary_scraper.py           # Customer summary generator
-├── customize_scraper.py                # Full customize interface scraper
-├── simple_scraper.py                   # Basic cart scraper
-├── better_capture.py                   # HTML debugging tool
-├── farmbox_optimizer.py                # DEPRECATED - use complete_cart_scraper.py
-├── FARM_TO_PEOPLE_SCRAPER_GUIDE.md     # Complete scraping documentation
-├── SOP.md                              # This file
-└── farm_box_data/                      # Output directory
+├── scrapers/                           # All scraping tools
+│   ├── complete_cart_scraper.py            # PRIMARY SCRAPER ⭐
+│   ├── simple_scraper.py                   # Fast cart scraper
+│   ├── customize_scraper.py                # Alternative exploration
+│   ├── weekly_summary_scraper.py           # Customer summaries
+│   ├── better_capture.py                   # HTML debugging
+│   └── product_catalog_scraper.py          # Product data scraper
+├── server/                             # Backend components
+│   ├── server.py                           # FastAPI main server
+│   ├── meal_planner.py                     # OpenAI recipe generation
+│   ├── app.py                              # Orchestration script
+│   ├── friend_flow.py                      # User onboarding
+│   └── supabase_client.py                  # Database connection
+├── docs/                               # Documentation
+│   ├── SOP.md                              # This file (project overview)
+│   ├── FARM_TO_PEOPLE_SCRAPER_GUIDE.md     # Technical scraping guide
+│   └── FARM_TO_PEOPLE_DATA_CLEANING_GUIDE.md # Data quality guide
+├── data/                               # Data files
+│   ├── farmtopeople_products.csv           # Product database
+│   └── user_database.json                  # User preferences
+├── farm_box_data/                      # Scraper output directory
+└── requirements.txt                    # Dependencies
 ```
 
 ## 3. The "Thursday Magic" User Flow
@@ -40,7 +50,7 @@ farmtopeople/
 This is the primary operational flow of the application.
 
 1.  **Thursday 2 PM (Box Lock):** The user's Farm to People box for the upcoming weekend delivery is locked and can no longer be customized.
-2.  **Thursday 3 PM (Automated Scrape):** The system automatically triggers the `complete_cart_scraper.py` script for all active users. The scraper logs in, scrapes the final, confirmed contents of each user's boxes and individual items, and saves this data to our Supabase database.
+2.  **Thursday 3 PM (Automated Scrape):** The system automatically triggers the `scrapers/complete_cart_scraper.py` script for all active users. The scraper logs in, scrapes the final, confirmed contents of each user's boxes and individual items, and saves this data to our Supabase database.
 3.  **Thursday 3:05 PM (The Teaser SMS):** Immediately after the scrape, the system sends the first SMS to the user via Twilio.
     *   **Example:** _"🌟 Zach, your Farm to People box is locked in! This week's stars include White Peaches and Organic Green Kale. How's your energy for the week? Reply: 1=Tired 😴, 2=Normal 😊, 3=Ambitious 🚀"_
 4.  **Thursday 6 PM (The Plan Delivery):** Based on the user's energy level response, the system sends the main event: a link to a beautifully generated PDF meal plan.
