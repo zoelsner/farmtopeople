@@ -1,889 +1,194 @@
-Name,Category,Vendor,Price,ApproxRangeCost,PricePerLb,Is_Subscribed,Is_Sold_Out,Scraped_At
-Pineberries,produce,Wish FarmsWish Farms,$8.99,10.0 oz,,False,False,2025-03-08T10:33:14.730450
-Minneola Tangelos,produce,Bernard RanchesBernard Ranches,$3.99,2 pieces,,False,False,2025-03-08T10:33:14.749236
-Tamarillo,produce,Miami FruitMiami Fruit,$11.99,4 pieces,,False,False,2025-03-08T10:33:14.766935
-Stem & Leaf Mandarins (3 lb),produce,Rising C RanchesRising C Ranches,$9.99,3.0 Lbs,,False,False,2025-03-08T10:33:14.781915
-Red Dragonfruit,produce,Miami FruitMiami Fruit,$9.99,Each,,False,False,2025-03-08T10:33:14.796241
-Oca Tubers,produce,Tivoli MushroomsTivoli Mushrooms,$17.99,8.0 oz,,False,False,2025-03-08T10:33:14.809808
-Organic Spigariello Kale,produce,County Line HarvestCounty Line Harvest,$3.39,1 bunch,,False,False,2025-03-08T10:33:14.824222
-Golden Enoki Mushrooms,produce,Tivoli MushroomsTivoli Mushrooms,$7.99,4.0 oz,,False,True,2025-03-08T10:33:14.837155
-Seasonal Produce Box - Small,produce,Farm to PeopleFarm to People,$25.00,6-8 items,,False,False,2025-03-08T10:33:14.850306
-Seasonal Produce Box - Medium,produce,Farm to PeopleFarm to People,$35.00,8-10 items,,False,False,2025-03-08T10:33:14.863360
-Seasonal Produce Box - Large,produce,Farm to PeopleFarm to People,$45.00,9-11 items,,False,False,2025-03-08T10:33:14.875643
-Cooking Essentials,produce,Farm to PeopleFarm to People,$4.29,,,False,False,2025-03-08T10:33:14.889187
-Local Mushrooms,produce,Farm to PeopleFarm to People,$14.99,,,False,False,2025-03-08T10:33:14.903869
-Seasonal Fruit Medley,produce,Farm to PeopleFarm to People,$10.95,,,False,False,2025-03-08T10:33:14.916319
-Organic Little Obsessions Strawberries,produce,Nature Fresh FarmsNature Fresh Farms,$9.99,1.0 Lbs,,False,False,2025-03-08T10:33:14.962939
-Organic Blueberries,produce,NaturipeNaturipe,$7.99,1.0 Pint,,False,False,2025-03-08T10:33:14.988513
-Jumbo Blueberries,produce,Family Tree FarmsFamily Tree Farms,$8.99,9.8 oz,,False,False,2025-03-08T10:33:15.001042
-Goldenberries,produce,Miami FruitMiami Fruit,$14.99,1.0 Pint,,False,False,2025-03-08T10:33:15.013798
-Organic Hass Avocados,produce,Equal Exchange Fairly TradedEqual Exchange Fairly...,$2.50,1 piece,,False,False,2025-03-08T10:33:15.025965
-Organic Fair Trade Bananas (Unripe),produce,Equal Exchange Fairly TradedEqual Exchange Fairly...,$2.49,1 bunch,,False,False,2025-03-08T10:33:15.038840
-Organic Fair Trade Bananas (Ripe),produce,Equal Exchange Fairly TradedEqual Exchange Fairly...,$2.49,1 bunch,,False,False,2025-03-08T10:33:15.051202
-Passion Fruit,produce,Miami FruitMiami Fruit,$8.99,8.0 oz,,False,False,2025-03-08T10:33:15.064534
-White Guava,produce,Miami FruitMiami Fruit,$11.89,2 pieces,,False,False,2025-03-08T10:33:15.076638
-Mangosteen,produce,Miami FruitMiami Fruit,$24.99,1.0 Lbs,,False,False,2025-03-08T10:33:15.089526
-Black Sapote,produce,Miami FruitMiami Fruit,$11.99,1.0 Lbs,,False,False,2025-03-08T10:33:15.102241
-Yellow Dragonfruit,produce,Miami FruitMiami Fruit,$8.99,1 piece,,False,False,2025-03-08T10:33:15.126991
-Red Kiwis,produce,Sun PacificSun Pacific,$9.99,1.0 Lbs,,False,False,2025-03-08T10:33:15.139657
-Orinoco Bananas,produce,Miami FruitMiami Fruit,$6.99,1.0 Lbs,,False,False,2025-03-08T10:33:15.152132
-Sugarcane,produce,Miami FruitMiami Fruit,$3.99,1 stalk,,False,False,2025-03-08T10:33:15.164645
-Cacao,produce,Miami FruitMiami Fruit,$16.99,1 piece,,False,False,2025-03-08T10:33:15.176646
-Nam Wah Bananas,produce,Miami FruitMiami Fruit,$6.99,1.0 Lbs,,False,False,2025-03-08T10:33:15.189445
-Watermelon Guava,produce,Miami FruitMiami Fruit,$12.99,2 pieces,,False,False,2025-03-08T10:33:15.214166
-Pisang Raja Bananas,produce,Miami FruitMiami Fruit,$9.99,1.0 Lbs,,False,False,2025-03-08T10:33:15.226282
-White Dragonfruit,produce,Miami FruitMiami Fruit,$5.94,1 piece,,False,False,2025-03-08T10:33:15.238422
-Star Apples,produce,Miami FruitMiami Fruit,$7.99,2 pieces,,False,False,2025-03-08T10:33:15.250134
-Pink Guava,produce,Miami FruitMiami Fruit,$11.99,2 pieces,,False,False,2025-03-08T10:33:15.262815
-Sapodilla,produce,Miami FruitMiami Fruit,$13.99,1.0 Lbs,,False,False,2025-03-08T10:33:15.275271
-Valentine's Pomelo,produce,Rising C RanchesRising C Ranches,$3.99,1 piece,,False,False,2025-03-08T10:33:15.299123
-Organic Lemons,produce,Organic from MexicoOrganic from Mexico,$1.99,2 pieces,,False,False,2025-03-08T10:33:15.311140
-Organic Limes,produce,Organic from MexicoOrganic from Mexico,$1.49,2 pieces,,False,False,2025-03-08T10:33:15.323462
-Meyer Lemons,produce,Rising C RanchesRising C Ranches,$1.99,2 pieces,,False,False,2025-03-08T10:33:15.335431
-Oro Blanco Grapefruit,produce,Bernard RanchesBernard Ranches,$3.99,1 piece,,False,False,2025-03-08T10:33:15.347751
-Organic Red Grapefruit,produce,"LFFC Partner Farm CA, Lancaster Farm Fresh CooperativeLFFC Partner Farm CA,...",$2.99,1 piece,,False,False,2025-03-08T10:33:15.361503
-Organic Meiwa Kumquats,produce,Garcia Organic FarmGarcia Organic Farm,$7.99,8.0 oz,,False,False,2025-03-08T10:33:15.374703
-Organic Heirloom Navel Oranges,produce,Deer Creek Heights RanchDeer Creek Heights Ra...,$4.49,2 pieces,,False,False,2025-03-08T10:33:15.387443
-Blood Oranges (Organic),produce,"LFFC Partner Farm CA, Lancaster Farm Fresh CooperativeLFFC Partner Farm CA,...",$4.49,2 pieces,,False,False,2025-03-08T10:33:15.399891
-Mini Me Mandarin Oranges,produce,Rising C RanchesRising C Ranches,$9.99,3.0 Lbs,,False,False,2025-03-08T10:33:15.412290
-Stem and Leaf Mandarins,produce,Rising C RanchesRising C Ranches,$3.99,5-7 pieces,,False,False,2025-03-08T10:33:15.448290
-Hidden Rose Apples,produce,Dragon Berry ProduceDragon Berry Produce,$5.99,2 pieces,,False,False,2025-03-08T10:33:15.460621
-Golden Delicious Apples,produce,Fishkill FarmsFishkill Farms,$3.99,3 pieces,,False,False,2025-03-08T10:33:15.473057
-Golden Delicious (bagged),produce,Fishkill FarmsFishkill Farms,$11.99,5.0 Lbs,,False,False,2025-03-08T10:33:15.485939
-Empire Apples,produce,Fishkill FarmsFishkill Farms,$3.49,3 pieces,,False,False,2025-03-08T10:33:15.498568
-Asian Pears,produce,Evergreen Orchard FarmEvergreen Orchard Far...,$5.09,2 pieces,,False,False,2025-03-08T10:33:15.510580
-Mcintosh Apples,produce,Fishkill FarmsFishkill Farms,$2.99,3 pieces,,False,False,2025-03-08T10:33:15.522678
-Jonagold Apples,produce,Fishkill FarmsFishkill Farms,$3.99,3 pieces,,False,False,2025-03-08T10:33:15.534936
-Macoun Apples,produce,Fishkill FarmsFishkill Farms,$2.99,2 pieces,,False,False,2025-03-08T10:33:15.548846
-Organic Gold Rush Apples,produce,Fishkill FarmsFishkill Farms,$3.39,2 pieces,,False,False,2025-03-08T10:33:15.562247
-Gala Apples (Bagged),produce,Fishkill FarmsFishkill Farms,$10.99,3.0 Lbs,,False,False,2025-03-08T10:33:15.575894
-Gala Apples,produce,Fishkill FarmsFishkill Farms,$2.29,3 pieces,,False,False,2025-03-08T10:33:15.589994
-Organic Green Seedless Grapes,produce,Grown in PeruGrown in Peru,$12.99,2.0 Lbs,,False,False,2025-03-08T10:33:15.604233
-Cotton Candy Grapes,produce,Grown in PeruGrown in Peru,$7.99,1.0 Lbs,,False,False,2025-03-08T10:33:15.617194
-Organic Red Seedless Grapes,produce,Grown in PeruGrown in Peru,$12.99,2.0 Lbs,,False,False,2025-03-08T10:33:15.629815
-Organic Baby Spinach,produce,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$4.49,4.0 oz,,False,False,2025-03-08T10:33:15.642250
-Organic Baby Arugula,produce,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$4.99,4.0 oz,,False,False,2025-03-08T10:33:15.656110
-Organic Baby Mixed Asian Greens,produce,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$4.99,4.0 oz,,False,False,2025-03-08T10:33:15.669224
-Organic Dandelion Greens,produce,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$3.99,1 bunch,,False,False,2025-03-08T10:33:15.682519
-Mesclun Spring Mix,produce,Little Leaf FarmsLittle Leaf Farms,$3.99,4.0 oz,,False,False,2025-03-08T10:33:15.695310
-Baby Green Leaf (Loose),produce,Little Leaf FarmsLittle Leaf Farms,$3.99,4.0 oz,,False,False,2025-03-08T10:33:15.708614
-Butterhead Lettuce,produce,The Gehman Family FarmThe Gehman Family Far...,$4.29,1 head,,False,False,2025-03-08T10:33:15.723489
-Romaine Hearts (Organic),produce,Lady Moon FarmsLady Moon Farms,$5.29,3 heads,,False,False,2025-03-08T10:33:15.736082
-Organic Romaine Lettuce,produce,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$3.99,1 head,,False,False,2025-03-08T10:33:15.749326
-Organic Kale Microgreens,produce,Agrarian FeastAgrarian Feast,$8.99,1.25 oz,,False,False,2025-03-08T10:33:15.761832
-Organic Cilantro Microgreens,produce,Agrarian FeastAgrarian Feast,$9.99,1.25 oz,,False,False,2025-03-08T10:33:15.774471
-Organic Pea Shoots,produce,Agrarian FeastAgrarian Feast,$8.99,3.0 oz,,False,False,2025-03-08T10:33:15.786934
-Organic Broccoli Microgreens,produce,Agrarian FeastAgrarian Feast,$8.99,1.25 oz,,False,True,2025-03-08T10:33:15.799453
-Organic Green Kale,produce,Lancaster Farm Fresh Cooperative Partner FarmLancaster Farm Fresh ...,$3.39,1 bunch,,False,False,2025-03-08T10:33:15.812296
-Organic Savoy Spinach,produce,Somewhere in Time FarmSomewhere in Time Far...,$4.99,4.0 oz,,False,False,2025-03-08T10:33:15.824867
-Kalettes,produce,Tivoli MushroomsTivoli Mushrooms,$5.99,4.0 oz,,False,False,2025-03-08T10:33:15.837577
-Organic Lacinato Kale,produce,Lady Moon FarmsLady Moon Farms,$3.99,1 bunch,,False,False,2025-03-08T10:33:15.874339
-Organic Young Red Russian Kale,produce,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$4.99,4.0 oz,,False,False,2025-03-08T10:33:15.900052
-Organic Red Russian Kale,produce,Somewhere in Time FarmSomewhere in Time Far...,$4.99,1 bunch,,False,False,2025-03-08T10:33:15.913268
-Organic Slicing Cucumbers,produce,Grown in CaliforniaGrown in California,$4.99,2 pieces,,False,False,2025-03-08T10:33:15.937347
-Organic Green Zucchini,produce,Lancaster Farm Fresh Cooperative Partner FarmLancaster Farm Fresh ...,$3.99,2 pieces,,False,False,2025-03-08T10:33:15.949377
-Starry Night Acorn Squash,produce,Sunny HarvestSunny Harvest,$2.99,1 piece,,False,False,2025-03-08T10:33:15.961310
-Organic Orange Carrots,produce,Sun Sprout FarmSun Sprout Farm,$3.99,1.0 Lbs,,False,False,2025-03-08T10:33:15.974087
-Organic Rainbow Carrots,produce,Sun Sprout FarmSun Sprout Farm,$3.99,1.0 Lbs,,False,False,2025-03-08T10:33:15.986180
-Organic Baby Orange Carrots,produce,Pete's GreensPete's Greens,$11.99,1.5 Lbs,,False,False,2025-03-08T10:33:15.998248
-Organic Ginger Root,produce,La GramaLa Grama,$1.99,4.0 Ounce,,False,False,2025-03-08T10:33:16.010418
-Organic Turmeric Root,produce,Grown in JamaicaGrown in Jamaica,$2.99,4.0 Ounce,,False,False,2025-03-08T10:33:16.022508
-Black Spanish Radish,produce,Sunny HarvestSunny Harvest,$2.99,1.0 Lbs,,False,False,2025-03-08T10:33:16.034399
-Hirosaki Turnips,produce,Sunny HarvestSunny Harvest,$2.99,1.0 Lbs,,False,False,2025-03-08T10:33:16.046392
-Organic Watermelon Radishes,produce,Sun Sprout FarmSun Sprout Farm,$3.49,1.0 Lbs,,False,False,2025-03-08T10:33:16.058210
-Organic Sunchokes,produce,Sun Sprout FarmSun Sprout Farm,$3.99,1.0 Lbs,,False,False,2025-03-08T10:33:16.070529
-Organic Loose Red Beets,produce,Sun Sprout FarmSun Sprout Farm,$2.99,1.0 Lbs,,False,False,2025-03-08T10:33:16.082635
-Purple Sweet Potatoes (Organic),produce,Row by Row FarmRow by Row Farm,$3.99,1.0 Lbs,,False,False,2025-03-08T10:33:16.094693
-Organic Chiogga Beets,produce,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$4.99,1.0 Lbs,,False,False,2025-03-08T10:33:16.106895
-Organic Badger Flame Beets,produce,Row 7 Seed CompanyRow 7 Seed Company,$3.99,1.0 Lbs,,False,False,2025-03-08T10:33:16.118793
-Yukon Gold Potatoes,produce,Dagele Brothers ProduceDagele Brothers Produ...,$3.99,2.0 Lbs,,False,False,2025-03-08T10:33:16.142713
-5 lb Russet Potatoes,produce,Sparrow Arc FarmSparrow Arc Farm,$9.99,5.0 Lbs,,False,False,2025-03-08T10:33:16.154688
-5 lb Gold Potatoes,produce,Sparrow Arc FarmSparrow Arc Farm,$9.99,5.0 Lbs,,False,False,2025-03-08T10:33:16.166861
-Organic Lehigh Gold Potatoes,produce,Sun Sprout FarmSun Sprout Farm,$3.99,1.0 Lbs,,False,False,2025-03-08T10:33:16.178805
-Organic Upstate Abundance Potatoes,produce,Row 7 Seed CompanyRow 7 Seed Company,$4.99,1.0 Lbs,,False,False,2025-03-08T10:33:16.191239
-Organic Austrian Crescent Fingerling Potatoes,produce,Taproot FarmTaproot Farm,$5.99,1.0 Lbs,,False,False,2025-03-08T10:33:16.204029
-Organic Fingerling Sweet Potatoes,produce,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$4.99,1.0 Lbs,,False,False,2025-03-08T10:33:16.216684
-Sweet Potatoes,produce,North Carolina GrownNorth Carolina Grown,$2.99,1.5 Lbs,,False,False,2025-03-08T10:33:16.229388
-Organic Black Pearl Oyster Mushrooms,produce,MycopolitanMycopolitan,$4.99,4.0 oz,,False,False,2025-03-08T10:33:16.253272
-Organic Pioppini Mushrooms,produce,Tivoli MushroomsTivoli Mushrooms,$8.99,6.0 oz,,False,False,2025-03-08T10:33:16.265210
-Organic Yellow Oyster Mushrooms,produce,Tivoli MushroomsTivoli Mushrooms,$7.99,6.0 oz,,False,False,2025-03-08T10:33:16.277022
-Organic Beech Mushrooms,produce,Tivoli MushroomsTivoli Mushrooms,$6.49,4.0 oz,,False,False,2025-03-08T10:33:16.289578
-Cremini Mushrooms,produce,Kennett Square SpecialtiesKennett Square Specia...,$3.39,8.0 oz,,False,False,2025-03-08T10:33:16.301289
-Portobello Mushrooms,produce,Kennett Square SpecialtiesKennett Square Specia...,$4.49,10 oz,,False,False,2025-03-08T10:33:16.313336
-Shiitake Mushrooms,produce,Kennett Square SpecialtiesKennett Square Specia...,$5.99,6.0 oz,,False,False,2025-03-08T10:33:16.325020
-Organic Maitake Mushrooms,produce,Tivoli MushroomsTivoli Mushrooms,$8.29,4.0 oz,,False,False,2025-03-08T10:33:16.336919
-Organic Blue Oyster Mushrooms,produce,Tivoli MushroomsTivoli Mushrooms,$5.29,4.0 oz,,False,False,2025-03-08T10:33:16.349038
-Organic Royal Trumpet Mushrooms,produce,Tivoli MushroomsTivoli Mushrooms,$8.29,6.0 oz,,False,False,2025-03-08T10:33:16.360908
-Organic Lion's Mane Mushrooms,produce,Tivoli MushroomsTivoli Mushrooms,$6.49,4.0 Ounce,,False,False,2025-03-08T10:33:16.372867
-Red Cabbage,produce,Sunny HarvestSunny Harvest,$4.49,1 head,,False,False,2025-03-08T10:33:16.396632
-Green Cabbage,produce,Dagele Brothers ProduceDagele Brothers Produ...,$3.29,1 head,,False,False,2025-03-08T10:33:16.408235
-Organic Cauliflower,produce,Grown in CaliforniaGrown in California,$6.99,1 head,,False,False,2025-03-08T10:33:16.420173
-Broccoli Crown,produce,Smith's FarmSmith's Farm,$2.99,2 heads,,False,False,2025-03-08T10:33:16.433366
-Organic Broccolini,produce,Mann PackingMann Packing,$3.99,1 bunch,,False,False,2025-03-08T10:33:16.445810
-Brussels Sprouts,produce,Grown in CaliforniaGrown in California,$4.49,12.0 Ounce,,False,False,2025-03-08T10:33:16.457978
-Brussel Sprouts,produce,Grown in CaliforniaGrown in California,$8.99,2.0 Lbs,,False,False,2025-03-08T10:33:16.469889
-Organic Broccoli Rabe,produce,Andy BoyAndy Boy,$3.99,1 bunch,,False,False,2025-03-08T10:33:16.482066
-Organic Broccoli Crown,produce,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$4.24,1 head,,False,False,2025-03-08T10:33:16.493590
-Petite Chinese Broccoli,produce,Allwell GreensAllwell Greens,$6.49,8.0 Ounce,,False,False,2025-03-08T10:33:16.505924
-Organic Celery,produce,Lancaster Farm Fresh Cooperative Partner FarmLancaster Farm Fresh ...,$3.99,1 head,,False,False,2025-03-08T10:33:16.529373
-Artichokes,produce,Ocean Mist FarmOcean Mist Farm,$5.99,2 pieces,,False,False,2025-03-08T10:33:16.541152
-Green beans,produce,Grown in CaliforniaGrown in California,$8.99,2.0 Lbs,,False,False,2025-03-08T10:33:16.553092
-Organic Fennel,produce,Grown in CaliforniaGrown in California,$3.99,1 head,,False,False,2025-03-08T10:33:16.565428
-Organic Green Beans,produce,Lancaster Farm Fresh Cooperative Partner FarmLancaster Farm Fresh ...,$2.99,12.0 oz,,False,False,2025-03-08T10:33:16.576908
-Shishito Peppers,produce,Ark FoodsArk Foods,$4.99,8.0 oz,,False,False,2025-03-08T10:33:16.599481
-Organic Bunched Winter Celery,produce,Somewhere in Time FarmSomewhere in Time Far...,$5.99,1 bunch,,False,False,2025-03-08T10:33:16.613338
-Jimmy Nardello Peppers,produce,Ark FoodsArk Foods,$4.99,10.0 oz,,False,False,2025-03-08T10:33:16.637574
-Organic Green Bell Peppers,produce,Lancaster Farm Fresh Cooperative Partner FarmLancaster Farm Fresh ...,$4.29,2 pieces,,False,False,2025-03-08T10:33:16.649449
-Organic Jalapeno Peppers,produce,Grown in CaliforniaGrown in California,$3.99,5 pieces,,False,False,2025-03-08T10:33:16.661546
-Red Bell Peppers (Organic),produce,Grown in MexicoGrown in Mexico,$5.49,2 pieces,,False,False,2025-03-08T10:33:16.673251
-Organic Grape Tomatoes,produce,Lady Moon FarmsLady Moon Farms,$5.49,1 pint,,False,False,2025-03-08T10:33:16.685779
-Organic Mixed Cherry Tomatoes,produce,Long Wind FarmLong Wind Farm,$7.99,1.0 Pint,,False,False,2025-03-08T10:33:16.698186
-Beefsteak Tomatoes,produce,Backyard FarmsBackyard Farms,$4.24,2 pieces,,False,False,2025-03-08T10:33:16.721642
-Medium Red Tomatoes on the Vine,produce,Backyard FarmsBackyard Farms,$4.99,3 pieces,,False,False,2025-03-08T10:33:16.733345
-Cherry Tomatoes on the Vine,produce,Backyard FarmsBackyard Farms,$4.99,10.0 Ounce,,False,False,2025-03-08T10:33:16.745400
-Organic Garlic,produce,Christopher Ranch GarlicChristopher Ranch Gar...,$1.00,1 head,,False,False,2025-03-08T10:33:16.769045
-Yellow Onions,produce,Dagele Brothers ProduceDagele Brothers Produ...,$1.79,3 pieces (1 lb),,False,False,2025-03-08T10:33:16.780792
-Red Onions,produce,Dagele Brothers ProduceDagele Brothers Produ...,$1.79,3 Pieces (1 lb),,False,False,2025-03-08T10:33:16.792828
-Shallots,produce,Dagele Brothers ProduceDagele Brothers Produ...,$2.49,4 pieces,,False,False,2025-03-08T10:33:16.828396
-Organic Chives,produce,Soli OrganicSoli Organic,$2.99,1 bunch,,False,False,2025-03-08T10:33:16.840326
-Organic Scallions,produce,Lancaster Farm Fresh Cooperative Partner FarmLancaster Farm Fresh ...,$2.99,1 bunch,,False,False,2025-03-08T10:33:16.852215
-Organic Leeks,produce,Grown in CaliforniaGrown in California,$5.99,1 bunch,,False,False,2025-03-08T10:33:16.864787
-Organic Italian Parsley,produce,Grown in CaliforniaGrown in California,$2.29,1 bunch,,False,False,2025-03-08T10:33:16.877213
-Organic Cilantro,produce,Grown in CaliforniaGrown in California,$2.99,1 bunch,,False,False,2025-03-08T10:33:16.889609
-Organic Rosemary,produce,Goodness GardensGoodness Gardens,$2.99,0.75 Ounce,,False,False,2025-03-08T10:33:16.913397
-Organic Thyme,produce,Goodness GardensGoodness Gardens,$2.99,0.75 Ounce,,False,False,2025-03-08T10:33:16.925248
-Organic Sage,produce,Goodness GardensGoodness Gardens,$2.99,0.75 Ounce,,False,False,2025-03-08T10:33:16.937541
-Basil,produce,Gotham GreensGotham Greens,$4.99,1.5 Ounce,,False,False,2025-03-08T10:33:16.949904
-Organic Dill,produce,Grown in CaliforniaGrown in California,$3.99,1 bunch,,False,False,2025-03-08T10:33:16.962187
-Organic Mint,produce,Goodness GardensGoodness Gardens,$2.99,0.75 Ounce,,False,False,2025-03-08T10:33:16.974072
-Seasonal Flower Bouquet,produce,Sunny HarvestSunny Harvest,$16.99,1 bouquet,,False,False,2025-03-08T10:33:16.985714
-Frozen Pennsylvania Sliced Peaches,produce,Seal the SeasonsSeal the Seasons,$13.79,32.0 Ounce,,False,False,2025-03-08T10:33:16.997733
-Frozen New York Tart Cherries,produce,Seal the SeasonsSeal the Seasons,$13.79,32.0 Ounce,,False,False,2025-03-08T10:33:17.009699
-Super Greens Cleanse Smoothie Mix,produce,Seal the SeasonsSeal the Seasons,$12.99,24.0 Ounce,,False,False,2025-03-08T10:33:17.021757
-Cherry Berry Blend,produce,Seal the SeasonsSeal the Seasons,$13.79,32.0 Ounce,,False,False,2025-03-08T10:33:17.033343
-Açai Antioxidant Smoothie Mix,produce,Seal the SeasonsSeal the Seasons,$12.99,24.0 Ounce,,False,False,2025-03-08T10:33:17.045604
-Dragonfruit Probiotic Smoothie Mix,produce,Seal the SeasonsSeal the Seasons,$13.79,32.0 Ounce,,False,False,2025-03-08T10:33:17.057972
-Organic Frozen New Jersey Blueberries,produce,Seal the SeasonsSeal the Seasons,$16.99,32.0 Ounce,,False,False,2025-03-08T10:33:17.070676
-Organic Frozen Maine Wild Blueberries,produce,Seal the SeasonsSeal the Seasons,$16.99,32.0 oz,,False,False,2025-03-08T10:33:17.082645
-Frozen Peas,produce,Dusty Lane FarmsDusty Lane Farms,$4.99,1.0 Lbs,,False,False,2025-03-08T10:33:17.094618
-Frozen Corn,produce,Dusty Lane FarmsDusty Lane Farms,$2.89,1.0 Lbs,,False,False,2025-03-08T10:33:17.106720
-Frozen Diced Bell Peppers,produce,Hudson HarvestHudson Harvest,$5.99,10.0 Ounce,,False,False,2025-03-08T10:33:17.118878
-Frozen Cherry Tomatoes,produce,Hudson HarvestHudson Harvest,$5.49,10.0 Ounce,,False,False,2025-03-08T10:33:17.130991
-Frozen Cauliflower Rice,produce,Hudson HarvestHudson Harvest,$5.99,10.0 Ounce,,False,False,2025-03-08T10:33:17.142858
-Organic Sliced Oven Roasted Turkey,meat-seafood,Organic NUNAOrganic NUNA,$9.99,5.0 oz,,False,False,2025-03-08T10:33:24.179132
-Organic Sliced Roasted Chicken,meat-seafood,Organic NUNAOrganic NUNA,$9.99,5.0 oz,,False,False,2025-03-08T10:33:24.199852
-Organic Sliced Uncured Ham,meat-seafood,Organic NUNAOrganic NUNA,$9.99,5.0 oz,,False,False,2025-03-08T10:33:24.218203
-Whole Chicken,meat-seafood,Locust Point FarmLocust Point Farm,$16.99,3-4 lb,,False,False,2025-03-08T10:33:24.235489
-Bone-In Pork Chops,meat-seafood,Heritage FoodsHeritage Foods,$14.99,2 chops (0.85 - 1 lb),,False,False,2025-03-08T10:33:24.251048
-Beef Stir-Fry Strips,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$11.99,10-14 oz,,False,False,2025-03-08T10:33:24.267130
-Small Whole Steelhead Trout,meat-seafood,Hudson Valley FisheriesHudson Valley Fisheri...,$19.99,1-1.5 lbs,,False,False,2025-03-08T10:33:24.281915
-100% Grass-fed NY Strip Steak,meat-seafood,Hardwick BeefHardwick Beef,N/A,"0.7-1 lbs, avg $29.69",$32.99/ lb,False,False,2025-03-08T10:33:24.297006
-Uncured Smoked Sliced Bacon,meat-seafood,Stryker FarmStryker Farm,$11.99,12.0 Ounce,,False,True,2025-03-08T10:33:24.311786
-"Boneless, Skinless Chicken Breast",meat-seafood,Locust Point FarmLocust Point Farm,$12.99,.7-1lb,,False,False,2025-03-08T10:33:24.356874
-"Chicken Breast-Bone-In, Skin-On",meat-seafood,Locust Point FarmLocust Point Farm,$10.99,1-2lb,,False,False,2025-03-08T10:33:24.392225
-"American Bird Boneless, Skinless Chicken Breast",meat-seafood,Snowdance FarmSnowdance Farm,$12.99,0.7 - 1 lb,,False,False,2025-03-08T10:33:24.407271
-"Heritage Breed Boneless, Skinless Chicken Breast",meat-seafood,Snowdance FarmSnowdance Farm,$14.99,0.7 - 1 lb,,False,False,2025-03-08T10:33:24.422076
-"Boneless, Skinless Chicken Thighs",meat-seafood,Locust Point FarmLocust Point Farm,$8.99,.6-1lb,,False,False,2025-03-08T10:33:24.436962
-"Bone-in, Skin-on Chicken Thighs",meat-seafood,Locust Point FarmLocust Point Farm,$7.59,0.7 - 1 lb,,False,False,2025-03-08T10:33:24.451679
-"American Bird Bone-in, Skin-on Chicken Thighs",meat-seafood,Snowdance FarmSnowdance Farm,$9.99,0.75-1 lb,,False,False,2025-03-08T10:33:24.466081
-"Heritage Breed Bone-in, Skin-on Chicken Thighs",meat-seafood,Snowdance FarmSnowdance Farm,$12.99,0.7 - 1.3 lb,,False,False,2025-03-08T10:33:24.480482
-Chicken Drumsticks,meat-seafood,Locust Point FarmLocust Point Farm,$6.99,.85-1.3lb,,False,False,2025-03-08T10:33:24.494892
-American Bird Whole Chicken,meat-seafood,Snowdance FarmSnowdance Farm,$23.99,approx. 3-4 lb,,False,False,2025-03-08T10:33:24.522982
-Heritage Breed Whole Chicken,meat-seafood,Snowdance FarmSnowdance Farm,$26.99,approx. 3-4 lb,,False,False,2025-03-08T10:33:24.537184
-"2 Whole Chicken Legs- Bone-In, Skin-On",meat-seafood,Locust Point FarmLocust Point Farm,$6.49,0.85 - 1.3 lb,,False,False,2025-03-08T10:33:24.551665
-Heritage Breed Whole Chicken Legs,meat-seafood,Snowdance FarmSnowdance Farm,$18.99,2 - 3 lb,,False,False,2025-03-08T10:33:24.566148
-Chicken Wings,meat-seafood,Locust Point FarmLocust Point Farm,$9.99,0.85 - 1.3 lb,,False,False,2025-03-08T10:33:24.580674
-Heritage Breed Chicken Wings,meat-seafood,Snowdance FarmSnowdance Farm,$11.99,1.5 - 2 lb,,False,False,2025-03-08T10:33:24.595609
-Chicken Livers,meat-seafood,Locust Point FarmLocust Point Farm,$6.29,.7-1lb,,False,False,2025-03-08T10:33:24.611069
-Chicken Bone Broth,meat-seafood,Yellow Bell FarmYellow Bell Farm,$14.99,24 oz,,False,False,2025-03-08T10:33:24.625984
-Chicken Garlic Sausage,meat-seafood,Brooklyn CuredBrooklyn Cured,$10.99,12.0 Ounce,,False,False,2025-03-08T10:33:24.640440
-Grilled Chicken Breast,meat-seafood,Farm To People KitchenFarm To People Kitche...,$13.99,3 cutlets,,False,False,2025-03-08T10:33:24.654689
-Roasted Whole Chicken,meat-seafood,Farm To People KitchenFarm To People Kitche...,$17.99,approx. 2.5 lbs,,False,False,2025-03-08T10:33:24.668445
-Buffalo Style Wings,meat-seafood,Farm To People KitchenFarm To People Kitche...,$19.99,15 pieces,,False,False,2025-03-08T10:33:24.682736
-Dark Ground Turkey,meat-seafood,Koch's Turkey FarmKoch's Turkey Farm,$8.99,1.0 Lbs,,False,False,2025-03-08T10:33:24.697613
-White Ground Turkey,meat-seafood,Koch's Turkey FarmKoch's Turkey Farm,$9.99,1.0 Lbs,,False,False,2025-03-08T10:33:24.711333
-Spinach Feta Turkey Burger,meat-seafood,Farm To People KitchenFarm To People Kitche...,$10.99,2 pieces,,False,False,2025-03-08T10:33:24.727471
-Organic Turkey Bacon,meat-seafood,Koch's Turkey FarmKoch's Turkey Farm,$10.99,8.0 Ounce,,False,False,2025-03-08T10:33:24.742307
-Oven Roasted Turkey,meat-seafood,North Country SmokehouseNorth Country Smokeho...,$8.49,6.0 Ounce,,False,False,2025-03-08T10:33:24.757046
-Whole Pekin Duck,meat-seafood,Joe Jurgielewicz and SonJoe Jurgielewicz and ...,$44.99,6-7 lb,,False,False,2025-03-08T10:33:24.771433
-Air Chilled Moulard Duck Breast,meat-seafood,La Belle FarmLa Belle Farm,$34.99,16-18 oz,,False,False,2025-03-08T10:33:24.785761
-Ground Beef,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$8.99,1.0 Lbs,,False,False,2025-03-08T10:33:24.800307
-100% Grass-fed Ground Beef,meat-seafood,Hardwick BeefHardwick Beef,$9.99,1.0 Lbs,,False,False,2025-03-08T10:33:24.814990
-Beef Stew Meat,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$14.99,14-18 oz,,False,False,2025-03-08T10:33:24.829064
-100% Grass-fed Osso Buco,meat-seafood,Hardwick BeefHardwick Beef,N/A,"1.6-2.1 lbs, avg $29.58",$15.99/ lb,False,False,2025-03-08T10:33:24.843603
-100% Grass-fed Stew Beef,meat-seafood,Hardwick BeefHardwick Beef,$16.99,1 lbs,,False,True,2025-03-08T10:33:24.857900
-100% Grass-fed Oxtail,meat-seafood,Hardwick BeefHardwick Beef,N/A,"1.8-3 lbs, $52.77",$21.99/ lb,False,True,2025-03-08T10:33:24.872199
-100% Grass-fed Kabob Beef,meat-seafood,Hardwick BeefHardwick Beef,$12.99,1.0 Lbs,,False,True,2025-03-08T10:33:24.886735
-100% Grass-fed Brisket,meat-seafood,Hardwick BeefHardwick Beef,N/A,"2-2.5 lbs, avg $38.22",$16.99/ lb,False,False,2025-03-08T10:33:24.901133
-Bone-In Beef Short Ribs,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$27.99,1.7-3 lb,,False,False,2025-03-08T10:33:24.915074
-100% Grass-fed Short Ribs,meat-seafood,Hardwick BeefHardwick Beef,N/A,"2.5-4.2 lbs, avg $77.01",$22.99/ lb,False,False,2025-03-08T10:33:24.928964
-Longhorn Grass-fed Beef Chili,meat-seafood,Farm To People KitchenFarm To People Kitche...,$11.99,1 lb,,False,False,2025-03-08T10:33:24.943423
-Beef Bourguignon,meat-seafood,Farm To People KitchenFarm To People Kitche...,$20.99,16.0 oz,,False,False,2025-03-08T10:33:24.957791
-100% Grass-fed London Broil,meat-seafood,Hardwick BeefHardwick Beef,N/A,"1-1.5 lbs, avg $17.48",$13.99/ lb,False,False,2025-03-08T10:33:24.971782
-Beef Tenderloin,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$99.99,1.75 Lbs,,False,False,2025-03-08T10:33:24.985863
-100% Grass-fed Sirloin Tip Steak,meat-seafood,Hardwick BeefHardwick Beef,N/A,"1-1.4 lbs, avg $19.18",$17.99/ lb,False,False,2025-03-08T10:33:25.000261
-Thick-Cut Boneless Ribeye Steak,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$47.99,16.0 Ounce,,False,False,2025-03-08T10:33:25.014309
-Denver Steak,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$18.99,6 - 8 oz,,False,False,2025-03-08T10:33:25.028112
-100% Grass-fed Sirloin Steak,meat-seafood,Hardwick BeefHardwick Beef,N/A,"0.6-0.8 lbs, avg $19.69",$18.99/ lb,False,False,2025-03-08T10:33:25.043398
-Strip Steak,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$34.99,1 lb,,False,False,2025-03-08T10:33:25.057679
-Chuck Eye Steak,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$15.99,8-12 oz,,False,False,2025-03-08T10:33:25.071799
-Sirloin Steak,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$17.99,8-12 oz,,False,False,2025-03-08T10:33:25.099844
-Skirt Steak,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$35.99,1 lb,,False,False,2025-03-08T10:33:25.114193
-Filet Mignon,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$34.99,6 - 8 oz,,False,False,2025-03-08T10:33:25.127853
-100% Grass-fed Flat Iron Steak,meat-seafood,Hardwick BeefHardwick Beef,N/A,"0.9-1.2 lbs, avg $20.89",$18.99/ lb,False,False,2025-03-08T10:33:25.142118
-100% Grass-fed Skirt Steak,meat-seafood,Hardwick BeefHardwick Beef,N/A,"1.3-1.8 lbs, avg $60.43",$38.99/ lb,False,False,2025-03-08T10:33:25.169561
-100% Grass-fed Flank Steak,meat-seafood,Hardwick BeefHardwick Beef,N/A,"1.8-2.2 lbs, avg $45.98",$22.99/ lb,False,False,2025-03-08T10:33:25.183946
-100% Grass-Fed Chuck Eye Steak,meat-seafood,Hardwick BeefHardwick Beef,N/A,"0.4-1.2 lbs, avg $13.59",$16.99/ lb,False,False,2025-03-08T10:33:25.198195
-100% Grass-fed Ribeye,meat-seafood,Hardwick BeefHardwick Beef,N/A,"0.8-1 lbs, avg $35.99",$39.99/ lb,False,False,2025-03-08T10:33:25.212365
-100% Grass-fed Filet Mignon,meat-seafood,Hardwick BeefHardwick Beef,N/A,"0.4-0.6 lbs, avg $28.49",$56.99/ lb,False,False,2025-03-08T10:33:25.226691
-Filet Tip Steak,meat-seafood,Happy Valley Meat CompanyHappy Valley Meat Com...,$25.99,1.0 Lbs,,False,True,2025-03-08T10:33:25.240984
-100% Grass-fed Hanger Steak,meat-seafood,Hardwick BeefHardwick Beef,N/A,"1.3-2.6 lbs, avg $46.78",$23.99/ lb,False,True,2025-03-08T10:33:25.255277
-100% Grass-fed Sirloin Flap Steak,meat-seafood,Hardwick BeefHardwick Beef,N/A,"0.6-0.8 lbs, avg $11.19",$15.99/ lb,False,True,2025-03-08T10:33:25.269233
-100% Grass-fed Beef Liver,meat-seafood,Hardwick BeefHardwick Beef,N/A,"0.8-1.2 lbs, avg $15.99",$15.99/ lb,False,False,2025-03-08T10:33:25.376683
-100% Grass-fed Beef Kidney,meat-seafood,Hardwick BeefHardwick Beef,$9.99,1 lbs,,False,False,2025-03-08T10:33:25.390923
-100% Grass-fed Beef Tongue,meat-seafood,Hardwick BeefHardwick Beef,$24.99,1.5 lbs,,False,False,2025-03-08T10:33:25.444976
-100% Grass-fed Beef Suet,meat-seafood,Hardwick BeefHardwick Beef,N/A,"2-2.5 lbs, avg $17.98",$7.99/ lb,False,False,2025-03-08T10:33:25.458823
-100% Grass-fed Beef Heart,meat-seafood,Hardwick BeefHardwick Beef,$12.99,1.5 lbs,,False,False,2025-03-08T10:33:25.473086
-100% Grass-fed Beef Tallow,meat-seafood,Farm To People KitchenFarm To People Kitche...,$8.99,8.0 oz,,False,False,2025-03-08T10:33:25.540048
-100% Grass-fed Marrow Bones,meat-seafood,Hardwick BeefHardwick Beef,N/A,"0.8-1.5 lbs, avg $11.48",$9.99/ lb,False,True,2025-03-08T10:33:25.593291
-100% Grass-fed Beef Bones,meat-seafood,Hardwick BeefHardwick Beef,N/A,"4.5-5.5 lbs, avg $26.45",$5.29/ lb,False,True,2025-03-08T10:33:25.620782
-Beef Soup Bones,meat-seafood,Stryker FarmStryker Farm,$8.99,2-3 lb,,False,False,2025-03-08T10:33:25.647598
-Wild Sockeye Salmon,meat-seafood,Red's Best SeafoodRed's Best Seafood,$11.99,6.0 oz,,False,False,2025-03-08T10:33:25.753715
-Atlantic Haddock,meat-seafood,Red's Best SeafoodRed's Best Seafood,$19.99,15-17 oz,,False,False,2025-03-08T10:33:25.781160
-Acadian Redfish,meat-seafood,Red's Best SeafoodRed's Best Seafood,$15.99,1.0 Lbs,,False,False,2025-03-08T10:33:25.794841
-Flounder,meat-seafood,Red's Best SeafoodRed's Best Seafood,$23.99,15-17 oz,,False,False,2025-03-08T10:33:25.809247
-Wild Alaskan Coho Salmon,meat-seafood,Triad FisheriesTriad Fisheries,$15.99,8.0 Ounce,,False,False,2025-03-08T10:33:25.823386
-Atlantic Swordfish,meat-seafood,Red's Best SeafoodRed's Best Seafood,$25.99,15-17 oz,,False,False,2025-03-08T10:33:25.837567
-New York Steelhead Trout Filet,meat-seafood,Hudson Valley FisheriesHudson Valley Fisheri...,$39.99,1.25 - 1.5 lb,,False,False,2025-03-08T10:33:25.851424
-New York Steelhead Small Filet,meat-seafood,Hudson Valley FisheriesHudson Valley Fisheri...,$15.99,.4-.5 lbs,,False,False,2025-03-08T10:33:25.865267
-American Hackleback Caviar,meat-seafood,Black Diamond CaviarBlack Diamond Caviar,$39.99,1.0 Ounce,,False,False,2025-03-08T10:33:25.879192
-Salmon Roe,meat-seafood,Black Diamond CaviarBlack Diamond Caviar,$32.99,4.0 Ounce,,False,False,2025-03-08T10:33:25.893057
-Golden Ossetra Caviar,meat-seafood,Black Diamond CaviarBlack Diamond Caviar,$49.99,1.0 Ounce,,False,False,2025-03-08T10:33:25.908421
-Calamari,meat-seafood,Red's Best SeafoodRed's Best Seafood,$19.99,1.0 Lbs,,False,False,2025-03-08T10:33:25.923419
-Walleye Fish,meat-seafood,Red's Best SeafoodRed's Best Seafood,$12.99,8.0 oz,,False,False,2025-03-08T10:33:25.937515
-Grey Sole,meat-seafood,Red's Best SeafoodRed's Best Seafood,$9.99,6-8 oz,,False,False,2025-03-08T10:33:25.967987
-Wild Atlantic Cod,meat-seafood,Red's Best SeafoodRed's Best Seafood,$22.95,1.0 Lbs,,False,False,2025-03-08T10:33:25.982226
-Black Sea Bass,meat-seafood,Red's Best SeafoodRed's Best Seafood,$11.99,8-10 oz,,False,False,2025-03-08T10:33:25.996752
-Monkfish,meat-seafood,Red's Best SeafoodRed's Best Seafood,$11.99,8.0 Ounce,,False,False,2025-03-08T10:33:26.011078
-Golden Tilefish,meat-seafood,Red's Best SeafoodRed's Best Seafood,$32.99,1.0 Lbs,,False,False,2025-03-08T10:33:26.025288
-Weakfish,meat-seafood,Red's Best SeafoodRed's Best Seafood,$24.99,1.0 Lbs,,False,False,2025-03-08T10:33:26.039560
-Cape Cod Sea Scallops,meat-seafood,Red's Best SeafoodRed's Best Seafood,$32.99,15-17 oz,,False,False,2025-03-08T10:33:26.053630
-Wild Mexican Shrimp Burgers,meat-seafood,Marativa SeafoodsMarativa Seafoods,$15.99,Each (1.0 Lbs each),,False,False,2025-03-08T10:33:26.070588
-Maine Lobster Tails,meat-seafood,Red's Best SeafoodRed's Best Seafood,$29.99,2 tails (4-6 oz ea.),,False,False,2025-03-08T10:33:26.084873
-Wild Caught Mexican Blue Shrimp,meat-seafood,Marativa SeafoodsMarativa Seafoods,$15.99,12.0 oz,,False,False,2025-03-08T10:33:26.098924
-Wild Caught Gulf Coast Shrimp,meat-seafood,Red's Best SeafoodRed's Best Seafood,$29.99,1.0 Lbs,,False,False,2025-03-08T10:33:26.113452
-Gold Label Smoked Salmon,meat-seafood,CatsmoCatsmo,$12.99,4.0 Ounce,,False,False,2025-03-08T10:33:26.127266
-Gravelox,meat-seafood,CatsmoCatsmo,$14.49,4.0 Ounce,,False,False,2025-03-08T10:33:26.141794
-Pastrami Smoked Salmon,meat-seafood,CatsmoCatsmo,$14.49,4.0 Ounce,,False,False,2025-03-08T10:33:26.155765
-Wild Smoked Sockeye Salmon,meat-seafood,Acme Smoked FishAcme Smoked Fish,$9.99,3.0 Ounce,,False,False,2025-03-08T10:33:26.169618
-Lox-Style Cold Smoked New York Steelhead,meat-seafood,Hudson Valley FisheriesHudson Valley Fisheri...,$17.99,4.0 oz,,False,False,2025-03-08T10:33:26.183787
-Hot Smoked New York Steelhead,meat-seafood,Hudson Valley FisheriesHudson Valley Fisheri...,$14.99,4.0 oz,,False,False,2025-03-08T10:33:26.197885
-Smoked Trout Filet,meat-seafood,Acme Smoked FishAcme Smoked Fish,$9.99,5.0 Ounce,,False,False,2025-03-08T10:33:26.211840
-Smoked Whitefish Salad,meat-seafood,Acme Smoked FishAcme Smoked Fish,$9.99,8.0 Ounce,,False,False,2025-03-08T10:33:26.226204
-Lemon Olive Spanish White Anchovies,meat-seafood,Patagonia ProvisionsPatagonia Provisions,$8.99,4.2 Ounce,,False,False,2025-03-08T10:33:26.240696
-Herring with Dill,meat-seafood,Acme Smoked FishAcme Smoked Fish,$6.49,12.0 Ounce,,False,False,2025-03-08T10:33:26.255436
-Spanish Paprika Mackerel,meat-seafood,Patagonia ProvisionsPatagonia Provisions,$8.99,4.2 Ounce,,False,False,2025-03-08T10:33:26.270858
-Sardines in Olive Oil,meat-seafood,Conservas OrtizConservas Ortiz,$8.39,4.93 oz tin,,False,False,2025-03-08T10:33:26.285718
-Ortiz White Tuna In Olive Oil,meat-seafood,Conservas OrtizConservas Ortiz,$10.99,3.95 oz tin,,False,False,2025-03-08T10:33:26.300312
-Roasted Garlic Spanish White Anchovies,meat-seafood,Patagonia ProvisionsPatagonia Provisions,$8.99,4.2 Ounce,,False,False,2025-03-08T10:33:26.314848
-Smoked Mackerel,meat-seafood,Patagonia ProvisionsPatagonia Provisions,$8.99,4.2 Ounce,,False,False,2025-03-08T10:33:26.329515
-Smoked Trout Filet in Oil,meat-seafood,MinnowMinnow,$13.99,3.9 oz tin,,False,False,2025-03-08T10:33:26.343793
-Mussels in Escabeche,meat-seafood,MinnowMinnow,$11.99,4 oz tin,,False,False,2025-03-08T10:33:26.371663
-Sardines in a Rich Tomato Sauce,meat-seafood,MinaMina,$4.99,4.4 oz,,False,False,2025-03-08T10:33:26.385629
-Bonito Tuna in Oil,meat-seafood,Conservas OrtizConservas Ortiz,$19.99,7.76 oz jar,,False,False,2025-03-08T10:33:26.399320
-Spicy White Anchovies,meat-seafood,Patagonia ProvisionsPatagonia Provisions,$8.99,4.2 oz,,False,False,2025-03-08T10:33:26.413098
-Smoked Mussels,meat-seafood,Patagonia ProvisionsPatagonia Provisions,$8.99,4.2 oz,,False,False,2025-03-08T10:33:26.427079
-Country Sausage,meat-seafood,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$12.99,1.0 Lbs,,False,False,2025-03-08T10:33:26.456665
-Sage Sausage,meat-seafood,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$12.99,1.0 Lbs,,False,False,2025-03-08T10:33:26.480593
-Maple Sausage,meat-seafood,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$12.99,1.0 Lbs,,False,False,2025-03-08T10:33:26.495324
-Organic Applewood Smoked Bacon,meat-seafood,North Country SmokehouseNorth Country Smokeho...,$10.99,8.0 Ounce,,False,False,2025-03-08T10:33:26.509774
-Beer Bratwurst,meat-seafood,Stryker FarmStryker Farm,$10.99,1.0 Lbs,,False,False,2025-03-08T10:33:26.524585
-Breakfast Sausage,meat-seafood,Stryker FarmStryker Farm,$11.49,1.0 Lbs,,False,False,2025-03-08T10:33:26.539569
-Pork Kielbasa,meat-seafood,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$11.99,1.0 Lbs,,False,False,2025-03-08T10:33:26.553688
-Chorizo,meat-seafood,Stryker FarmStryker Farm,$10.99,1.0 Lbs,,False,False,2025-03-08T10:33:26.567823
-Hot Italian Sausage,meat-seafood,Stryker FarmStryker Farm,$11.49,1.0 Lbs,,False,False,2025-03-08T10:33:26.582026
-Sweet Italian Sausage,meat-seafood,Stryker FarmStryker Farm,$11.49,1.0 Lbs,,False,False,2025-03-08T10:33:26.596120
-Salt & Pepper Sausage,meat-seafood,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$12.99,1.0 Lbs,,False,False,2025-03-08T10:33:26.610087
-Pork Belly,meat-seafood,Stryker FarmStryker Farm,$11.99,8-12 ounces,,False,False,2025-03-08T10:33:26.624861
-Pork Osso Buco,meat-seafood,Heritage FoodsHeritage Foods,$12.99,0.8 - 1.4 lbs,,False,False,2025-03-08T10:33:26.639406
-Pork Spare Ribs,meat-seafood,Stryker FarmStryker Farm,$37.99,approx. 4.25 lbs,,False,False,2025-03-08T10:33:26.653182
-Boneless Pork Chop,meat-seafood,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$14.99,1.0 Lbs,,False,False,2025-03-08T10:33:26.681282
-Pulled Pork,meat-seafood,Stryker FarmStryker Farm,$11.99,12.0 Ounce,,False,False,2025-03-08T10:33:26.695214
-Smoked & Brined Boneless Ham,meat-seafood,Oink & Gobble FarmOink & Gobble Farm,N/A,2.8 - 4 lb,$14.99/ lb,False,False,2025-03-08T10:33:26.709546
-Shaved Ham,meat-seafood,Heritage FoodsHeritage Foods,$10.49,8.0 Ounce,,False,False,2025-03-08T10:33:26.723620
-Black Forest Ham,meat-seafood,North Country SmokehouseNorth Country Smokeho...,$9.99,6.0 Ounce,,False,False,2025-03-08T10:33:26.737585
-Prosciutto,meat-seafood,Casella's SalumiCasella's Salumi,$14.99,3.0 Ounce,,False,False,2025-03-08T10:33:26.751242
-Sliced Finocchiona,meat-seafood,Brooklyn CuredBrooklyn Cured,$9.99,3.0 Ounce,,False,False,2025-03-08T10:33:26.766221
-Sliced Hot Soppressata,meat-seafood,Brooklyn CuredBrooklyn Cured,$9.99,3.0 Ounce,,False,False,2025-03-08T10:33:26.780554
-Sliced Soppressata,meat-seafood,Brooklyn CuredBrooklyn Cured,$9.99,3.0 Ounce,,False,False,2025-03-08T10:33:26.794228
-Sliced Chorizo,meat-seafood,Brooklyn CuredBrooklyn Cured,$9.99,3.0 Ounce,,False,False,2025-03-08T10:33:26.808328
-Poblano Salami,meat-seafood,Short Creek FarmShort Creek Farm,$15.99,5.0 Ounce,,False,False,2025-03-08T10:33:26.822455
-Ground Pork,meat-seafood,Heritage FoodsHeritage Foods,$9.99,1.0 Lbs,,False,True,2025-03-08T10:33:26.836827
-Pork Shoulder (Boneless Butt),meat-seafood,Stryker FarmStryker Farm,$24.99,approx. 2-3 lb,,False,True,2025-03-08T10:33:26.864598
-Smoked Beef Salami,meat-seafood,Brooklyn CuredBrooklyn Cured,$8.99,3.0 Ounce,,False,False,2025-03-08T10:33:26.984349
-Organic Sliced Honey Roasted Turkey Breast,meat-seafood,Organic NUNAOrganic NUNA,$9.99,5.0 oz,,False,False,2025-03-08T10:33:27.011334
-Organic Sliced Prosciutto,meat-seafood,Organic NUNAOrganic NUNA,$9.99,3.0 oz,,False,False,2025-03-08T10:33:27.065018
-Lamb Leg Steaks,meat-seafood,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...,$24.99,1.0 Lbs,,False,False,2025-03-08T10:33:27.079088
-Lamb Merguez Sausage,meat-seafood,Brooklyn CuredBrooklyn Cured,$14.99,9.0 Ounce,,False,False,2025-03-08T10:33:27.092858
-Ground Lamb,meat-seafood,White Clover Sheep FarmWhite Clover Sheep Fa...,$19.99,1.0 Lbs,,False,False,2025-03-08T10:33:27.107085
-NY Style Beef Hot Dogs,meat-seafood,Brooklyn CuredBrooklyn Cured,$10.79,12.0 Ounce,,False,False,2025-03-08T10:33:27.304870
-Tamari Maple Baked Tofu,meat-seafood,Farm To People KitchenFarm To People Kitche...,$6.49,6 pieces,,False,False,2025-03-08T10:33:27.332299
-Organic Tofu,meat-seafood,Fresh Tofu IncFresh Tofu Inc,$3.99,1 pack,,False,False,2025-03-08T10:33:27.346588
-Lemon & Herb Kelp Burgers,meat-seafood,AkuaAkua,$9.99,2 burgers (3 oz each),,False,False,2025-03-08T10:33:27.360535
-Original Tempeh,meat-seafood,Rhapsody Natural FoodsRhapsody Natural Food...,$6.39,8.0 Ounce,,False,False,2025-03-08T10:33:27.374797
-Original Style Seitan Slices,meat-seafood,Susie's SeitanSusie's Seitan,$9.99,8.0 Ounce,,False,False,2025-03-08T10:33:27.388851
-Portabella Mushroom & Roasted Garlic Seitan Slices,meat-seafood,Susie's SeitanSusie's Seitan,$9.99,7.0 Ounce,,False,False,2025-03-08T10:33:27.402586
-Chorizo Seitan,meat-seafood,Upton's NaturalsUpton's Naturals,$6.99,8.0 Ounce,,False,False,2025-03-08T10:33:27.417057
-Original Jackfruit,meat-seafood,Upton's NaturalsUpton's Naturals,$6.99,10.0 Ounce,,False,False,2025-03-08T10:33:27.430809
-Bar-B-Que Jackfruit,meat-seafood,Upton's NaturalsUpton's Naturals,$6.99,10.0 Ounce,,False,False,2025-03-08T10:33:27.444396
-Organic Sliced Sharp Cheddar,dairy-eggs,Organic NUNAOrganic NUNA,$7.99,5.0 oz,,False,False,2025-03-08T10:33:33.615698
-Organic Sliced Provolone Cheese,dairy-eggs,Organic NUNAOrganic NUNA,$7.99,5.0 oz,,False,False,2025-03-08T10:33:33.634223
-Organic Sliced Swiss Cheese,dairy-eggs,Organic NUNAOrganic NUNA,$7.99,5.0 oz,,False,False,2025-03-08T10:33:33.650371
-Everything Labneh,dairy-eggs,BEZIBEZI,$6.49,7.0 oz,,False,False,2025-03-08T10:33:33.665246
-Roasted Red Pepper Labneh,dairy-eggs,BEZIBEZI,$6.49,7.0 oz,,False,False,2025-03-08T10:33:33.705026
-New York State White Cheddar,dairy-eggs,Murray's CheeseMurray's Cheese,$5.94,8.0 Ounce,,False,False,2025-03-08T10:33:33.719399
-Ben's Cream Cheese,dairy-eggs,Murray's CheeseMurray's Cheese,$6.99,8.0 Ounce,,False,False,2025-03-08T10:33:33.732784
-High Plains Cheddar,dairy-eggs,Murray's CheeseMurray's Cheese,$13.99,8.0 Ounce,,False,False,2025-03-08T10:33:33.745923
-Black Cherry Yogurt,dairy-eggs,Ithaca MilkIthaca Milk,$2.99,6.0 Ounce,,False,False,2025-03-08T10:33:33.758939
-Rose Yogurt,dairy-eggs,La FermièreLa Fermière,$3.99,4.9 Ounce,,False,False,2025-03-08T10:33:33.772457
-Original Pistachio Milk,dairy-eggs,TácheTáche,$8.99,32.0 oz,,False,False,2025-03-08T10:33:33.787724
-Pepper Jack,dairy-eggs,Hook's Cheese CompanyHook's Cheese Company,$9.99,8.0 Ounce,,False,True,2025-03-08T10:33:33.803504
-Staples Bundle,dairy-eggs,Farm to PeopleFarm to People,$17.99,,,False,False,2025-03-08T10:33:33.818404
-Creamline Grass-fed Whole Milk,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$5.45,1/2 gallon,,False,False,2025-03-08T10:33:33.834014
-Small Creamline Grass-fed Whole Milk,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$2.39,12.0 oz,,False,False,2025-03-08T10:33:33.864254
-Grass-fed Whole Milk,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$5.45,1/2 gallon,,False,False,2025-03-08T10:33:33.878600
-Low Fat Milk,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$5.45,1/2 gallon,,False,False,2025-03-08T10:33:33.891802
-Grass-fed Skim Milk,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$5.45,1/2 gallon,,False,False,2025-03-08T10:33:33.904441
-Grass-fed Local Chocolate Milk,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$5.99,1/2 gallon,,False,False,2025-03-08T10:33:33.916998
-Small Grass-Fed Local Chocolate Milk,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$2.39,12.0 Ounce,,False,False,2025-03-08T10:33:33.929785
-Organic A2 Whole Milk,dairy-eggs,Origin MilkOrigin Milk,$8.99,1/2 gallon,,False,False,2025-03-08T10:33:33.942869
-Organic Grass-Based Whole Milk,dairy-eggs,Natural By NatureNatural By Nature,$8.99,1/2 Gallon,,False,False,2025-03-08T10:33:33.956141
-Organic Grass-Based 2% Milk,dairy-eggs,Natural By NatureNatural By Nature,$8.99,1/2 Gallon,,False,False,2025-03-08T10:33:33.968702
-Grass-fed Whole Buttermilk,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$6.99,1.0 Quart,,False,False,2025-03-08T10:33:33.981673
-Heavy Cream,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$7.49,12.0 Ounce,,False,False,2025-03-08T10:33:33.994227
-Half & Half,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$4.99,12.0 Ounce,,False,False,2025-03-08T10:33:34.006947
-Oat Milk (Organic),dairy-eggs,Willa's KitchenWilla's Kitchen,$8.99,32.0 oz,,False,False,2025-03-08T10:33:34.019567
-Cashew Milk,dairy-eggs,ElmhurstElmhurst,$6.99,32.0 Ounce,,False,False,2025-03-08T10:33:34.032445
-Barista Style Oat Milk,dairy-eggs,ElmhurstElmhurst,$6.99,32.0 Ounce,,False,False,2025-03-08T10:33:34.045391
-Oat Nog,dairy-eggs,ElmhurstElmhurst,$9.99,1.0 Quart,,False,False,2025-03-08T10:33:34.057767
-Un-sweetened Pistachio Milk,dairy-eggs,TácheTáche,$8.99,32.0 oz,,False,False,2025-03-08T10:33:34.082631
-Pasture Raised Eggs,dairy-eggs,Finger Lakes FarmsFinger Lakes Farms,$7.49,1 dozen,,False,False,2025-03-08T10:33:34.095685
-Quail Eggs,dairy-eggs,La Belle FarmLa Belle Farm,$9.99,18 ct,,False,False,2025-03-08T10:33:34.108394
-Duck Eggs,dairy-eggs,Spotted DuckSpotted Duck,$9.99,1/2 dozen,,False,False,2025-03-08T10:33:34.133274
-Salted Sweet Cream Butter,dairy-eggs,Kriemhild Dairy FarmsKriemhild Dairy Farms,$14.99,1.0 Lbs,,False,False,2025-03-08T10:33:34.146714
-Cinnamon Butter,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$8.99,8.0 oz,,False,False,2025-03-08T10:33:34.159097
-European Style Salted Butter,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$7.99,8.0 Ounce,,False,False,2025-03-08T10:33:34.171675
-European Style Unsalted Butter,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$7.99,8.0 Ounce,,False,False,2025-03-08T10:33:34.183743
-Cultured Butter with Sea Salt,dairy-eggs,Vermont CreameryVermont Creamery,$7.99,8.0 Ounce,,False,False,2025-03-08T10:33:34.196588
-Unsalted Cultured Butter,dairy-eggs,Vermont CreameryVermont Creamery,$6.99,8.0 Ounce,,False,False,2025-03-08T10:33:34.209720
-Chicken Schmaltz,dairy-eggs,Farm To People KitchenFarm To People Kitche...,$8.99,6 oz,,False,False,2025-03-08T10:33:34.223938
-Herb Butter,dairy-eggs,Farm To People KitchenFarm To People Kitche...,$14.99,8.0 oz,,False,False,2025-03-08T10:33:34.236642
-Garlic Butter,dairy-eggs,Farm To People KitchenFarm To People Kitche...,$14.99,8.0 oz,,False,False,2025-03-08T10:33:34.249457
-Pasture Raised Rainbow Eggs,dairy-eggs,Horseshoe RanchHorseshoe Ranch,$9.99,1 dozen,,False,True,2025-03-08T10:33:34.263305
-Triple Cream Excellence Brie,dairy-eggs,Murray's CheeseMurray's Cheese,$15.99,6.5 Ounce,,False,False,2025-03-08T10:33:34.276760
-Nimbus Triple-Cream Cheese,dairy-eggs,Chaseholm Farm CreameryChaseholm Farm Creame...,$17.99,8.0 Ounce,,False,False,2025-03-08T10:33:34.290083
-Harbison Cheese,dairy-eggs,Jasper Hill FarmJasper Hill Farm,$13.99,5.0 Ounce,,False,False,2025-03-08T10:33:34.315609
-Mini Kunik,dairy-eggs,Nettle Meadow Farm and Artisan CheeseNettle Meadow Farm an...,$11.99,3.5 oz,,False,False,2025-03-08T10:33:34.328237
-Nancy's Hudson Valley Camembert,dairy-eggs,Old Chatham Sheepherding CompanyOld Chatham Sheepherd...,$13.99,4.0 Ounce,,False,False,2025-03-08T10:33:34.340944
-Little Hosmer Cheese,dairy-eggs,Jasper Hill FarmJasper Hill Farm,$9.99,4.0 Ounce,,False,True,2025-03-08T10:33:34.353830
-Camembert,dairy-eggs,Chaseholm Farm CreameryChaseholm Farm Creame...,$15.99,5.5 Ounce,,False,True,2025-03-08T10:33:34.366366
-New York State Yellow Cheddar,dairy-eggs,Murray's CheeseMurray's Cheese,$5.94,8.0 Ounce,,False,False,2025-03-08T10:33:34.420125
-"Sharp Cheddar, 3 year aged",dairy-eggs,Jake's Gouda CheeseJake's Gouda Cheese,$10.99,6-8 oz,,False,False,2025-03-08T10:33:34.444935
-L'Amuse Signature Gouda,dairy-eggs,Essex Street CheeseEssex Street Cheese,$16.49,7-9oz,,False,False,2025-03-08T10:33:34.457842
-Aged Gouda,dairy-eggs,Jake's Gouda CheeseJake's Gouda Cheese,$12.99,6-8 oz,,False,False,2025-03-08T10:33:34.470400
-Smoked Gouda,dairy-eggs,Jake's Gouda CheeseJake's Gouda Cheese,$12.99,6-8 oz,,False,False,2025-03-08T10:33:34.483697
-Baby Gouda,dairy-eggs,Jake's Gouda CheeseJake's Gouda Cheese,$12.99,6-8 oz,,False,False,2025-03-08T10:33:34.496986
-Brabander Goat Gouda,dairy-eggs,Essex Street CheeseEssex Street Cheese,$16.49,7-9oz,,False,False,2025-03-08T10:33:34.510458
-Gotcha Gouda,dairy-eggs,Muranda Cheese CompanyMuranda Cheese Compan...,$7.99,4.0 Ounce,,False,False,2025-03-08T10:33:34.523574
-1841 American Havarti,dairy-eggs,Calkins CreameryCalkins Creamery,$8.29,0.33 Lbs,,False,False,2025-03-08T10:33:34.535906
-Vault 5 Cheddar,dairy-eggs,Jasper Hill FarmJasper Hill Farm,$11.99,6.5 Ounce,,False,False,2025-03-08T10:33:34.548790
-Organic A2 Raw Cheddar,dairy-eggs,Origin MilkOrigin Milk,$10.99,8.0 Ounce,,False,False,2025-03-08T10:33:34.561198
-Sliced White Cheddar,dairy-eggs,Cabot CreameryCabot Creamery,$6.99,7.0 Ounce,,False,False,2025-03-08T10:33:34.574021
-Sharp Cheddar Snacking Sticks,dairy-eggs,Cabot CreameryCabot Creamery,$8.99,7.5 oz,,False,False,2025-03-08T10:33:34.586921
-Organic Sliced Mild Cheddar,dairy-eggs,Organic NUNAOrganic NUNA,$7.99,5.0 oz,,False,False,2025-03-08T10:33:34.611840
-Marinated Feta,dairy-eggs,Murray's CheeseMurray's Cheese,$14.99,11.0 Ounce,,False,False,2025-03-08T10:33:34.636582
-Mozzarella di Buffala,dairy-eggs,Lioni LatticiniLioni Latticini,$9.99,8.0 Ounce,,False,False,2025-03-08T10:33:34.648798
-Burrata,dairy-eggs,Narragansett CreameryNarragansett Creamery,$11.99,8.0 Ounce,,False,False,2025-03-08T10:33:34.661470
-Ricotta,dairy-eggs,Narragansett CreameryNarragansett Creamery,$7.49,1.0 Lbs,,False,False,2025-03-08T10:33:34.674050
-Creme Fraiche,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$6.49,8.0 Ounce,,False,False,2025-03-08T10:33:34.686494
-Plain Labneh,dairy-eggs,White MoustacheWhite Moustache,$9.99,8.0 Ounce,,False,False,2025-03-08T10:33:34.699298
-Grilling Cheese,dairy-eggs,Narragansett CreameryNarragansett Creamery,$8.99,8.0 Ounce,,False,False,2025-03-08T10:33:34.711924
-Farmstead Feta,dairy-eggs,Hidden Springs CreameryHidden Springs Creame...,$12.69,6.0 Ounce,,False,False,2025-03-08T10:33:34.760216
-Organic A2 Mozzarella,dairy-eggs,Origin MilkOrigin Milk,$9.99,8.0 oz,,False,False,2025-03-08T10:33:34.774532
-Organic String Cheese,dairy-eggs,Organic ValleyOrganic Valley,$8.99,8.0 oz,,False,False,2025-03-08T10:33:34.790249
-Salty Sea Feta,dairy-eggs,Narragansett CreameryNarragansett Creamery,$6.99,8.0 Ounce,,False,True,2025-03-08T10:33:34.805815
-Fresh Mozzarella,dairy-eggs,Narragansett CreameryNarragansett Creamery,$5.49,8.0 Ounce,,False,True,2025-03-08T10:33:34.821302
-Garlic & Olive Oil Chèvre,dairy-eggs,Nettle Meadow Farm and Artisan CheeseNettle Meadow Farm an...,$8.99,5.0 Ounce,,False,False,2025-03-08T10:33:34.837596
-Herb Chèvre,dairy-eggs,Seal Cove FarmSeal Cove Farm,$9.99,4.5 oz,,False,False,2025-03-08T10:33:34.889899
-Plain Goat Cheese,dairy-eggs,FireFly FarmsFireFly Farms,$4.99,4.0 Ounce,,False,True,2025-03-08T10:33:34.902856
-Cravero Parmigiano Reggiano,dairy-eggs,Essex Street CheeseEssex Street Cheese,$16.99,7-9oz,,False,False,2025-03-08T10:33:34.915722
-Grana Padano,dairy-eggs,Murray's CheeseMurray's Cheese,$11.99,8.0 Ounce,,False,False,2025-03-08T10:33:34.928260
-Manchego,dairy-eggs,Essex Street CheeseEssex Street Cheese,$15.99,7-9oz,,False,False,2025-03-08T10:33:34.941661
-Pecorino Romano Fulvi,dairy-eggs,FulviFulvi,$12.99,7.0 Ounce,,False,False,2025-03-08T10:33:34.954253
-Pecorino Romano Grated Cup,dairy-eggs,Murray's CheeseMurray's Cheese,$8.99,5.0 Ounce,,False,False,2025-03-08T10:33:34.966713
-Parmigiano Reggiano Grated Cup,dairy-eggs,Murray's CheeseMurray's Cheese,$10.99,5.0 Ounce,,False,False,2025-03-08T10:33:34.981792
-2 Year Parmigiano Reggiano,dairy-eggs,Murray's CheeseMurray's Cheese,$10.99,5.3 Ounce,,False,False,2025-03-08T10:33:35.002793
-Ewe's Blue Cheese,dairy-eggs,Old Chatham Sheepherding CompanyOld Chatham Sheepherd...,$10.99,6.0 oz,,False,False,2025-03-08T10:33:35.016309
-Great Hill Blue Cheese,dairy-eggs,Great Hill FarmGreat Hill Farm,$12.00,8.0 Ounce,,False,False,2025-03-08T10:33:35.029099
-Cave Aged Gruyère,dairy-eggs,Murray's CheeseMurray's Cheese,$14.99,8.0 Ounce,,False,False,2025-03-08T10:33:35.041984
-Organic Sliced Muenster Cheese,dairy-eggs,Organic NUNAOrganic NUNA,$7.99,5.0 oz,,False,False,2025-03-08T10:33:35.173762
-Plain Biodynamic Yogurt,dairy-eggs,Hawthorne Valley FarmHawthorne Valley Farm,$7.99,32.0 Ounce,,False,False,2025-03-08T10:33:35.222753
-Grass-fed Plain Yogurt,dairy-eggs,Pequea Valley FarmPequea Valley Farm,$7.99,32.0 Ounce,,False,False,2025-03-08T10:33:35.236331
-La Fermiere Plain Yogurt,dairy-eggs,La FermièreLa Fermière,$3.99,5.6 Ounce,,False,False,2025-03-08T10:33:35.249021
-La Fermiere Vanilla Bean Yogurt,dairy-eggs,La FermièreLa Fermière,$3.99,4.9 Ounce,,False,False,2025-03-08T10:33:35.261506
-Mango Passion Fruit Yogurt,dairy-eggs,La FermièreLa Fermière,$3.99,4.9 Ounce,,False,False,2025-03-08T10:33:35.274274
-Orange Blossom Honey Yogurt,dairy-eggs,La FermièreLa Fermière,$3.99,5.6 Ounce,,False,False,2025-03-08T10:33:35.286957
-Peach Apricot Yogurt,dairy-eggs,La FermièreLa Fermière,$3.99,4.9 Ounce,,False,False,2025-03-08T10:33:35.299436
-Lemon Yogurt,dairy-eggs,La FermièreLa Fermière,$3.99,4.9 Ounce,,False,False,2025-03-08T10:33:35.312211
-Raspberry Blueberry Yogurt,dairy-eggs,La FermièreLa Fermière,$3.99,5.6 Ounce,,False,False,2025-03-08T10:33:35.337087
-Ithaca Plain Yogurt,dairy-eggs,Ithaca MilkIthaca Milk,$6.99,32.0 Ounce,,False,False,2025-03-08T10:33:35.349995
-Vanilla Yogurt,dairy-eggs,Ithaca MilkIthaca Milk,$2.99,6.0 Ounce,,False,False,2025-03-08T10:33:35.362452
-Strawberry Yogurt,dairy-eggs,Ithaca MilkIthaca Milk,$2.99,6.0 Ounce,,False,False,2025-03-08T10:33:35.374920
-Blueberry Yogurt,dairy-eggs,Ithaca MilkIthaca Milk,$2.99,6.0 Ounce,,False,False,2025-03-08T10:33:35.387846
-Organic Plain Skyr Yogurt (Non-fat),dairy-eggs,Norr OrganicNorr Organic,$3.69,4.4 Ounce,,False,False,2025-03-08T10:33:35.414386
-Organic Strawberry & Rhubarb Skyr Yogurt (Non-fat),dairy-eggs,Norr OrganicNorr Organic,$3.69,4.4 Ounce,,False,False,2025-03-08T10:33:35.426662
-Greek Yogurt,dairy-eggs,Maple Hill CreameryMaple Hill Creamery,$7.99,16.0 Ounce,,False,False,2025-03-08T10:33:35.439623
-White Moustache Greek Yogurt,dairy-eggs,White MoustacheWhite Moustache,$7.99,8.0 Ounce,,False,False,2025-03-08T10:33:35.451970
-"""Kiss"" Honey Walnut Greek Yogurt",dairy-eggs,White MoustacheWhite Moustache,$7.99,8.0 Ounce,,False,False,2025-03-08T10:33:35.464600
-Date Greek Yogurt,dairy-eggs,White MoustacheWhite Moustache,$7.99,8.0 Ounce,,False,False,2025-03-08T10:33:35.477017
-Plain Coconut Yogurt,dairy-eggs,CocojuneCocojune,$3.19,4.0 Ounce,,False,False,2025-03-08T10:33:35.490025
-Vanilla Chamomile Coconut Yogurt,dairy-eggs,CocojuneCocojune,$3.19,4.0 Ounce,,False,False,2025-03-08T10:33:35.502205
-Lemon Elderflower Coconut Yogurt,dairy-eggs,CocojuneCocojune,$3.19,4.0 Ounce,,False,False,2025-03-08T10:33:35.514726
-Large Plain Coconut Yogurt,dairy-eggs,CocojuneCocojune,$9.99,16.0 Ounce,,False,False,2025-03-08T10:33:35.527427
-Large Vanilla Chamomile Coconut Yogurt,dairy-eggs,CocojuneCocojune,$9.99,16.0 Ounce,,False,False,2025-03-08T10:33:35.540294
-Crème Caramel French Dessert,dairy-eggs,La FermièreLa Fermière,$3.49,4.4 Ounce,,False,False,2025-03-08T10:33:35.552774
-Crème Chocolat French Dessert,dairy-eggs,La FermièreLa Fermière,$3.49,4.4 Ounce,,False,False,2025-03-08T10:33:35.565553
-Crème Vanille French Dessert,dairy-eggs,La FermièreLa Fermière,$3.99,4.4 Ounce,,False,False,2025-03-08T10:33:35.577736
-Drinkable Strawberry Yogurt,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$4.29,12.0 Ounce,,False,False,2025-03-08T10:33:35.590711
-Drinkable Peach Yogurt,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$4.29,12.0 Ounce,,False,False,2025-03-08T10:33:35.602818
-Drinkable Mango Yogurt,dairy-eggs,Ronnybrook Farm DairyRonnybrook Farm Dairy,$4.29,12.0 Ounce,,False,False,2025-03-08T10:33:35.615749
-Sheep Yogurt,dairy-eggs,Old Chatham Sheepherding CompanyOld Chatham Sheepherd...,$7.99,16.0 oz,,False,False,2025-03-08T10:33:35.627890
-Maple Biodynamic Yogurt,dairy-eggs,Hawthorne Valley FarmHawthorne Valley Farm,$7.99,32.0 Ounce,,False,False,2025-03-08T10:33:35.640813
-Organic Blueberry Lemon Skyr,dairy-eggs,Painterland SistersPainterland Sisters,$3.99,5.3 oz,,False,False,2025-03-08T10:33:35.652999
-Organic Plain Skyr,dairy-eggs,Painterland SistersPainterland Sisters,$3.99,5.3 oz,,False,False,2025-03-08T10:33:35.665547
-Organic Strawberry Skyr,dairy-eggs,Painterland SistersPainterland Sisters,$3.99,5.3 oz,,False,False,2025-03-08T10:33:35.677739
-Organic Vanilla Bean Skyr,dairy-eggs,Painterland SistersPainterland Sisters,$3.99,5.3 oz,,False,False,2025-03-08T10:33:35.690708
-Large Organic Plain Skyr,dairy-eggs,Painterland SistersPainterland Sisters,$12.99,24.0 oz,,False,False,2025-03-08T10:33:35.702801
-Plain Goat Milk Skyr,dairy-eggs,Villa Villekulla FarmVilla Villekulla Farm,$19.99,16.0 Ounce,,False,False,2025-03-08T10:33:35.715260
-Organic Elderflower & Lemon Skyr Yogurt (Non-fat),dairy-eggs,Norr OrganicNorr Organic,$3.69,4.4 Ounce,,False,True,2025-03-08T10:33:35.727274
-Sour Cherry Greek Yogurt,dairy-eggs,White MoustacheWhite Moustache,$7.99,8.0 Ounce,,False,True,2025-03-08T10:33:35.740020
-Strawberry Rhubarb Coconut Yogurt,dairy-eggs,CocojuneCocojune,$3.19,4.0 Ounce,,False,True,2025-03-08T10:33:35.752315
-Plain Kefir,dairy-eggs,Maple Hill CreameryMaple Hill Creamery,$7.99,32.0 Fluid Ounce,,False,False,2025-03-08T10:33:35.799782
-Arethusa Farm Sour Cream,dairy-eggs,Arethusa FarmArethusa Farm,$7.69,16.0 Ounce,,False,False,2025-03-08T10:33:35.812346
-Organic Whole Milk Cottage Cheese,dairy-eggs,Kalona SuperNaturalKalona SuperNatural,$7.99,16.0 Ounce,,False,False,2025-03-08T10:33:35.836143
-Unsweetened Almond Milk,dairy-eggs,ElmhurstElmhurst,$6.99,32.0 Ounce,,False,False,2025-03-08T10:33:35.897751
-Vegan Salted Butter,dairy-eggs,Monty'sMonty's,$9.99,5.0 oz,,False,False,2025-03-08T10:33:36.025452
-Vegan Salted Cultured Butter,dairy-eggs,Monty'sMonty's,$9.99,5.0 oz,,False,False,2025-03-08T10:33:36.038000
-Vegan Cream Cheese,dairy-eggs,Monty'sMonty's,$9.99,6.0 oz,,False,False,2025-03-08T10:33:36.050528
-Vegan Scallion Cream Cheese,dairy-eggs,Monty'sMonty's,$9.34,6.0 oz,,False,False,2025-03-08T10:33:36.063338
-Spicy Popcorn,pantry,BjornQornBjornQorn,$5.99,3.0 Ounce,,False,False,2025-03-08T10:33:44.369087
-Figgy Chai Nut Butter Bar,pantry,Big Spoon RoastersBig Spoon Roasters,$3.99,2.1 Ounce,,False,False,2025-03-08T10:33:44.398920
-Pure Dark 92% Cocoa Heirloom Chocolate Bar,pantry,Beyond GoodBeyond Good,$4.19,1 bar,,False,False,2025-03-08T10:33:44.426090
-Flame Baked Classic Sea Salt Pita Chips,pantry,Issa'sIssa's,$4.49,6.0 Ounce,,False,False,2025-03-08T10:33:44.450240
-OG Kimchi,pantry,Mama O'sMama O's,$10.39,1.0 Lbs,,False,False,2025-03-08T10:33:44.472749
-Organic Cheddar Cheeze Crackers,pantry,Patagonia ProvisionsPatagonia Provisions,$6.99,4.4 oz,,False,False,2025-03-08T10:33:44.496449
-Korean-Style Beef Bone Broth,pantry,Reclamation FoodsReclamation Foods,$19.99,24.0 oz,,False,False,2025-03-08T10:33:44.517754
-Dried Mango Slices,pantry,Boxford BakehouseBoxford Bakehouse,$11.69,6.0 Ounce,,False,False,2025-03-08T10:33:44.541916
-Kaedama Ramen Noodles,pantry,Sun NoodleSun Noodle,$5.99,10.0 Ounce,,False,False,2025-03-08T10:33:44.563963
-Thin Tokyo Ramen Noodles,pantry,Sun NoodleSun Noodle,$4.79,10.0 Ounce,,False,False,2025-03-08T10:33:44.587956
-Spicy Sesame Ramen Kit,pantry,Sun NoodleSun Noodle,$8.99,12.7 oz,,False,False,2025-03-08T10:33:44.609827
-Shoyu Ramen Kit,pantry,Sun NoodleSun Noodle,$8.99,12.8 oz,,False,False,2025-03-08T10:33:44.633741
-Miso Ramen Kit,pantry,Sun NoodleSun Noodle,$8.99,13.5 oz,,False,False,2025-03-08T10:33:44.655344
-Fresh Potato Gnocchi,pantry,Raffetto's Fresh PastaRaffetto's Fresh Past...,$8.99,22.0 Ounce,,False,False,2025-03-08T10:33:44.679150
-Cheese Ravioli,pantry,Raffetto's Fresh PastaRaffetto's Fresh Past...,$9.99,48 count,,False,False,2025-03-08T10:33:44.701035
-Fresh Fettuccine,pantry,Raffetto's Fresh PastaRaffetto's Fresh Past...,$5.99,1.0 Lbs,,False,False,2025-03-08T10:33:44.724808
-Fresh Spaghetti,pantry,Raffetto's Fresh PastaRaffetto's Fresh Past...,$6.99,1.0 Lbs,,False,False,2025-03-08T10:33:44.746641
-Mushroom Ravioli,pantry,Raffetto's Fresh PastaRaffetto's Fresh Past...,$9.69,48 count,,False,False,2025-03-08T10:33:44.770582
-Fresh Pappardelle,pantry,Raffetto's Fresh PastaRaffetto's Fresh Past...,$5.99,1.0 Lbs,,False,False,2025-03-08T10:33:44.792447
-Arugula & Ricotta Ravioli,pantry,Raffetto's Fresh PastaRaffetto's Fresh Past...,$10.49,12.0 Ounce,,False,False,2025-03-08T10:33:44.818033
-Lobster Ravioli,pantry,Raffetto's Fresh PastaRaffetto's Fresh Past...,$22.99,20.0 Ounce,,False,False,2025-03-08T10:33:44.841902
-Pesto Ravioli,pantry,Raffetto's Fresh PastaRaffetto's Fresh Past...,$12.99,20.0 Ounce,,False,False,2025-03-08T10:33:44.864037
-Spinach Fettuccine,pantry,Raffetto's Fresh PastaRaffetto's Fresh Past...,$7.49,1.0 Lbs,,False,False,2025-03-08T10:33:44.887870
-Squid Ink Linguine,pantry,Raffetto's Fresh PastaRaffetto's Fresh Past...,$11.99,1.0 Lbs,,False,False,2025-03-08T10:33:44.909079
-Mushroom Pappardelle,pantry,Raffetto's Fresh PastaRaffetto's Fresh Past...,$8.99,1.0 Lbs,,False,False,2025-03-08T10:33:44.932709
-Fresh Bucatini,pantry,Boy Blue Coffee & GoodsBoy Blue Coffee & Goo...,$7.99,1.0 Lbs,,False,False,2025-03-08T10:33:44.954218
-Fresh Rigatoni,pantry,Boy Blue Coffee & GoodsBoy Blue Coffee & Goo...,$8.69,1.0 Lbs,,False,False,2025-03-08T10:33:44.977520
-Fresh Radiatori,pantry,Boy Blue Coffee & GoodsBoy Blue Coffee & Goo...,$7.99,1.0 Lbs,,False,False,2025-03-08T10:33:44.999263
-Organic Fusilli,pantry,Pastificio Felicetti PastaPastificio Felicetti ...,$3.79,1.0 Lbs,,False,False,2025-03-08T10:33:45.022348
-Organic Farfalle,pantry,Pastificio Felicetti PastaPastificio Felicetti ...,$3.79,1.0 Lbs,,False,False,2025-03-08T10:33:45.043621
-Organic Penne Rigate,pantry,Pastificio Felicetti PastaPastificio Felicetti ...,$3.79,1.0 Lbs,,False,False,2025-03-08T10:33:45.066373
-Organic Spaghetti,pantry,Pastificio Felicetti PastaPastificio Felicetti ...,$3.79,1.0 Lbs,,False,False,2025-03-08T10:33:45.087577
-Organic Linguine,pantry,Pastificio Felicetti PastaPastificio Felicetti ...,$3.79,1.0 Lbs,,False,False,2025-03-08T10:33:45.111108
-Cascatelli by Sporkful,pantry,Sfoglini Pasta ShopSfoglini Pasta Shop,$7.99,16.0 Ounce,,False,False,2025-03-08T10:33:45.132389
-Cavatelli,pantry,Sfoglini Pasta ShopSfoglini Pasta Shop,$6.99,16.0 Ounce,,False,False,2025-03-08T10:33:45.155330
-Saffron Malloreddus Pasta,pantry,Sfoglini Pasta ShopSfoglini Pasta Shop,$9.99,16.0 Ounce,,False,False,2025-03-08T10:33:45.176582
-Porcini Mushroom Trumpets Pasta,pantry,Sfoglini Pasta ShopSfoglini Pasta Shop,$8.99,16.0 Ounce,,False,False,2025-03-08T10:33:45.199311
-Whole Grain Trumpet Pasta,pantry,Sfoglini Pasta ShopSfoglini Pasta Shop,$6.99,1.0 Lbs,,False,False,2025-03-08T10:33:45.222326
-Trumpet Pasta,pantry,Sfoglini Pasta ShopSfoglini Pasta Shop,$6.99,16.0 Ounce,,False,False,2025-03-08T10:33:45.243740
-Organic Gluten Free Brown Rice Fusilli,pantry,Jovial FoodsJovial Foods,$5.99,12.0 Ounce,,False,False,2025-03-08T10:33:45.266633
-Organic Gluten Free Brown Rice Spaghetti,pantry,Jovial FoodsJovial Foods,$5.99,12.0 Ounce,,False,False,2025-03-08T10:33:45.287916
-Organic Gluten Free Brown Rice Penne Rigate,pantry,Jovial FoodsJovial Foods,$5.99,12.0 Ounce,,False,False,2025-03-08T10:33:45.310640
-Organic Gluten Free Brown Rice Lasagna Sheets,pantry,Jovial FoodsJovial Foods,$5.99,9.0 Ounce,,False,False,2025-03-08T10:33:45.332140
-Forbidden Rice Ramen White Miso Soup,pantry,Lotus FoodsLotus Foods,$4.29,2.8 oz,,False,False,2025-03-08T10:33:45.355402
-100% Buckwheat Noodles,pantry,King Soba NoodlesKing Soba Noodles,$5.99,8.8 Ounce,,False,False,2025-03-08T10:33:45.376674
-"Pumpkin, Ginger & Rice Noodles",pantry,King Soba NoodlesKing Soba Noodles,$5.99,8.8 Ounce,,False,False,2025-03-08T10:33:45.399777
-Buckwheat & Sweet Potato Noodles,pantry,King Soba NoodlesKing Soba Noodles,$5.99,8.8 Ounce,,False,False,2025-03-08T10:33:45.421032
-Thai Rice Noodles,pantry,King Soba NoodlesKing Soba Noodles,$5.99,8.8 Ounce,,False,True,2025-03-08T10:33:45.444166
-Garbanzo Beans,pantry,Jack's Quality BeansJack's Quality Beans,$3.39,13.4 Ounce,,False,False,2025-03-08T10:33:45.655447
-Organic Black Beans,pantry,Jack's Quality BeansJack's Quality Beans,$2.49,13.4 Ounce,,False,False,2025-03-08T10:33:45.678399
-Cannellini Beans,pantry,Jack's Quality BeansJack's Quality Beans,$2.49,13.4 Ounce,,False,False,2025-03-08T10:33:45.700100
-Pinto Beans,pantry,Jack's Quality BeansJack's Quality Beans,$2.49,13.4 Ounce,,False,False,2025-03-08T10:33:45.723520
-New York State Pinto Beans,pantry,Genesee Valley Bean CoGenesee Valley Bean C...,$5.99,1.0 Lbs,,False,False,2025-03-08T10:33:45.745125
-Heirloom Garbanzo Beans (Chickpeas),pantry,Farm to PeopleFarm to People,$3.99,12.0 Ounce,,False,False,2025-03-08T10:33:45.768089
-Organic New York State Black Beans,pantry,Peter and Hannah Martens FarmPeter and Hannah Mart...,$4.49,12.0 Ounce,,False,False,2025-03-08T10:33:45.789669
-Scarlet Runner Beans,pantry,Rancho GordoRancho Gordo,$7.99,1.0 Lbs,,False,False,2025-03-08T10:33:45.812806
-Large White Lima Beans,pantry,Rancho GordoRancho Gordo,$7.99,1.0 Lbs,,False,False,2025-03-08T10:33:45.833786
-Flageolet Beans,pantry,Rancho GordoRancho Gordo,$6.99,1.0 Lbs,,False,False,2025-03-08T10:33:45.857124
-White Corn Posole/Prepared Hominy,pantry,Rancho GordoRancho Gordo,$9.99,1.0 Lbs,,False,False,2025-03-08T10:33:45.878462
-Moro Beans,pantry,Rancho GordoRancho Gordo,$8.29,1.0 Lbs,,False,False,2025-03-08T10:33:45.901132
-Rio Zape Beans,pantry,Rancho GordoRancho Gordo,$6.79,1.0 Lbs,,False,False,2025-03-08T10:33:45.922709
-Ayocote Negro Beans,pantry,Rancho GordoRancho Gordo,$7.99,1.0 Lbs,,False,False,2025-03-08T10:33:45.945964
-Marcella Beans,pantry,Rancho GordoRancho Gordo,$7.99,1.0 Lbs,,False,False,2025-03-08T10:33:45.967117
-Cassoulet Beans,pantry,Rancho GordoRancho Gordo,$7.99,1.0 Lbs,,False,False,2025-03-08T10:33:45.990113
-Buckeye Beans,pantry,Rancho GordoRancho Gordo,$6.99,1.0 Lbs,,False,False,2025-03-08T10:33:46.011163
-Light Red Kidney Beans,pantry,Genesee Valley Bean CoGenesee Valley Bean C...,$6.29,1.0 Lbs,,False,False,2025-03-08T10:33:46.034047
-Organic Red Split Lentils,pantry,Farm to PeopleFarm to People,$4.89,12.0 Ounce,,False,False,2025-03-08T10:33:46.057191
-Organic Brown NYS Lentils,pantry,Peter and Hannah Martens FarmPeter and Hannah Mart...,$5.39,12.0 Ounce,,False,False,2025-03-08T10:33:46.078617
-Black Eyed Peas,pantry,Farm to PeopleFarm to People,$4.99,12.0 Ounce,,False,False,2025-03-08T10:33:46.101466
-Original Tempeh,pantry,Rhapsody Natural FoodsRhapsody Natural Food...,$6.39,8.0 Ounce,,False,False,2025-03-08T10:33:46.123030
-Kokuho Rose Sushi Rice,pantry,Koda FarmsKoda Farms,$3.99,12.0 Ounce,,False,False,2025-03-08T10:33:46.146060
-California Cultivated Wild Rice,pantry,Rancho GordoRancho Gordo,$9.99,1.0 Lbs,,False,False,2025-03-08T10:33:46.167336
-Black & Tan Rice,pantry,Blue Moon AcresBlue Moon Acres,$14.99,1.0 Lbs,,False,False,2025-03-08T10:33:46.190745
-Organic Tricolor Quinoa,pantry,SIMPLiSIMPLi,$3.99,11.0 Ounce,,False,False,2025-03-08T10:33:46.212304
-Organic White Quinoa,pantry,SIMPLiSIMPLi,$3.99,11.0 Ounce,,False,False,2025-03-08T10:33:46.234870
-Organic Farro (Emmer Wheat),pantry,Peter and Hannah Martens FarmPeter and Hannah Mart...,$3.99,11.0 Ounce,,False,False,2025-03-08T10:33:46.256641
-Organic Rolled Oats,pantry,Farm to PeopleFarm to People,$2.99,7.0 Ounce,,False,False,2025-03-08T10:33:46.279503
-Organic Steel Cut Oats,pantry,Farm to PeopleFarm to People,$4.49,12.0 Ounce,,False,False,2025-03-08T10:33:46.301683
-Arborio Rice,pantry,Farm to PeopleFarm to People,$3.99,12.0 Ounce,,False,False,2025-03-08T10:33:46.324953
-Black Chia Seeds,pantry,SIMPLiSIMPLi,$5.99,11.0 Ounce,,False,False,2025-03-08T10:33:46.346977
-All Purpose Flour,pantry,Farmer Ground FlourFarmer Ground Flour,$6.29,2.0 Lbs,,False,False,2025-03-08T10:33:46.371049
-Whole Wheat Bread Flour,pantry,Farmer Ground FlourFarmer Ground Flour,$6.99,2.0 Lbs,,False,False,2025-03-08T10:33:46.393694
-Rye Flour,pantry,Farmer Ground FlourFarmer Ground Flour,$6.99,2.0 Lbs,,False,False,2025-03-08T10:33:46.417209
-Spelt Flour,pantry,Farmer Ground FlourFarmer Ground Flour,$6.99,2.0 Lbs,,False,False,2025-03-08T10:33:46.439445
-Organic Cornmeal,pantry,Farmer Ground FlourFarmer Ground Flour,$7.49,2.0 Lbs,,False,False,2025-03-08T10:33:46.462922
-Moroccan Chickpeas,pantry,MinaMina,$5.69,10.0 oz,,False,False,2025-03-08T10:33:46.484756
-Moroccan White Bean Stew,pantry,MinaMina,$5.69,10.0 oz,,False,False,2025-03-08T10:33:46.508339
-Moroccan Chickpea & Lentil Soup,pantry,MinaMina,$5.69,4.0 oz,,False,False,2025-03-08T10:33:46.530755
-Moroccan Lentils,pantry,MinaMina,$5.69,10.0 oz,,False,False,2025-03-08T10:33:46.553916
-Cranberry Beans,pantry,Rancho GordoRancho Gordo,$6.99,1.0 Lbs,,False,False,2025-03-08T10:33:46.576119
-Kidney Beans,pantry,Jack's Quality BeansJack's Quality Beans,$2.49,13.4 Ounce,,False,True,2025-03-08T10:33:46.599438
-Delta Belle Long Grain White Rice,pantry,Two Brooks FarmTwo Brooks Farm,$3.69,11.0 Ounce,,False,True,2025-03-08T10:33:46.621839
-Organic Polenta,pantry,Farmer Ground FlourFarmer Ground Flour,$6.99,2.0 Lbs,,False,True,2025-03-08T10:33:46.645658
-Classic Popcorn,pantry,BjornQornBjornQorn,$5.99,3.0 Ounce,,False,False,2025-03-08T10:33:46.668312
-Small Classic Popcorn,pantry,BjornQornBjornQorn,$2.99,1.0 Ounce,,False,False,2025-03-08T10:33:46.691652
-Tangy Baobab Fonio Chips,pantry,YoléléYolélé,$1.99,1.5 Ounce,,False,False,2025-03-08T10:33:46.736293
-Yassa Fonio Chips,pantry,YoléléYolélé,$1.99,1.5 Ounce,,False,False,2025-03-08T10:33:46.758629
-Salted Potato Chips,pantry,North Fork Potato ChipsNorth Fork Potato Chi...,$4.49,6.0 Ounce,,False,False,2025-03-08T10:33:46.782038
-Sour Cream & Onion Chips,pantry,North Fork Potato ChipsNorth Fork Potato Chi...,$4.49,6.0 Ounce,,False,False,2025-03-08T10:33:46.804188
-Salt & Vinegar Potato Chips,pantry,North Fork Potato ChipsNorth Fork Potato Chi...,$4.49,6.0 Ounce,,False,False,2025-03-08T10:33:46.827277
-Barbeque Potato Chips,pantry,North Fork Potato ChipsNorth Fork Potato Chi...,$4.49,6.0 Ounce,,False,False,2025-03-08T10:33:46.849390
-Rosemary & Garlic Chips,pantry,North Fork Potato ChipsNorth Fork Potato Chi...,$4.49,6.0 Ounce,,False,False,2025-03-08T10:33:46.872316
-Sweet Potato Chips,pantry,North Fork Potato ChipsNorth Fork Potato Chi...,$4.49,6.0 Ounce,,False,False,2025-03-08T10:33:46.894866
-Original Crispy Seaweed,pantry,Nora Seaweed SnacksNora Seaweed Snacks,$3.99,1.13 Ounce,,False,False,2025-03-08T10:33:46.918599
-Original Tempura Seaweed Snacks,pantry,Nora Seaweed SnacksNora Seaweed Snacks,$3.99,1.6 Ounce,,False,False,2025-03-08T10:33:46.940757
-Spicy Tempura Seaweed Snacks,pantry,Nora Seaweed SnacksNora Seaweed Snacks,$3.99,1.6 Ounce,,False,False,2025-03-08T10:33:46.964291
-Spicy Crispy Seaweed,pantry,Nora Seaweed SnacksNora Seaweed Snacks,$3.99,1.13 Ounce,,False,False,2025-03-08T10:33:46.986229
-Flame Baked Cinnamon Sugar Pita Chips,pantry,Issa'sIssa's,$4.49,6.0 Ounce,,False,False,2025-03-08T10:33:47.031131
-Pretzels,pantry,Uncle Jerry's Handmade Pennsylvania Dutch PretzelsUncle Jerry's Handmad...,$5.29,7.0 Ounce,,False,False,2025-03-08T10:33:47.054312
-Low Salt Pretzels,pantry,Uncle Jerry's Handmade Pennsylvania Dutch PretzelsUncle Jerry's Handmad...,$5.29,7.0 Ounce,,False,False,2025-03-08T10:33:47.076332
-Totopos Tortilla Chips,pantry,Vista HermosaVista Hermosa,$6.99,9.0 Ounce,,False,False,2025-03-08T10:33:47.099911
-Heirloom Corn Tortilla Chips,pantry,All Souls TortilleriaAll Souls Tortilleria,$5.09,4.0 Ounce,,False,False,2025-03-08T10:33:47.122192
-Classic Knekkebrod,pantry,Norwegian BakedNorwegian Baked,$9.99,6.0 Ounce,,False,False,2025-03-08T10:33:47.156808
-Sea Salt Knekkebrod,pantry,Norwegian BakedNorwegian Baked,$9.99,6.0 Ounce,,False,False,2025-03-08T10:33:47.179164
-Chili & Coriander Knekkebrod,pantry,Norwegian BakedNorwegian Baked,$9.99,6.0 Ounce,,False,False,2025-03-08T10:33:47.202606
-Rosemary & Lemon Knekkebrod,pantry,Norwegian BakedNorwegian Baked,$9.99,6.0 Ounce,,False,False,2025-03-08T10:33:47.224685
-Organic Sourdough Sea Salt Crackers,pantry,Patagonia ProvisionsPatagonia Provisions,$6.99,4.4 oz,,False,False,2025-03-08T10:33:47.247904
-Organic Rosemary Garlic Crackers,pantry,Patagonia ProvisionsPatagonia Provisions,$6.99,4.4 oz,,False,False,2025-03-08T10:33:47.293014
-Multi-Seeds and Oregano Nordic Crisps,pantry,Hungry Bird EatsHungry Bird Eats,$8.99,5.0 Ounce,,False,False,2025-03-08T10:33:47.315320
-Rye and Sea Salt Nordic Crisps,pantry,Hungry Bird EatsHungry Bird Eats,$8.99,5.0 Ounce,,False,False,2025-03-08T10:33:47.338687
-Fennel and Onion Nordic Crisps,pantry,Hungry Bird EatsHungry Bird Eats,$8.59,5.0 Ounce,,False,False,2025-03-08T10:33:47.361993
-Rosemary Sea Salt Baked Crackers,pantry,Firehook CrackersFirehook Crackers,$7.99,5.5 Ounce,,False,False,2025-03-08T10:33:47.389346
-Organic Flint Corn Tortilla Chips,pantry,Zack's MightyZack's Mighty,$6.99,9.0 Ounce,,False,False,2025-03-08T10:33:47.415393
-Gluten-Free Sea Salt Crackers,pantry,OnestoOnesto,$9.99,4.0 Ounce,,False,False,2025-03-08T10:33:47.442563
-Cloudy (Salted) Popcorn,pantry,BjornQornBjornQorn,$5.99,3.0 Ounce,,False,False,2025-03-08T10:33:47.468696
-Maple Popcorn,pantry,BjornQornBjornQorn,$5.99,3.0 Ounce,,False,False,2025-03-08T10:33:47.497947
-Earth (Truffle) Popcorn,pantry,BjornQornBjornQorn,$6.99,3.0 Ounce,,False,False,2025-03-08T10:33:47.526550
-NYS Popcorn Kernels,pantry,Peter and Hannah Martens FarmPeter and Hannah Mart...,$3.99,12.0 Ounce,,False,True,2025-03-08T10:33:47.553378
-Milk Chocolate Bar,pantry,Lake Champlain ChocolatesLake Champlain Chocol...,$6.29,3.0 Ounce,,False,False,2025-03-08T10:33:47.578134
-Milk Chocolate Crunchy Peanut Bar,pantry,Lake Champlain ChocolatesLake Champlain Chocol...,$6.29,3.0 Ounce,,False,False,2025-03-08T10:33:47.603089
-Hazelnut Five Star Bar,pantry,Lake Champlain ChocolatesLake Champlain Chocol...,$5.29,1.8 Ounce,,False,False,2025-03-08T10:33:47.627043
-Fruit and Nut Five Star Bar,pantry,Lake Champlain ChocolatesLake Champlain Chocol...,$5.29,1.9 Ounce,,False,False,2025-03-08T10:33:47.651226
-Milk Chocolate Caramel Five Star Bar,pantry,Lake Champlain ChocolatesLake Champlain Chocol...,$4.99,2 oz,,False,False,2025-03-08T10:33:47.674910
-Dark Chocolate Salted Caramel Jubilees,pantry,Lake Champlain ChocolatesLake Champlain Chocol...,$11.99,10 pieces,,False,False,2025-03-08T10:33:47.698685
-Toasted Hazelnut 73% Cocoa Heirloom Chocolate Bar,pantry,Beyond GoodBeyond Good,$4.19,1 bar,,False,False,2025-03-08T10:33:47.721285
-Madagascar Vanilla Almond 60% Chocolate Bar,pantry,Beyond GoodBeyond Good,$4.19,2.64 Ounce,,False,False,2025-03-08T10:33:47.745079
-Pure Dark 70% Cocoa Heirloom Chocolate Bar,pantry,Beyond GoodBeyond Good,$4.19,1 bar,,False,False,2025-03-08T10:33:47.790397
-Salted Caramel 73% Cocoa Uganda Chocolate Bar,pantry,Beyond GoodBeyond Good,$4.19,1 bar,,False,False,2025-03-08T10:33:47.813008
-85% Sea Salt Dark Chocolate Bar,pantry,Beyond GoodBeyond Good,$4.19,1 bar,,False,False,2025-03-08T10:33:47.836560
-Dark Chocolate Melts 92% Cocoa,pantry,Beyond GoodBeyond Good,$8.99,7.0 Ounce,,False,False,2025-03-08T10:33:47.859035
-Madagascar Dark Chocolate Melts Pure Dark 70% Cocoa,pantry,Beyond GoodBeyond Good,$8.99,7.0 Ounce,,False,False,2025-03-08T10:33:47.882507
-KnekkeGodis (Cranberry Chocolate Toffee Crispbread),pantry,Norwegian BakedNorwegian Baked,$9.99,4.4 Ounce,,False,False,2025-03-08T10:33:47.904925
-Dark Chocolate Covered Cashews,pantry,Boxford BakehouseBoxford Bakehouse,$10.49,6.0 Ounce,,False,False,2025-03-08T10:33:47.928266
-Dark Chocolate Covered Almonds,pantry,Boxford BakehouseBoxford Bakehouse,$10.99,6.0 Ounce,,False,False,2025-03-08T10:33:47.951712
-Salty Dark Chocolate Bar,pantry,Hu KitchenHu Kitchen,$6.99,2.1 Ounce,,False,False,2025-03-08T10:33:47.975221
-Simple Dark Chocolate Bar,pantry,Hu KitchenHu Kitchen,$6.99,2.1 Ounce,,False,False,2025-03-08T10:33:47.997915
-Almond Butter & Puffed Quinoa Dark Chocolate Bar (Paleo),pantry,Hu KitchenHu Kitchen,$6.99,,,False,False,2025-03-08T10:33:48.021514
-Cashew Butter & Vanilla Dark Chocolate Bar (Paleo),pantry,Hu KitchenHu Kitchen,$6.99,2.1 Ounce,,False,False,2025-03-08T10:33:48.043844
-Apple Crisp Dark Chocolate Bar,pantry,Raaka ChocolateRaaka Chocolate,$7.99,1.8 oz,,False,False,2025-03-08T10:33:48.067576
-Ginger Snap Dark Chocolate Bar,pantry,Raaka ChocolateRaaka Chocolate,$6.49,1.8 oz,,False,False,2025-03-08T10:33:48.090128
-Coconut Milk Chocolate Bar,pantry,Raaka ChocolateRaaka Chocolate,$6.49,1 bar,,False,False,2025-03-08T10:33:48.113851
-Green Tea Crunch Chocolate Bar,pantry,Raaka ChocolateRaaka Chocolate,$6.49,1 bar,,False,False,2025-03-08T10:33:48.136304
-Bourbon Cask Aged Chocolate Bar,pantry,Raaka ChocolateRaaka Chocolate,$6.49,1 bar,,False,False,2025-03-08T10:33:48.159742
-Peppermint White Chocolate Waffle Cone Bar,pantry,Raaka ChocolateRaaka Chocolate,$5.49,1.0 Ounce,,False,False,2025-03-08T10:33:48.182248
-Day Break Functional Dark Chocolate,pantry,Raaka ChocolateRaaka Chocolate,$4.07,1.0 Ounce,,False,False,2025-03-08T10:33:48.205682
-Mellow Moon Functional Dark Chocolate,pantry,Raaka ChocolateRaaka Chocolate,$4.79,1.0 Ounce,,False,False,2025-03-08T10:33:48.227750
-Chocolate Waffle Cone Bar,pantry,Raaka ChocolateRaaka Chocolate,$5.49,1.0 Ounce,,False,False,2025-03-08T10:33:48.251400
-Winter Citrus Mini Bars,pantry,Raaka ChocolateRaaka Chocolate,$39.99,40 mini bars (11.2 oz),,False,False,2025-03-08T10:33:48.273524
-4pc Mixed Truffle Box,pantry,Fine & Raw ChocolateFine & Raw Chocolate,$13.59,2.0 Ounce,,False,False,2025-03-08T10:33:48.297157
-Chocolate Hazelnut Butter Spread,pantry,Fine & Raw ChocolateFine & Raw Chocolate,$14.99,8.0 Ounce,,False,False,2025-03-08T10:33:48.319821
-Crème Chocolat French Dessert,pantry,La FermièreLa Fermière,$3.49,4.4 Ounce,,False,False,2025-03-08T10:33:48.344196
-Crème Vanille French Dessert,pantry,La FermièreLa Fermière,$3.99,4.4 Ounce,,False,False,2025-03-08T10:33:48.366044
-Crème Caramel French Dessert,pantry,La FermièreLa Fermière,$3.49,4.4 Ounce,,False,False,2025-03-08T10:33:48.389168
-Upcycled Sugar Cookie Mix,pantry,Renewal MillRenewal Mill,$9.99,15.0 Ounce,,False,False,2025-03-08T10:33:48.410901
-Vegan Marshmallows,pantry,DandiesDandies,$6.59,10.0 Ounce,,False,False,2025-03-08T10:33:48.433917
-Dark Hot Chocolate Mix,pantry,Equal Exchange Fairly TradedEqual Exchange Fairly...,$10.39,12.0 Ounce,,False,False,2025-03-08T10:33:48.455984
-Hot Cocoa Mix,pantry,Equal Exchange Fairly TradedEqual Exchange Fairly...,$10.39,12.0 Ounce,,False,False,2025-03-08T10:33:48.478891
-8pc Mixed Truffle Box,pantry,Fine & Raw ChocolateFine & Raw Chocolate,$24.99,4.0 Ounce,,False,False,2025-03-08T10:33:48.501275
-Chocolate Cake Truffle Bar,pantry,Honey Mama'sHoney Mama's,$6.29,2.5 oz,,False,False,2025-03-08T10:33:48.524687
-Salted Almond Truffle Bar,pantry,Honey Mama'sHoney Mama's,$6.29,2.5 oz,,False,False,2025-03-08T10:33:48.546818
-Coconut Truffle Bar,pantry,Honey Mama'sHoney Mama's,$6.29,2.5 oz,,False,False,2025-03-08T10:33:48.570533
-The OG Cracker Cookies,pantry,Legally AddictiveLegally Addictive,$10.99,4.7 Ounce,,False,False,2025-03-08T10:33:48.592447
-Churro Graham Cracker Cookies,pantry,Legally AddictiveLegally Addictive,$10.99,4.7 Ounce,,False,False,2025-03-08T10:33:48.616002
-Mexican Hot Chocolate Cracker Cookies,pantry,Legally AddictiveLegally Addictive,$10.99,4.7 oz,,False,False,2025-03-08T10:33:48.638255
-Vanilla Bean Marshmallows,pantry,Hudson Valley Marshmallow Co.Hudson Valley Marshma...,$6.99,4.0 Ounce,,False,False,2025-03-08T10:33:48.662230
-Chocolate Chip Marshmallows,pantry,Hudson Valley Marshmallow Co.Hudson Valley Marshma...,$6.99,4.0 Ounce,,False,False,2025-03-08T10:33:48.684485
-Salted Caramel Marshmallows,pantry,Hudson Valley Marshmallow Co.Hudson Valley Marshma...,$6.99,4.0 oz,,False,False,2025-03-08T10:33:48.707558
-Crème Cafe French Dessert,pantry,La FermièreLa Fermière,$3.49,4.4 oz,,False,False,2025-03-08T10:33:48.729643
-Raspberry Waffle Crunch Dark Chocolate,pantry,Raaka ChocolateRaaka Chocolate,$9.99,1.8 oz,,False,False,2025-03-08T10:33:48.752340
-Pistachio Halva,pantry,Seed & MillSeed & Mill,$14.99,8.0 Ounce,,False,False,2025-03-08T10:33:48.774762
-Dark Chocolate and Sea Salt Halva,pantry,Seed & MillSeed & Mill,$14.99,8.0 Ounce,,False,False,2025-03-08T10:33:48.797835
-Chocolate Covered Hazelnuts,pantry,Freddy Guy's HazelnutsFreddy Guy's Hazelnut...,$12.99,7.0 Ounce,,False,True,2025-03-08T10:33:48.820137
-Almond Sea Salt Chocolate Hunks (Paleo),pantry,Hu KitchenHu Kitchen,$8.99,4.0 Ounce,,False,True,2025-03-08T10:33:48.843011
-Hazelnut Butter Dark Chocolate Bar,pantry,Hu KitchenHu Kitchen,$6.99,2.1 Ounce,,False,True,2025-03-08T10:33:48.865186
-Dried Apple Rings (Organic),pantry,Boxford BakehouseBoxford Bakehouse,$9.99,6.0 oz,,False,False,2025-03-08T10:33:48.888687
-Dried Pineapple Rings (Organic),pantry,Boxford BakehouseBoxford Bakehouse,$9.99,6.0 oz,,False,False,2025-03-08T10:33:48.910464
-Mangoes a-go-go Fruit Leather,pantry,You Love FruitYou Love Fruit,$5.99,6 .5 oz pouches,,False,False,2025-03-08T10:33:48.933782
-Apple & Cinnasidekick Fruit Leather,pantry,You Love FruitYou Love Fruit,$5.99,6 .5 oz pouches,,False,False,2025-03-08T10:33:48.956085
-Cheery Cherry Mango Fruit Leather,pantry,You Love FruitYou Love Fruit,$5.99,6 .5 oz pouches,,False,False,2025-03-08T10:33:48.979109
-Kiwi Berry Buddies Fruit Leather,pantry,You Love FruitYou Love Fruit,$5.99,6 .5 oz pouches,,False,False,2025-03-08T10:33:49.001581
-Passion Fruit Power Pals Fruit Leather,pantry,You Love FruitYou Love Fruit,$5.99,6 .5 oz pouches,,False,False,2025-03-08T10:33:49.024735
-Super Berry Fruit Leather,pantry,You Love FruitYou Love Fruit,$5.99,6 .5 oz pouches,,False,False,2025-03-08T10:33:49.047091
-Medjool Dates,pantry,Boxford BakehouseBoxford Bakehouse,$9.19,8.0 Ounce,,False,False,2025-03-08T10:33:49.090908
-Raw Walnuts,pantry,Boxford BakehouseBoxford Bakehouse,$10.59,6.0 Ounce,,False,False,2025-03-08T10:33:49.113905
-Tierra Trail Mix,pantry,Boxford BakehouseBoxford Bakehouse,$7.99,8.0 Ounce,,False,False,2025-03-08T10:33:49.158367
-Roasted Unsalted Cashews,pantry,Boxford BakehouseBoxford Bakehouse,$12.49,8.0 Ounce,,False,False,2025-03-08T10:33:49.180402
-Organic Triple C Mix,pantry,Boxford BakehouseBoxford Bakehouse,$8.19,8.0 Ounce,,False,False,2025-03-08T10:33:49.203120
-Turkish Dried Apricots,pantry,Boxford BakehouseBoxford Bakehouse,$8.99,8.0 Ounce,,False,False,2025-03-08T10:33:49.225541
-Roasted Unsalted Almonds,pantry,Boxford BakehouseBoxford Bakehouse,$10.99,8.0 Ounce,,False,False,2025-03-08T10:33:49.248913
-Raw Pecans (halves),pantry,Boxford BakehouseBoxford Bakehouse,$14.99,8.0 Ounce,,False,False,2025-03-08T10:33:49.270824
-Tamari Roasted Almonds,pantry,Boxford BakehouseBoxford Bakehouse,$11.99,8.0 Ounce,,False,False,2025-03-08T10:33:49.315116
-Whole Raw Cashews,pantry,Boxford BakehouseBoxford Bakehouse,$10.99,8.0 Ounce,,False,False,2025-03-08T10:33:49.338286
-Black Mission Figs,pantry,Boxford BakehouseBoxford Bakehouse,$9.99,8.0 Ounce,,False,False,2025-03-08T10:33:49.360068
-Everything Bagel Cashews,pantry,Boxford BakehouseBoxford Bakehouse,$12.49,8.0 Ounce,,False,False,2025-03-08T10:33:49.385173
-Honey Sriracha Cashews,pantry,Boxford BakehouseBoxford Bakehouse,$12.89,8.0 Ounce,,False,False,2025-03-08T10:33:49.410471
-Raw California Almonds,pantry,Boxford BakehouseBoxford Bakehouse,$12.49,8.0 Ounce,,False,False,2025-03-08T10:33:49.434022
-Sultana Raisins,pantry,Boxford BakehouseBoxford Bakehouse,$5.99,8.0 Ounce,,False,False,2025-03-08T10:33:49.456718
-Macadamia Nuts,pantry,Boxford BakehouseBoxford Bakehouse,$10.99,4.0 Ounce,,False,False,2025-03-08T10:33:49.480066
-Dried Cranberries,pantry,Boxford BakehouseBoxford Bakehouse,$7.99,8.0 Ounce,,False,False,2025-03-08T10:33:49.502706
-Mexican Chocolate Almonds,pantry,Q's NutsQ's Nuts,$9.99,5.0 Ounce,,False,False,2025-03-08T10:33:49.525712
-Key Lime Ginger Almonds,pantry,Q's NutsQ's Nuts,$8.99,5.0 Ounce,,False,False,2025-03-08T10:33:49.547825
-Banana Foster Pecans,pantry,Q's NutsQ's Nuts,$9.99,5.0 Ounce,,False,False,2025-03-08T10:33:49.570969
-Salted Hazelnuts,pantry,Freddy Guy's HazelnutsFreddy Guy's Hazelnut...,$8.99,7.0 Ounce,,False,False,2025-03-08T10:33:49.593225
-Pepitas Brined and Roasted Heirloom Pumpkin Seeds,pantry,Stony Brook Wholehearted FoodsStony Brook Wholehear...,$4.99,3.0 Ounce,,False,False,2025-03-08T10:33:49.616613
-Maple Pepitas Roasted Pumpkin Seeds with Maple Syrup,pantry,Stony Brook Wholehearted FoodsStony Brook Wholehear...,$4.99,3.0 Ounce,,False,False,2025-03-08T10:33:49.638833
-Sweet Chili Butternut Pepitas,pantry,Stony Brook Wholehearted FoodsStony Brook Wholehear...,$4.99,3.0 Ounce,,False,False,2025-03-08T10:33:49.661664
-Tamari Pumpkin Seeds,pantry,Boxford BakehouseBoxford Bakehouse,$9.99,8.0 Ounce,,False,False,2025-03-08T10:33:49.684310
-"Raw Pistachios, In-Shell (Organic)",pantry,Boxford BakehouseBoxford Bakehouse,$9.99,8.0 oz,,False,False,2025-03-08T10:33:49.707510
-Oatmeal Raisin Breakfast Bar,pantry,Cloudy Lane BakeryCloudy Lane Bakery,$4.99,1 bar,,False,False,2025-03-08T10:33:49.752246
-Chocolate Chip Blondie Bar,pantry,Cloudy Lane BakeryCloudy Lane Bakery,$4.99,1 bar (45 grams),,False,False,2025-03-08T10:33:49.774335
-Cranberry Cashew Nut Butter Bar,pantry,Big Spoon RoastersBig Spoon Roasters,$3.99,2.1 Ounce,,False,False,2025-03-08T10:33:49.797566
-Apricot Pepita Nut Butter Bar,pantry,Big Spoon RoastersBig Spoon Roasters,$3.99,2.1 Ounce,,False,False,2025-03-08T10:33:49.830613
-Cherry Chocolate Nut Butter Bar,pantry,Big Spoon RoastersBig Spoon Roasters,$3.99,2.1 Ounce,,False,False,2025-03-08T10:33:49.878186
-Chewy Granola Bars,pantry,The Native Bread and PastryThe Native Bread and ...,$5.49,1 piece,,False,False,2025-03-08T10:33:49.947811
-Honey Almond Granola,pantry,Hawthorne Valley FarmHawthorne Valley Farm,$5.99,8.0 Ounce,,False,False,2025-03-08T10:33:49.970396
-Maple Walnut Granola,pantry,Hawthorne Valley FarmHawthorne Valley Farm,$5.99,8.0 Ounce,,False,False,2025-03-08T10:33:49.992809
-Aged Cheddar Granola with Black Pepper,pantry,Jamie's Farm New YorkJamie's Farm New York,$12.99,8.0 oz,,False,False,2025-03-08T10:33:50.017496
-Vanilla Bean Granola with Sour Cherries,pantry,Jamie's Farm New YorkJamie's Farm New York,$12.99,8.0 Ounce,,False,False,2025-03-08T10:33:50.040879
-Chai Streusel Granola with Honey,pantry,Jamie's Farm New YorkJamie's Farm New York,$12.99,8.0 Ounce,,False,False,2025-03-08T10:33:50.063933
-Rosemary Granola with Currants,pantry,Jamie's Farm New YorkJamie's Farm New York,$12.99,8.0 Ounce,,False,False,2025-03-08T10:33:50.086796
-Maple Pecan Granola with Sea Salt,pantry,Jamie's Farm New YorkJamie's Farm New York,$12.99,8.0 oz,,False,False,2025-03-08T10:33:50.174021
-Blueberry Dino Bar,pantry,Dino BarsDino Bars,$2.49,1.05 oz,,False,False,2025-03-08T10:33:50.196325
-Strawberry Dino Bar,pantry,Dino BarsDino Bars,$2.49,1.05 oz,,False,False,2025-03-08T10:33:50.218668
-Mango Dino Bar,pantry,Dino BarsDino Bars,$2.49,1.05 oz,,False,False,2025-03-08T10:33:50.241081
-Pineapple Carrot Dino Bar,pantry,Dino BarsDino Bars,$2.49,1.05 oz,,False,False,2025-03-08T10:33:50.263328
-Dark Chocolate Ganache Bar,pantry,Cloudy Lane BakeryCloudy Lane Bakery,$4.99,1 bar (45 grams),,False,True,2025-03-08T10:33:50.286952
-Salsa Verde,pantry,Farm To People KitchenFarm To People Kitche...,$5.99,8 oz,,False,False,2025-03-08T10:33:50.309418
-Original Hummus,pantry,Farm To People KitchenFarm To People Kitche...,$6.99,8 oz,,False,False,2025-03-08T10:33:50.332442
-Zesty Za'atar Hummus,pantry,Farm To People KitchenFarm To People Kitche...,$6.99,8 oz,,False,False,2025-03-08T10:33:50.354873
-Garlic Confit Hummus,pantry,Farm To People KitchenFarm To People Kitche...,$7.99,8 oz,,False,False,2025-03-08T10:33:50.377108
-Guacamole,pantry,Farm To People KitchenFarm To People Kitche...,$7.99,8 oz,,False,False,2025-03-08T10:33:50.399979
-Tzatziki,pantry,Farm To People KitchenFarm To People Kitche...,$4.99,8 oz,,False,False,2025-03-08T10:33:50.422566
-Wild-Caught Tuna Salad,pantry,Farm To People KitchenFarm To People Kitche...,$6.99,8 oz,,False,False,2025-03-08T10:33:50.444330
-Basil Pesto,pantry,Farm To People KitchenFarm To People Kitche...,$9.99,8 oz,,False,False,2025-03-08T10:33:50.467166
-Tomatillo Salsa,pantry,Kitchen Garden FarmKitchen Garden Farm,$12.99,11.0 Ounce,,False,False,2025-03-08T10:33:50.489675
-Roasted Chili Salsa,pantry,Kitchen Garden FarmKitchen Garden Farm,$12.99,11.0 Ounce,,False,False,2025-03-08T10:33:50.512071
-Vegan Cilantro Pistachio Pesto,pantry,Farm To People KitchenFarm To People Kitche...,$8.99,8 oz,,False,False,2025-03-08T10:33:50.534775
-Chickpea 'Un-tuna' Salad,pantry,Farm To People KitchenFarm To People Kitche...,$6.99,8 oz,,False,False,2025-03-08T10:33:50.557367
-Guasacaca,pantry,Farm To People KitchenFarm To People Kitche...,$6.99,8 oz,,False,False,2025-03-08T10:33:50.579721
-Chimichurri,pantry,Farm To People KitchenFarm To People Kitche...,$7.99,8 oz,,False,False,2025-03-08T10:33:50.602588
-Giardiniera Spicy Pickled Vegetables,pantry,Kitchen Garden FarmKitchen Garden Farm,$15.99,19.6 Ounce,,False,False,2025-03-08T10:33:50.625742
-Pickled Daikon Kimchi,pantry,Mama O'sMama O's,$10.39,1.0 Lbs,,False,False,2025-03-08T10:33:50.658317
-Kimchi Paste,pantry,Mama O'sMama O's,$10.39,6.0 Ounce,,False,False,2025-03-08T10:33:50.700941
-Baby Bok Choy Kimchi,pantry,Mama O'sMama O's,$12.59,1.0 Lbs,,False,False,2025-03-08T10:33:50.722629
-Vegan Kimchi,pantry,Mama O'sMama O's,$10.39,1.0 Lbs,,False,False,2025-03-08T10:33:50.744201
-Vegan Kimchi Paste,pantry,Mama O'sMama O's,$9.49,6.0 Ounce,,False,False,2025-03-08T10:33:50.766445
-Pickled Red Onions,pantry,Farm To People KitchenFarm To People Kitche...,$5.99,8 oz,,False,False,2025-03-08T10:33:50.788025
-Ginger Carrots Kraut,pantry,Hawthorne Valley FarmHawthorne Valley Farm,$12.99,16.0 Ounce,,False,False,2025-03-08T10:33:50.809333
-Original Sauerkraut,pantry,Hawthorne Valley FarmHawthorne Valley Farm,$9.99,16.0 Ounce,,False,False,2025-03-08T10:33:50.831263
-The People's Pickle,pantry,Rick's PicksRick's Picks,$9.99,24.0 Ounce,,False,False,2025-03-08T10:33:50.852578
-Hotties Spicy Sriracha Pickle Chips,pantry,Rick's PicksRick's Picks,$9.99,24.0 Ounce,,False,False,2025-03-08T10:33:50.874375
-Mean Beans,pantry,Rick's PicksRick's Picks,$11.99,15.0 Ounce,,False,False,2025-03-08T10:33:50.896834
-Mellow Red Miso,pantry,Rhapsody Natural FoodsRhapsody Natural Food...,$14.49,16.0 Ounce,,False,False,2025-03-08T10:33:50.918846
-Sweet White Miso,pantry,Rhapsody Natural FoodsRhapsody Natural Food...,$14.49,16.0 Ounce,,False,False,2025-03-08T10:33:50.940584
-Non-Pareil Capers,pantry,MinaMina,$4.99,7.0 oz,,False,False,2025-03-08T10:33:50.961919
-Pitted Green Olives,pantry,MinaMina,$4.69,12.5 oz,,False,False,2025-03-08T10:33:50.983509
-Green Olives,pantry,MinaMina,$4.69,12.5 oz,,False,False,2025-03-08T10:33:51.005513
-Purple Beldi Olives,pantry,MinaMina,$4.69,12.5 oz,,False,False,2025-03-08T10:33:51.026645
-Dry Cured Black Olives,pantry,MinaMina,$4.69,7.0 oz,,False,False,2025-03-08T10:33:51.048745
-Dilly Scapes,pantry,Somewhere in Time FarmSomewhere in Time Far...,$14.99,16.0 Ounce,,False,False,2025-03-08T10:33:51.070262
-Ruby Sauerkraut,pantry,Hawthorne Valley FarmHawthorne Valley Farm,$9.99,16.0 Ounce,,False,True,2025-03-08T10:33:51.091883
-Caraway Sauerkraut,pantry,Hawthorne Valley FarmHawthorne Valley Farm,$9.99,16.0 Ounce,,False,True,2025-03-08T10:33:51.113528
-Turmeric Feuerkraut Sauerkraut,pantry,Hawthorne Valley FarmHawthorne Valley Farm,$12.99,16.0 Ounce,,False,True,2025-03-08T10:33:51.135398
-Organic Apple Cider Vinegar,pantry,Peachey's Fruit FarmPeachey's Fruit Farm,$11.99,32.0 oz,,False,False,2025-03-08T10:33:51.156843
-Aria Extra Virgin Olive Oil (Tin),pantry,Aralia Olive OilsAralia Olive Oils,$43.99,3.0 Litre,,False,False,2025-03-08T10:33:51.178472
-Zoe Extra Virgin Olive Oil,pantry,ZoeZoe,$59.99,3.0 Litre,,False,False,2025-03-08T10:33:51.200183
-Organic Zoe Extra Virgin Olive Oil,pantry,ZoeZoe,$64.99,88.0 Fluid Ounce,,False,False,2025-03-08T10:33:51.222321
-Canola Oil,pantry,Susquehanna Mills Co.Susquehanna Mills Co.,$14.99,750.0 Milliliter,,False,False,2025-03-08T10:33:51.243571
-Truffle Oil,pantry,The TruffleistThe Truffleist,$10.99,2.0 Ounce,,False,False,2025-03-08T10:33:51.265898
-Avocado Oil,pantry,La TourangelleLa Tourangelle,$21.49,16.9 Ounce,,False,False,2025-03-08T10:33:51.287373
-Toasted Sesame Oil,pantry,La TourangelleLa Tourangelle,$15.99,16.9 Ounce,,False,False,2025-03-08T10:33:51.309166
-100% Grass-fed Beef Tallow,pantry,Farm To People KitchenFarm To People Kitche...,$8.99,8.0 oz,,False,False,2025-03-08T10:33:51.330708
-Chicken Schmaltz,pantry,Farm To People KitchenFarm To People Kitche...,$8.99,6 oz,,False,False,2025-03-08T10:33:51.353007
-That Balsamic,pantry,Farm to PeopleFarm to People,$24.99,16.0 Ounce,,False,False,2025-03-08T10:33:51.374438
-Organic Rice Vinegar,pantry,Wan Ja ShanWan Ja Shan,$7.99,15.0 Fluid Ounce,,False,False,2025-03-08T10:33:51.396058
-Sweet Mirin Rice Wine,pantry,Wan Ja ShanWan Ja Shan,$7.99,15.0 Ounce,,False,False,2025-03-08T10:33:51.417812
-100% Grass-fed Beef Suet,pantry,Hardwick BeefHardwick Beef,N/A,"2-2.5 lbs, avg $17.98",$7.99/ lb,False,False,2025-03-08T10:33:51.439403
-Aria Extra Virgin Olive Oil,pantry,Aralia Olive OilsAralia Olive Oils,$18.99,500.0 Milliliter,,False,True,2025-03-08T10:33:51.460858
-Pure Kosher Sea Salt,pantry,Jacobsen Salt Co.Jacobsen Salt Co.,$12.99,1.0 Lbs,,False,False,2025-03-08T10:33:51.483010
-Pure Italian Fine Sea Salt,pantry,Jacobsen Salt Co.Jacobsen Salt Co.,$8.99,1.8 Lbs,,False,False,2025-03-08T10:33:51.504289
-Truffle Salt,pantry,The TruffleistThe Truffleist,$19.99,4.0 Ounce,,False,False,2025-03-08T10:33:51.526215
-Royal Cinnamon,pantry,Burlap & BarrelBurlap & Barrel,$8.29,1.8 Ounce,,False,False,2025-03-08T10:33:51.547569
-Purple Stripe Garlic Powder,pantry,Burlap & BarrelBurlap & Barrel,$8.29,1.8 Ounce,,False,False,2025-03-08T10:33:51.568942
-Smoked Pimenton Paprika,pantry,Burlap & BarrelBurlap & Barrel,$7.99,1.8 Ounce,,False,False,2025-03-08T10:33:51.591183
-Sweet Pepper Paprika,pantry,Burlap & BarrelBurlap & Barrel,$8.99,1.8 Ounce,,False,False,2025-03-08T10:33:51.612789
-Cobanero Chili,pantry,Burlap & BarrelBurlap & Barrel,$8.99,1.5 Ounce,,False,False,2025-03-08T10:33:51.633938
-Ground New Harvest Turmeric,pantry,Burlap & BarrelBurlap & Barrel,$9.99,1.9 Ounce,,False,False,2025-03-08T10:33:51.655969
-Cured Sumac,pantry,Burlap & BarrelBurlap & Barrel,$9.99,1.8 Ounce,,False,False,2025-03-08T10:33:51.677447
-Ground Black Lime,pantry,Burlap & BarrelBurlap & Barrel,$8.99,1.7 Ounce,,False,False,2025-03-08T10:33:51.699456
-Ground Buffalo Ginger,pantry,Burlap & BarrelBurlap & Barrel,$8.99,1.8 Ounce,,False,False,2025-03-08T10:33:51.720770
-Ground Laurel Bay Leaves,pantry,Burlap & BarrelBurlap & Barrel,$9.99,1.5 Ounce,,False,False,2025-03-08T10:33:51.742719
-Wild Mountain Cumin Seeds,pantry,Burlap & BarrelBurlap & Barrel,$9.99,1.5 Ounce,,False,False,2025-03-08T10:33:51.764225
-Flowering Hyssop Thyme,pantry,Burlap & BarrelBurlap & Barrel,$8.29,0.8 Ounce,,False,False,2025-03-08T10:33:51.785680
-Pemba Cloves,pantry,Burlap & BarrelBurlap & Barrel,$8.99,1.4 Ounce,,False,False,2025-03-08T10:33:51.807807
-Ground Sweet Allspice,pantry,Burlap & BarrelBurlap & Barrel,$8.29,2.0 Ounce,,False,False,2025-03-08T10:33:51.829951
-Cloud Forest Cardamom,pantry,Burlap & BarrelBurlap & Barrel,$9.99,1.7 Ounce,,False,False,2025-03-08T10:33:51.851724
-Robusta Black Peppercorns (Bulk Size),pantry,Burlap & BarrelBurlap & Barrel,$35.99,16.0 Ounce,,False,False,2025-03-08T10:33:51.873706
-Ea Sar Black Pepper,pantry,Burlap & BarrelBurlap & Barrel,$8.29,1.8 Ounce,,False,False,2025-03-08T10:33:51.895208
-Za'atar,pantry,New York ShukNew York Shuk,$10.99,1.5 Ounce,,False,False,2025-03-08T10:33:51.916822
-Curry Powder,pantry,Burlap & BarrelBurlap & Barrel,$8.99,2.1 Ounce,,False,False,2025-03-08T10:33:51.938446
-Toasted Onion Powder,pantry,Burlap & BarrelBurlap & Barrel,$7.00,2.9 Ounce,,False,False,2025-03-08T10:33:51.960052
-Jimmy Nardello Sweet Pepper Flakes,pantry,Burlap & BarrelBurlap & Barrel,$10.99,0.9 Ounce,,False,False,2025-03-08T10:33:51.981690
-Dried Wild Ramps,pantry,Burlap & BarrelBurlap & Barrel,$19.99,0.9 Ounce,,False,False,2025-03-08T10:33:52.002887
-Ground Red River Coriander,pantry,Burlap & BarrelBurlap & Barrel,$8.29,2.0 Ounce,,False,False,2025-03-08T10:33:52.024559
-Herbes de Provence,pantry,Burlap & BarrelBurlap & Barrel,$9.99,0.8 Ounce,,False,False,2025-03-08T10:33:52.046736
-Chai Spice,pantry,Burlap & BarrelBurlap & Barrel,$9.99,2.0 Ounce,,False,False,2025-03-08T10:33:52.069700
-Nothing Hidden Ranch Powder,pantry,Burlap & BarrelBurlap & Barrel,$11.99,2.7 Ounce,,False,False,2025-03-08T10:33:52.091926
-Yo Quiero Taco Blend,pantry,Burlap & BarrelBurlap & Barrel,$11.99,2.6 Ounce,,False,False,2025-03-08T10:33:52.113406
-Spicy & Smoky Grilling Rub,pantry,Burlap & BarrelBurlap & Barrel,$11.99,1.7 Ounce,,False,False,2025-03-08T10:33:52.134830
-Ground Grenada Gold Nutmeg,pantry,Burlap & BarrelBurlap & Barrel,$9.49,1.0 oz,,False,False,2025-03-08T10:33:52.157349
-Dried Calabrian Chili Flakes,pantry,Kitchen Garden FarmKitchen Garden Farm,$12.99,1.0 Ounce,,False,False,2025-03-08T10:33:52.180919
-Half White Bread Flour,pantry,Farmer Ground FlourFarmer Ground Flour,$6.99,2.0 Lbs,,False,False,2025-03-08T10:33:52.230007
-Cane Sugar Fair Trade,pantry,Wholesome OrganicsWholesome Organics,$7.99,2.0 Lbs,,False,False,2025-03-08T10:33:52.376518
-Organic Dark Brown Sugar,pantry,Wholesome OrganicsWholesome Organics,$9.99,24.0 Ounce,,False,False,2025-03-08T10:33:52.398759
-Organic Light Brown Sugar,pantry,Wholesome OrganicsWholesome Organics,$9.99,24.0 Ounce,,False,False,2025-03-08T10:33:52.420526
-Organic Powdered Confectioners Sugar,pantry,Wholesome OrganicsWholesome Organics,$5.99,1.0 Lbs,,False,False,2025-03-08T10:33:52.442855
-Muscovado Light Brown Sugar,pantry,Billington's NaturalBillington's Natural,$4.99,1.0 Lbs,,False,False,2025-03-08T10:33:52.464621
-Madagascar Vanilla Extract,pantry,Beyond GoodBeyond Good,$13.99,2.0 Ounce,,False,False,2025-03-08T10:33:52.486262
-Madagascar Vanilla Beans,pantry,Beyond GoodBeyond Good,$24.99,2 beans,,False,False,2025-03-08T10:33:52.508438
-Organic Puff Pastry,pantry,Fillo FactoryFillo Factory,$12.99,16.0 Ounce,,False,False,2025-03-08T10:33:52.530263
-Organic Fillo Dough,pantry,Fillo FactoryFillo Factory,$8.49,1.0 Lbs,,False,False,2025-03-08T10:33:52.551645
-Organic Coconut Milk,pantry,Native ForestNative Forest,$5.59,13.5 Ounce,,False,False,2025-03-08T10:33:52.573754
-Puff Pastry,pantry,Dufour Pastry KitchenDufour Pastry Kitchen,$15.99,14.0 oz,,False,False,2025-03-08T10:33:52.677331
-Pumpkin Puree,pantry,First FieldFirst Field,$13.99,16.5 Ounce,,False,False,2025-03-08T10:33:52.698974
-Buttermilk Pancake Mix,pantry,Phoenicia DinerPhoenicia Diner,$12.99,20.0 oz,,False,False,2025-03-08T10:33:52.720587
-Buckwheat Pancake Mix,pantry,Phoenicia DinerPhoenicia Diner,$12.99,20.0 oz,,False,False,2025-03-08T10:33:52.742875
-Vegan Pancake Mix,pantry,Phoenicia DinerPhoenicia Diner,$11.04,20.0 oz,,False,False,2025-03-08T10:33:52.764310
-Canned Pumpkin Puree,pantry,Farmer's MarketFarmer's Market,$6.29,15.0 Ounce,,False,False,2025-03-08T10:33:52.785609
-Brooklyn Bolognese,pantry,Farm To People KitchenFarm To People Kitche...,$14.99,16 oz,,False,False,2025-03-08T10:33:52.908887
-Classic Red Tomato Sauce,pantry,Jule'sJule's,$8.99,16.0 Ounce,,False,False,2025-03-08T10:33:52.930410
-Classic Spicy Tomato Sauce,pantry,Jule'sJule's,$9.99,16.0 Ounce,,False,False,2025-03-08T10:33:52.951635
-Classic Vodka Tomato Sauce,pantry,Jule'sJule's,$9.99,16.0 Ounce,,False,False,2025-03-08T10:33:52.973849
-Dairy-Free Vodka Tomato Sauce,pantry,Jule'sJule's,$9.99,16.0 Ounce,,False,False,2025-03-08T10:33:52.995553
-Jersey Fresh Canned Crushed Tomatoes,pantry,Jersey FreshJersey Fresh,$6.49,28.0 Ounce,,False,False,2025-03-08T10:33:53.017312
-Sichuan Chili Crisp,pantry,Fly by JingFly by Jing,$16.99,6.0 Ounce,,False,False,2025-03-08T10:33:53.039046
-Sesame Premium Tahini,pantry,Soom FoodsSoom Foods,$9.99,11.0 Ounce,,False,False,2025-03-08T10:33:53.060711
-Cranberry Sauce,pantry,First FieldFirst Field,$13.99,10.5 Ounce,,False,False,2025-03-08T10:33:53.082695
-Less Sodium Soy Sauce,pantry,Wan Ja ShanWan Ja Shan,$4.99,10.0 Ounce,,False,False,2025-03-08T10:33:53.124881
-Gluten-Free Tamari,pantry,Wan Ja ShanWan Ja Shan,$5.99,10.0 Ounce,,False,False,2025-03-08T10:33:53.146516
-Soy Sauce,pantry,Wan Ja ShanWan Ja Shan,$4.99,10.0 Ounce,,False,False,2025-03-08T10:33:53.167986
-Fish Sauce,pantry,Red BoatRed Boat,$11.99,250.0 Milliliter,,False,False,2025-03-08T10:33:53.189928
-Worcestershire Sauce,pantry,Wan Ja ShanWan Ja Shan,$4.99,10.0 Ounce,,False,False,2025-03-08T10:33:53.211810
-Thai Peanut Lime Sauce,pantry,Farm To People KitchenFarm To People Kitche...,$7.99,8 oz,,False,False,2025-03-08T10:33:53.233430
-Classic Ginger Saffron Simmer Sauce,pantry,MinaMina,$6.99,12.0 oz,,False,False,2025-03-08T10:33:53.255368
-"Tomato, Herbs, & Spices Simmer Sauce",pantry,MinaMina,$6.99,12.0 oz,,False,False,2025-03-08T10:33:53.276915
-Royal Ras El Hanout Simmer Sauce,pantry,MinaMina,$6.99,12.0 oz,,False,False,2025-03-08T10:33:53.298679
-Shakshuka Sauce,pantry,MinaMina,$7.99,16.0 oz,,False,False,2025-03-08T10:33:53.320346
-Ketchup,pantry,True Made FoodsTrue Made Foods,$4.99,17.0 Ounce,,False,False,2025-03-08T10:33:53.362478
-Honey Mustard,pantry,True Made FoodsTrue Made Foods,$4.49,12.0 Ounce,,False,False,2025-03-08T10:33:53.383786
-Dijon Mustard,pantry,Edmond FallotEdmond Fallot,$6.99,7.4 Ounce,,False,False,2025-03-08T10:33:53.405527
-Stone Ground Mustard,pantry,Edmond FallotEdmond Fallot,$6.99,7.2 Ounce,,False,False,2025-03-08T10:33:53.427390
-Classic Mayonnaise,pantry,Sir Kensington'sSir Kensington's,$9.99,12.0 Ounce,,False,False,2025-03-08T10:33:53.448866
-Vegan Mayo,pantry,Sir Kensington'sSir Kensington's,$12.99,12.0 Ounce,,False,False,2025-03-08T10:33:53.470222
-"Salsa Macha with chilis, cranberries, pepitas",pantry,Tia LupitaTia Lupita,$10.99,7.5 Ounce,,False,False,2025-03-08T10:33:53.491735
-"Salsa Macha with chilis, peanuts, pepitas",pantry,Tia LupitaTia Lupita,$10.99,7.5 Ounce,,False,False,2025-03-08T10:33:53.513328
-Organic Sriracha,pantry,Kitchen Garden FarmKitchen Garden Farm,$13.99,8.0 Ounce,,False,False,2025-03-08T10:33:53.534990
-Sweet Sting Smoky Honey Sriracha,pantry,Farm to PeopleFarm to People,$11.99,8.0 Ounce,,False,False,2025-03-08T10:33:53.556520
-Original Ghee,pantry,Pure Indian FoodsPure Indian Foods,$15.99,7.8 Ounce,,False,False,2025-03-08T10:33:53.577609
-Original Horseradish,pantry,Holy Schmitt's HorseradishHoly Schmitt's Horser...,$11.99,8.0 Ounce,,False,False,2025-03-08T10:33:53.721242
-Cocktail Sauce,pantry,Holy Schmitt's HorseradishHoly Schmitt's Horser...,$10.99,8.0 Ounce,,False,False,2025-03-08T10:33:53.742415
-Signature Harissa,pantry,New York ShukNew York Shuk,$13.99,10.0 Ounce,,False,False,2025-03-08T10:33:53.764361
-Harissa with Preserved Lemon,pantry,New York ShukNew York Shuk,$16.99,10.0 Ounce,,False,False,2025-03-08T10:33:53.785497
-Preserved Lemon Paste,pantry,New York ShukNew York Shuk,$15.99,10.0 Ounce,,False,False,2025-03-08T10:33:53.807230
-Beet Horseradish,pantry,Holy Schmitt's HorseradishHoly Schmitt's Horser...,$10.99,8.0 Ounce,,False,False,2025-03-08T10:33:53.869597
-Mild Harissa,pantry,MinaMina,$5.94,10.0 oz,,False,False,2025-03-08T10:33:53.891119
-Preserved Lemons,pantry,MinaMina,$4.99,12.5 oz,,False,False,2025-03-08T10:33:53.912567
-Spicy Harissa,pantry,MinaMina,$5.94,10.0 oz,,False,False,2025-03-08T10:33:53.934223
-Pennsylvania Raw Honey,pantry,The Honeybee ShoppeThe Honeybee Shoppe,$11.99,1.0 Lbs,,False,False,2025-03-08T10:33:53.955746
-Mike's Hot Honey,pantry,Mike's Hot HoneyMike's Hot Honey,$12.99,12.0 Ounce,,False,False,2025-03-08T10:33:53.976942
-Mill Hollow Pure Maple Syrup (Very Dark),pantry,Hudson HarvestHudson Harvest,$30.99,32.0 Ounce,,False,False,2025-03-08T10:33:53.999014
-Chocolate Sweet Tahini,pantry,Soom FoodsSoom Foods,$9.99,12.0 Ounce,,False,False,2025-03-08T10:33:54.020457
-Pumpkin Spice Honey,pantry,HoneyGramzHoneyGramz,$11.99,6.0 oz,,False,False,2025-03-08T10:33:54.041778
-Mini Strawberry Rhubarb Jam,pantry,Murray's CheeseMurray's Cheese,$3.99,1.5 Ounce,,False,False,2025-03-08T10:33:54.063241
-Mini Wild Blueberry Jam,pantry,Murray's CheeseMurray's Cheese,$3.99,1.5 Ounce,,False,False,2025-03-08T10:33:54.084669
-Mini Spiced Cherry Jam,pantry,Murray's CheeseMurray's Cheese,$3.99,1.5 Ounce,,False,False,2025-03-08T10:33:54.106595
-Apple Sauce,pantry,Red Jacket OrchardsRed Jacket Orchards,$7.39,16.0 Ounce,,False,False,2025-03-08T10:33:54.127640
-Peanut Butter with Wildflower Honey & Sea Salt,pantry,Big Spoon RoastersBig Spoon Roasters,$10.99,13.0 Ounce,,False,False,2025-03-08T10:33:54.191509
-Maple Cinnamon Peanut Pecan Butter,pantry,Big Spoon RoastersBig Spoon Roasters,$15.99,13.0 Ounce,,False,False,2025-03-08T10:33:54.213179
-Almond Butter,pantry,Big Spoon RoastersBig Spoon Roasters,$16.99,13.0 Ounce,,False,False,2025-03-08T10:33:54.234371
-Cashew Butter,pantry,Big Spoon RoastersBig Spoon Roasters,$18.79,13.0 Ounce,,False,False,2025-03-08T10:33:54.257073
-Apple Butter,pantry,Red Jacket OrchardsRed Jacket Orchards,$7.49,8.0 Ounce,,False,False,2025-03-08T10:33:54.365367
-Almond and Cardamon Pear Butter,pantry,Josephine's FeastJosephine's Feast,$13.99,8.0 oz,,False,False,2025-03-08T10:33:54.390588
-Pumpkin Butter with Maple Syrup,pantry,Josephine's FeastJosephine's Feast,$9.99,8.0 Ounce,,False,False,2025-03-08T10:33:54.416331
-Turkish Fig Spread,pantry,Josephine's FeastJosephine's Feast,$11.99,8.0 Ounce,,False,False,2025-03-08T10:33:54.439646
-Crunchy Peanut Butter,pantry,Big Spoon RoastersBig Spoon Roasters,$9.99,13.0 oz,,False,False,2025-03-08T10:33:54.461522
-Strawberry Jam,pantry,Red Jacket OrchardsRed Jacket Orchards,$8.99,8.0 oz,,False,False,2025-03-08T10:33:54.505008
-Grape Jam,pantry,Red Jacket OrchardsRed Jacket Orchards,$8.99,8.0 oz,,False,False,2025-03-08T10:33:54.528070
-Strawberries & Pink Champagne Preserves,pantry,Josephine's FeastJosephine's Feast,$14.99,8.0 Ounce,,False,True,2025-03-08T10:33:54.570983
-Sharp Cheddar Snacking Sticks,pantry,Cabot CreameryCabot Creamery,$8.99,7.5 oz,,False,False,2025-03-08T10:33:54.592840
-Organic String Cheese,pantry,Organic ValleyOrganic Valley,$8.99,8.0 oz,,False,False,2025-03-08T10:33:54.616277
-Small Orange Juice,pantry,Natalie's Orchid IslandNatalie's Orchid Isla...,$2.99,8.0 oz,,False,False,2025-03-08T10:33:54.721766
-Wild Rumpus Avocado Fruit & Veggie Blend,pantry,Once Upon a FarmOnce Upon a Farm,$3.69,3.2 Ounce,,False,False,2025-03-08T10:33:54.743566
-Green Kale and Apple Fruit & Veggie Blend,pantry,Once Upon a FarmOnce Upon a Farm,$3.69,3.2 Ounce,,False,False,2025-03-08T10:33:54.776293
-Strawberry Banana Swirl Dairy-Free Smoothie,pantry,Once Upon a FarmOnce Upon a Farm,$3.69,3.2 Ounce,,False,False,2025-03-08T10:33:54.799280
-Berry Berry Dairy-Free Smoothie,pantry,Once Upon a FarmOnce Upon a Farm,$3.69,3.2 Ounce,,False,False,2025-03-08T10:33:54.821730
-OhMyMega Veggie Fruit & Veggie Blend,pantry,Once Upon a FarmOnce Upon a Farm,$3.69,3.2 Ounce,,False,False,2025-03-08T10:33:54.843976
-Hearts of Palm,pantry,Native ForestNative Forest,$8.99,14.0 Ounce,,False,False,2025-03-08T10:33:54.907235
-Immunity Chicken Bone Broth,pantry,Farm To People KitchenFarm To People Kitche...,$12.99,32 oz,,False,False,2025-03-08T10:33:54.928941
-Moroccan Beef Bone Broth,pantry,Farm To People KitchenFarm To People Kitche...,$13.99,32 oz,,False,False,2025-03-08T10:33:54.991970
-Roasted Tomato Bone Broth,pantry,Farm To People KitchenFarm To People Kitche...,$13.99,32 oz,,False,False,2025-03-08T10:33:55.013787
-Garden Vegetable Broth,pantry,Farm To People KitchenFarm To People Kitche...,$10.99,32 oz,,False,False,2025-03-08T10:33:55.035002
+name,category,vendor,price,product_url,is_sold_out,scraped_at
+1in your order,dairy-eggs,Farm to PeopleFarm to PeopleSeasonal Produce Box - Small,6-8 items$25.00,https://farmtopeople.com/product/seasonal-produce-box-small-0302,False,2025-08-16T14:39:48.772606
+,dairy-eggs,Farm to PeopleFarm to PeopleSeasonal Produce Box - Medium,8-10 items$35.00,https://farmtopeople.com/product/seasonal-produce-box-medium-0303,False,2025-08-16T14:39:48.804283
+,dairy-eggs,Farm to PeopleFarm to PeopleSeasonal Produce Box - Large,9-11 items$45.00,https://farmtopeople.com/product/seasonal-produce-box-large-0304,False,2025-08-16T14:39:48.822671
+,dairy-eggs,Farm to PeopleFarm to PeopleCooking Essentials,$4.29,https://farmtopeople.com/product/cooking-essentials-0343,False,2025-08-16T14:39:48.839639
+,dairy-eggs,Farm to PeopleFarm to PeopleLocal Mushrooms,$14.99,https://farmtopeople.com/product/local-mushrooms-0344,False,2025-08-16T14:39:48.856641
+1in your order,dairy-eggs,Farm to PeopleFarm to PeopleSeasonal Fruit Medley,$10.95,https://farmtopeople.com/product/seasonal-fruit-medley-0346,False,2025-08-16T14:39:48.873019
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Local Yellow Peaches,2 pieces$2.99,https://farmtopeople.com/product/yellow-peaches-4762,False,2025-08-16T14:39:48.890182
+1in your box,dairy-eggs,Finger Foods FarmFinger Foods FarmOrganic Heirloom Tomatoes,1.0 Lbs$6.99,https://farmtopeople.com/product/mixed-heirloom-tomatoes-4227,False,2025-08-16T14:39:48.906105
+,dairy-eggs,Halal PasturesHalal PasturesOrganic Jimmy Nardello Peppers,8 oz$5.99,https://farmtopeople.com/product/add-veg-5627,False,2025-08-16T14:39:48.922758
+,dairy-eggs,Jersey FreshJersey FreshLocal Blueberries,1 pint$5.99,https://farmtopeople.com/product/add-fru-5529,False,2025-08-16T14:39:48.940646
+,dairy-eggs,Eagle Road FarmEagle Road FarmOrganically Grown Mini Love Watermelon,1 piece$6.99,https://farmtopeople.com/product/add-fru-5629,False,2025-08-16T14:39:48.956396
+,dairy-eggs,Eagle Road FarmEagle Road FarmOrganically Grown Black Beauty Eggplant,2 pieces$3.99,https://farmtopeople.com/product/add-veg-5628,False,2025-08-16T14:39:48.972436
+,dairy-eggs,Reeves FarmReeves FarmBi-color Sweet Corn,3 pieces$2.99,https://farmtopeople.com/product/organic-sweet-corn-4029,False,2025-08-16T14:39:48.988405
+1in your box,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Sungold Cherry Tomatoes,1 pint$5.99,https://farmtopeople.com/product/sungold-cherry-tomatoes-4770,False,2025-08-16T14:39:49.008581
+,dairy-eggs,Halal PasturesHalal PasturesOrganic Green Giant Heirloom Tomatoes,2 pieces (~1 lb)$6.99,https://farmtopeople.com/product/add-veg-5632,False,2025-08-16T14:39:49.023669
+,dairy-eggs,Oishii BerriesOishii BerriesKoyo Strawberries,8-11 ct$9.99,https://farmtopeople.com/product/fall-strawberries-1494,False,2025-08-16T14:39:49.039336
+,dairy-eggs,Jersey FreshJersey FreshLocal Blueberries,1 pint$5.99,https://farmtopeople.com/product/add-fru-5529,False,2025-08-16T14:39:49.054522
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Local Yellow Peaches,2 pieces$2.99,https://farmtopeople.com/product/yellow-peaches-4762,False,2025-08-16T14:39:49.070911
+1in your box,dairy-eggs,Weaver's OrchardWeaver's OrchardWhite Peaches,2 pieces$3.49,https://farmtopeople.com/product/white-peaches-4126,False,2025-08-16T14:39:49.101843
+,dairy-eggs,Weaver's OrchardWeaver's OrchardRed Plums,1 pint$5.99,https://farmtopeople.com/product/red-plums-4079,False,2025-08-16T14:39:49.118368
+1in your box,dairy-eggs,Hurd OrchardsHurd OrchardsWhite Donut Peaches,1 pint$5.99,https://farmtopeople.com/product/saturn-donut-peaches-4088,False,2025-08-16T14:39:49.134027
+1in your box,dairy-eggs,Weaver's OrchardWeaver's OrchardYellow Nectarines,2 pieces$3.49,https://farmtopeople.com/product/add-fru-5294,False,2025-08-16T14:39:49.148635
+,dairy-eggs,Frog Hollow FarmFrog Hollow FarmOrganic Yellow Nectarines,1 lb$7.99,https://farmtopeople.com/product/yellow-nectarines-3577,False,2025-08-16T14:39:49.165056
+,dairy-eggs,Frog Hollow FarmFrog Hollow FarmOrganic Yellow Peaches,1 lb$7.99,https://farmtopeople.com/product/yellow-peaches-3925,False,2025-08-16T14:39:49.178972
+,dairy-eggs,Frog Hollow FarmFrog Hollow FarmOrganic Flavor King Pluots,1 lb$6.99,https://farmtopeople.com/product/add-fru-5594,False,2025-08-16T14:39:49.195711
+,dairy-eggs,FLX Farm FreshFLX Farm FreshOrganic Athena Cantaloupe,1 piece$5.99,https://farmtopeople.com/product/cantaloupe-4077,False,2025-08-16T14:39:49.211831
+3in your box,dairy-eggs,Sunny HarvestSunny HarvestSugar Cube Cantaloupe,1 piece$3.99,https://farmtopeople.com/product/sugar-cube-cantaloupe-2065,False,2025-08-16T14:39:49.227566
+,dairy-eggs,D&V OrganicsD&V OrganicsOrganic New Orchid Watermelon,1 piece$8.99,https://farmtopeople.com/product/yellow-doll-watermelon-2050,False,2025-08-16T14:39:49.243452
+,dairy-eggs,Eagle Road FarmEagle Road FarmOrganically Grown Mini Love Watermelon,1 piece$6.99,https://farmtopeople.com/product/add-fru-5629,False,2025-08-16T14:39:49.259052
+,dairy-eggs,Sassafras Creek FarmSassafras Creek FarmOrganic Mixed Figs,0.5 Pint$10.99,https://farmtopeople.com/product/add-fru-5370,False,2025-08-16T14:39:49.273682
+,dairy-eggs,Linvilla OrchardLinvilla OrchardFredonia Grapes,1 Quart$10.99,https://farmtopeople.com/product/add-fru-5371,False,2025-08-16T14:39:49.289700
+,dairy-eggs,Grown in CaliforniaGrown in CaliforniaOrganic Green Seedless Grapes,1 lb$5.99,https://farmtopeople.com/product/green-seedless-grapes-4245,False,2025-08-16T14:39:49.306318
+,dairy-eggs,Grown in CaliforniaGrown in CaliforniaOrganic Red Seedless Grapes,1 lb$5.99,https://farmtopeople.com/product/red-seedless-grapes,False,2025-08-16T14:39:49.321079
+,dairy-eggs,Weaver's OrchardWeaver's OrchardHoneycrisp Apples,2 pieces$3.49,https://farmtopeople.com/product/honeycrisp-apples-1489,False,2025-08-16T14:39:49.337128
+,dairy-eggs,Hollabaugh Bros. Inc.Hollabaugh Bros. Inc.Gala Apples,2 pieces$2.99,https://farmtopeople.com/product/gala-apples-4257,False,2025-08-16T14:39:49.367218
+,dairy-eggs,Weaver's OrchardWeaver's OrchardGinger Gold Apples,2 pieces$1.99,https://farmtopeople.com/product/ginger-gold-apples-3006,False,2025-08-16T14:39:49.384046
+,dairy-eggs,Organic from MexicoOrganic from MexicoOrganic Lemons,2 pieces$1.99,https://farmtopeople.com/product/lemons-0067,False,2025-08-16T14:39:49.399872
+,dairy-eggs,Organic from MexicoOrganic from MexicoOrganic Limes,2 pieces$1.49,https://farmtopeople.com/product/limes-0348,False,2025-08-16T14:39:49.415025
+,dairy-eggs,"Lancaster Farm Fresh Cooperative Partner Farm, CaliforniaLancaster Farm Fresh ...Organic Red Grapefruit",1 piece$2.19,https://farmtopeople.com/product/ruby-red-grapefruit-4631,False,2025-08-16T14:39:49.429455
+,dairy-eggs,Grown in CaliforniaGrown in CaliforniaOrganic Valencia Oranges,2 pieces$2.99,https://farmtopeople.com/product/valencia-oranges-4820,False,2025-08-16T14:39:49.445730
+3in your order,dairy-eggs,Equal Exchange Fairly TradedEqual Exchange Fairly...Organic & Fair Trade Hass Avocados,1 piece$2.50,https://farmtopeople.com/product/organic-hass-avocados-0355,False,2025-08-16T14:39:49.461502
+,dairy-eggs,Grown in Puerto RicoGrown in Puerto RicoKeitt Mangos,1 piece$2.99,https://farmtopeople.com/product/tommy-atkins-mango-3538,False,2025-08-16T14:39:49.477419
+,dairy-eggs,Equal Exchange Fairly TradedEqual Exchange Fairly...Organic & Fair Trade Bananas (Unripe),1 bunch$2.49,https://farmtopeople.com/product/organic-fair-trade-bananas-1960,False,2025-08-16T14:39:49.493788
+,dairy-eggs,Equal Exchange Fairly TradedEqual Exchange Fairly...Organic & Fair Trade Bananas (Ripe),1 bunch$2.49,https://farmtopeople.com/product/add-fru-5301,False,2025-08-16T14:39:49.509541
+1in your box,dairy-eggs,Finger Foods FarmFinger Foods FarmOrganic Heirloom Tomatoes,1.0 Lbs$6.99,https://farmtopeople.com/product/mixed-heirloom-tomatoes-4227,False,2025-08-16T14:39:49.525106
+,dairy-eggs,Halal PasturesHalal PasturesOrganic Green Giant Heirloom Tomatoes,2 pieces (~1 lb)$6.99,https://farmtopeople.com/product/add-veg-5632,False,2025-08-16T14:39:49.540255
+,dairy-eggs,Taproot FarmTaproot FarmOrganic Fiorentino Costoluto Heirloom Tomatoes,1 lb$7.99,https://farmtopeople.com/product/imperfect-heirloom-tomatoes-4050,False,2025-08-16T14:39:49.555395
+,dairy-eggs,Cherry Lane FarmCherry Lane FarmSan Marzano Tomatoes,1 Lbs$2.99,https://farmtopeople.com/product/san-marzano-tomatoes-3010,False,2025-08-16T14:39:49.571492
+,dairy-eggs,Row 7 Seed CompanyRow 7 Seed CompanyOrganic Midnight Roma Tomatoes,1 lb$8.99,https://farmtopeople.com/product/midnight-roma-tomatoes-4161,False,2025-08-16T14:39:49.587452
+,dairy-eggs,Eagle Road FarmEagle Road FarmOrganically Grown Mixed Cherry Tomatoes,1 pint$2.49$4.99,https://farmtopeople.com/product/add-veg-5624,False,2025-08-16T14:39:49.603626
+1in your box,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Sungold Cherry Tomatoes,1 pint$5.99,https://farmtopeople.com/product/sungold-cherry-tomatoes-4770,False,2025-08-16T14:39:49.619244
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Roma Tomatoes,1.0 Lbs$3.99,https://farmtopeople.com/product/plum-tomatoes-4805,False,2025-08-16T14:39:49.635366
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Beefsteak Tomatoes,2 pieces$3.99,https://farmtopeople.com/product/beef-steak-organic-tomatoes-4031,False,2025-08-16T14:39:49.651094
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Red Cherry Tomatoes,1 pint$4.99,https://farmtopeople.com/product/mixed-cherry-tomatoes-3922,False,2025-08-16T14:39:49.666765
+,dairy-eggs,Dagele Brothers ProduceDagele Brothers Produ...Red Tomatoes on the Vine,3 pieces$2.99,https://farmtopeople.com/product/red-tomatoes-4599,False,2025-08-16T14:39:49.682604
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Green Tomatoes,2 pieces$5.99,https://farmtopeople.com/product/green-tomatoes-1959,False,2025-08-16T14:39:49.698422
+1in your box,dairy-eggs,Reeves FarmReeves FarmSlicing Cucumbers,2 pieces$2.99,https://farmtopeople.com/product/slicing-cucumbers-5026,False,2025-08-16T14:39:49.713990
+,dairy-eggs,Sunny HarvestSunny HarvestUnagi Cucumbers,2 pieces$2.99,https://farmtopeople.com/product/unagi-cucumbers-4761,False,2025-08-16T14:39:49.729802
+,dairy-eggs,Eagle Road FarmEagle Road FarmOrganically Grown Slicing Cucumbers,2 pieces$3.99,https://farmtopeople.com/product/add-veg-5625,False,2025-08-16T14:39:49.745356
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Green Zucchini,2 pieces$3.99,https://farmtopeople.com/product/green-zucchini-0409,False,2025-08-16T14:39:49.761946
+2in your box,dairy-eggs,Reeves FarmReeves FarmGreen Zucchini,2 pieces$2.99,https://farmtopeople.com/product/mixed-heirloom-zucchini-1932,False,2025-08-16T14:39:49.778965
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Goldbar Zucchini,2 pieces$3.99,https://farmtopeople.com/product/add-veg-5531,False,2025-08-16T14:39:49.794826
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Squash Blossoms,6 blossoms$10.99,https://farmtopeople.com/product/black-futsu-squash-4565,False,2025-08-16T14:39:49.810925
+,dairy-eggs,Norwich Meadows FarmNorwich Meadows FarmOrganic Sweet Corn,2 pieces$3.99,https://farmtopeople.com/product/sweet-corn-4249,False,2025-08-16T14:39:49.826636
+,dairy-eggs,Reeves FarmReeves FarmBi-color Sweet Corn,3 pieces$2.99,https://farmtopeople.com/product/organic-sweet-corn-4029,False,2025-08-16T14:39:49.842593
+,dairy-eggs,FLX Farm FreshFLX Farm FreshOrganic Italian Eggplant,1 piece$2.99,https://farmtopeople.com/product/italian-eggplant-4057,False,2025-08-16T14:39:49.857844
+,dairy-eggs,Ironbound FarmIronbound FarmOrganic Graffiti Eggplant,2 pieces$2.99$4.49,https://farmtopeople.com/product/graffiti-eggplant-1493,False,2025-08-16T14:39:49.873437
+,dairy-eggs,Sunny HarvestSunny HarvestFairytale Eggplant,12 oz$1.99$2.99,https://farmtopeople.com/product/fairy-tale-eggplant-0455,False,2025-08-16T14:39:49.888401
+,dairy-eggs,Sunny HarvestSunny HarvestAsian Eggplant,2 pieces$3.49,https://farmtopeople.com/product/sicilian-or-asian-eggplant-1980,False,2025-08-16T14:39:49.904602
+,dairy-eggs,Halal PasturesHalal PasturesOrganic Rosa Bianca Eggplant,2 pieces$4.99,https://farmtopeople.com/product/add-veg-5373,False,2025-08-16T14:39:49.920508
+,dairy-eggs,Halal PasturesHalal PasturesOrganic White Eggplant,1 piece$4.99,https://farmtopeople.com/product/white-eggplant-organic-4767,False,2025-08-16T14:39:49.940153
+2in your box,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Fairytale Eggplant,8.0 oz$4.49,https://farmtopeople.com/product/fairy-tale-eggplant-4785,False,2025-08-16T14:39:49.956797
+,dairy-eggs,Eagle Road FarmEagle Road FarmOrganically Grown Black Beauty Eggplant,2 pieces$3.99,https://farmtopeople.com/product/add-veg-5628,False,2025-08-16T14:39:49.972953
+,dairy-eggs,Markristo FarmMarkristo FarmOrganic Green Bell Peppers,2 pieces$4.49,https://farmtopeople.com/product/add-veg-5297,False,2025-08-16T14:39:49.989098
+1in your box,dairy-eggs,Halal PasturesHalal PasturesOrganic Red Bell Peppers,3 pieces$5.49,https://farmtopeople.com/product/add-veg-5272,False,2025-08-16T14:39:50.005742
+,dairy-eggs,Sunny HarvestSunny HarvestRed Fresno Peppers,12 oz$3.99,https://farmtopeople.com/product/add-veg-5371,False,2025-08-16T14:39:50.021368
+,dairy-eggs,Halal PasturesHalal PasturesOrganic Corno Di Toro Peppers,8 oz$3.99,https://farmtopeople.com/product/add-veg-4229,False,2025-08-16T14:39:50.038094
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Jalapeno Peppers,5 pieces$3.99,https://farmtopeople.com/product/jalapeno-peppers-0475,False,2025-08-16T14:39:50.054135
+,dairy-eggs,Halal PasturesHalal PasturesOrganic Shishito Peppers,8 oz$3.99,https://farmtopeople.com/product/shishito-peppers-organic-4909,False,2025-08-16T14:39:50.071666
+,dairy-eggs,Halal PasturesHalal PasturesOrganic Jimmy Nardello Peppers,8 oz$5.99,https://farmtopeople.com/product/add-veg-5627,False,2025-08-16T14:39:50.087571
+,dairy-eggs,Markristo FarmMarkristo FarmOrganic Poblano Peppers,8 oz$3.99,https://farmtopeople.com/product/add-veg-5630,False,2025-08-16T14:39:50.103321
+,dairy-eggs,Halal PasturesHalal PasturesOrganic Lunchbox Peppers,8 oz$3.99,https://farmtopeople.com/product/red-bell-peppers-SKU2322,False,2025-08-16T14:39:50.120350
+,dairy-eggs,Halal PasturesHalal PasturesOrange Bell Peppers (Organic),2 pieces$5.99,https://farmtopeople.com/product/add-veg-5634,False,2025-08-16T14:39:50.136411
+,dairy-eggs,Grown in CaliforniaGrown in CaliforniaOrganic Baby Spinach,4 oz$4.99,https://farmtopeople.com/product/savoy-spinach-1821,False,2025-08-16T14:39:50.152764
+,dairy-eggs,Blue Moon AcresBlue Moon AcresOrganic Baby Arugula,4 oz$4.99,https://farmtopeople.com/product/baby-arugula-4660,False,2025-08-16T14:39:50.169818
+,dairy-eggs,Blue Moon AcresBlue Moon AcresOrganic Mixed Specialty Lettuce,5 oz$5.09$5.99,https://farmtopeople.com/product/mixed-specialty-lettuce-3166,False,2025-08-16T14:39:50.186061
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Little Gem Lettuce,2 heads$3.99,https://farmtopeople.com/product/little-gem-lettuce-4478,False,2025-08-16T14:39:50.202890
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Leaf Lettuce,1 head$3.99,https://farmtopeople.com/product/add-veg-5450,False,2025-08-16T14:39:50.219394
+1in your box,dairy-eggs,Pedersen FarmsPedersen FarmsOrganic Romaine Lettuce,1 head$2.99,https://farmtopeople.com/product/romaine-lettuce-4670,False,2025-08-16T14:39:50.235619
+1in your box,dairy-eggs,Pedersen FarmsPedersen FarmsOrganic Red Kale,1 bunch$2.99,https://farmtopeople.com/product/add-veg-5841,False,2025-08-16T14:39:50.252317
+,dairy-eggs,Satur FarmsSatur FarmsBaby Spinach,4 oz$3.99,https://farmtopeople.com/product/add-veg-5211,False,2025-08-16T14:39:50.268721
+,dairy-eggs,Agrarian FeastAgrarian FeastOrganic Kale Microgreens,1.25 oz$8.99,https://farmtopeople.com/product/kale-flower-sprouts-1705,False,2025-08-16T14:39:50.285079
+,dairy-eggs,Agrarian FeastAgrarian FeastOrganic Pea Shoots,3 oz$8.99,https://farmtopeople.com/product/pea-shoots-5108,False,2025-08-16T14:39:50.300524
+,dairy-eggs,Agrarian FeastAgrarian FeastOrganic Sunflower Shoots,3.25 oz$8.99,https://farmtopeople.com/product/sunflower-sprouts-5107,False,2025-08-16T14:39:50.317006
+,dairy-eggs,Agrarian FeastAgrarian FeastOrganic Broccoli Microgreens,1.25 oz$8.99,https://farmtopeople.com/product/broccoli-sprouts-5109,True,2025-08-16T14:39:50.332641
+,dairy-eggs,Hepworth FarmsHepworth FarmsOrganic Swiss Chard,1 bunch$3.99,https://farmtopeople.com/product/rainbow-chard-2361,False,2025-08-16T14:39:50.346870
+,dairy-eggs,Row by Row FarmRow by Row FarmOrganic Green Kale,1 bunch$2.99,https://farmtopeople.com/product/green-kale-2477,False,2025-08-16T14:39:50.360602
+1in your box,dairy-eggs,Pedersen FarmsPedersen FarmsOrganic Red Kale,1 bunch$2.99,https://farmtopeople.com/product/add-veg-5841,False,2025-08-16T14:39:50.376003
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Lacinato Kale,1 bunch$3.29,https://farmtopeople.com/product/lacinato-kale-1501,False,2025-08-16T14:39:50.393187
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Collard Greens,1 bunch$2.99,https://farmtopeople.com/product/add-veg-6831,False,2025-08-16T14:39:50.411569
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Bok Choy,2 pieces$4.99,https://farmtopeople.com/product/bok-choy-organic-4908,False,2025-08-16T14:39:50.430970
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Baby Celery,1 head$3.99,https://farmtopeople.com/product/celery-4493,False,2025-08-16T14:39:50.448603
+,dairy-eggs,Ocean Mist FarmOcean Mist FarmArtichokes,2 pieces$5.99,https://farmtopeople.com/product/artichoke-1820,False,2025-08-16T14:39:50.463918
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Okra,8 oz$4.99,https://farmtopeople.com/product/red-okra-organic-4781,False,2025-08-16T14:39:50.481857
+3in your order,dairy-eggs,Equal Exchange Fairly TradedEqual Exchange Fairly...Organic & Fair Trade Hass Avocados,1 piece$2.50,https://farmtopeople.com/product/organic-hass-avocados-0355,False,2025-08-16T14:39:50.499354
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Fennel,2 heads$2.99$3.99,https://farmtopeople.com/product/add-veg-5239,False,2025-08-16T14:39:50.516477
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Garlic Scapes,1 bunch$3.99,https://farmtopeople.com/product/garlic-scapes-organic-4749,False,2025-08-16T14:39:50.533466
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Squash Blossoms,6 blossoms$10.99,https://farmtopeople.com/product/black-futsu-squash-4565,False,2025-08-16T14:39:50.552008
+,dairy-eggs,Halal PasturesHalal PasturesOrganic Tri-Color String Beans,12 oz$5.99,https://farmtopeople.com/product/add-veg-5565,False,2025-08-16T14:39:50.568016
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Yellow Wax Beans,8 oz$4.99,https://farmtopeople.com/product/add-veg-5575,False,2025-08-16T14:39:50.584879
+,dairy-eggs,Eagle Road FarmEagle Road FarmOrganically Grown Green Beans,12 oz$3.99,https://farmtopeople.com/product/add-veg-5621,False,2025-08-16T14:39:50.601069
+,dairy-eggs,Grown in CaliforniaGrown in CaliforniaOrganic Broccoli,1 bunch$4.49,https://farmtopeople.com/product/broccoli-4483,False,2025-08-16T14:39:50.618606
+,dairy-eggs,Taproot FarmTaproot FarmOrganic Sprouting Broccoli,8 oz$5.99,https://farmtopeople.com/product/sprouting-broccoli-organic-5010,False,2025-08-16T14:39:50.636373
+,dairy-eggs,Smith's FarmSmith's FarmBroccoli Crown,1 head$2.99,https://farmtopeople.com/product/add-veg-5977,False,2025-08-16T14:39:50.654383
+,dairy-eggs,Smith's FarmSmith's FarmWhite Cauliflower,1 head$3.99,https://farmtopeople.com/product/white-cauliflower-4561,False,2025-08-16T14:39:50.671165
+,dairy-eggs,Dagele Brothers ProduceDagele Brothers Produ...Cheddar Cauliflower,1 head$4.99,https://farmtopeople.com/product/cheddar-cauliflower-SKU2301,False,2025-08-16T14:39:50.688187
+,dairy-eggs,Dagele Brothers ProduceDagele Brothers Produ...Green Cabbage,1 head$3.29,https://farmtopeople.com/product/green-cabbage-organic-4935,False,2025-08-16T14:39:50.706847
+,dairy-eggs,MX Morningstar FarmMX Morningstar FarmOrganic Caraflex Cabbage,1 head$4.99,https://farmtopeople.com/product/caraflex-cabbage-1878,False,2025-08-16T14:39:50.724078
+,dairy-eggs,Dagele Brothers ProduceDagele Brothers Produ...Red Cabbage,1 head$4.99,https://farmtopeople.com/product/red-cabbage-1714,False,2025-08-16T14:39:50.740294
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Bunched Kohlrabi,1 bunch$2.99,https://farmtopeople.com/product/purple-kohlrabi-2320,False,2025-08-16T14:39:50.759102
+,dairy-eggs,Grown in CaliforniaGrown in CaliforniaOrganic Brussel Sprouts,12.0 oz$5.99,https://farmtopeople.com/product/brussels-sprouts-4533,False,2025-08-16T14:39:50.775260
+1in your box,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Bunched Orange Carrots,1 bunch$3.99,https://farmtopeople.com/product/orange-carrots-4647,False,2025-08-16T14:39:50.790163
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Orange Carrots,1 lb$3.99,https://farmtopeople.com/product/loose-orange-carrots-0357,False,2025-08-16T14:39:50.810542
+,dairy-eggs,Jericho Settlers FarmJericho Settlers FarmOrganic Baby Orange Carrots,1 Lbs$8.99,https://farmtopeople.com/product/baby-carrots-2089,False,2025-08-16T14:39:50.827970
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Bunched Rainbow Carrots,1 bunch$3.99,https://farmtopeople.com/product/orange-or-rainbow-carrots-4163,False,2025-08-16T14:39:50.847554
+,dairy-eggs,Dagele Brothers ProduceDagele Brothers Produ...Yukon Gold Potatoes,2 lbs$3.99,https://farmtopeople.com/product/yukon-gold-potatoes-0010,False,2025-08-16T14:39:50.866071
+,dairy-eggs,Dagele Brothers ProduceDagele Brothers Produ...Red Potatoes,1 lbs$1.99,https://farmtopeople.com/product/add-veg-5439,False,2025-08-16T14:39:50.880722
+,dairy-eggs,North Carolina GrownNorth Carolina GrownSweet Potatoes,1.5 Lbs$2.99,https://farmtopeople.com/product/sweet-potatoes-3169,False,2025-08-16T14:39:50.897776
+,dairy-eggs,North Carolina GrownNorth Carolina GrownOrganic Sweet Potatoes,1.5 Lbs$5.99,https://farmtopeople.com/product/orange-sweet-potatoes-0009,False,2025-08-16T14:39:50.912583
+1in your box,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Red Fingerling Potatoes,1.0 Lbs$4.99,https://farmtopeople.com/product/mixed-fingerling-potatoes-3359,False,2025-08-16T14:39:50.927864
+,dairy-eggs,Greater TaterGreater TaterMixed Fingerling Potatoes,1 lbs$4.99,https://farmtopeople.com/product/add-veg-5579,False,2025-08-16T14:39:50.944182
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Fenway New Potatoes,1 lbs$2.99,https://farmtopeople.com/product/add-veg-5578,False,2025-08-16T14:39:50.959807
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Belmonda New Potatoes,1 lbs$2.99,https://farmtopeople.com/product/add-veg-5577,False,2025-08-16T14:39:50.975242
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Peter Wilcox Potatoes,1 Lbs$2.99,https://farmtopeople.com/product/add-veg-5576,False,2025-08-16T14:39:50.989779
+,dairy-eggs,La GramaLa GramaOrganic Ginger Root,4 oz$1.99,https://farmtopeople.com/product/ginger-root-3320,False,2025-08-16T14:39:51.005365
+,dairy-eggs,Grown in JamaicaGrown in JamaicaOrganic Turmeric Root,4 oz$2.99,https://farmtopeople.com/product/fresh-turmeric-3145,False,2025-08-16T14:39:51.020415
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Red Radishes,1 bunch$3.99,https://farmtopeople.com/product/red-radishes-4936,False,2025-08-16T14:39:51.036245
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic French Breakfast Radishes,1 bunch$3.99,https://farmtopeople.com/product/loose-french-breakfast-radishes-0436,False,2025-08-16T14:39:51.051617
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Loose Red Beets,1 lbs$2.99,https://farmtopeople.com/product/loose-red-beets-1706,False,2025-08-16T14:39:51.066870
+,dairy-eggs,Row 7 Seed CompanyRow 7 Seed CompanyOrganic Badger Flame Beets,1 lbs$5.99,https://farmtopeople.com/product/badger-flame-beets-3055,False,2025-08-16T14:39:51.081918
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Gold Beets,1 Lbs$2.99,https://farmtopeople.com/product/add-veg-5522,False,2025-08-16T14:39:51.098152
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Bunched Kohlrabi,1 bunch$2.99,https://farmtopeople.com/product/purple-kohlrabi-2320,False,2025-08-16T14:39:51.113269
+,dairy-eggs,Farm to PeopleFarm to PeopleLocal Mushrooms,$14.99,https://farmtopeople.com/product/local-mushrooms-0344,False,2025-08-16T14:39:51.128789
+,dairy-eggs,Tivoli MushroomsTivoli MushroomsOrganic Lion's Mane Mushrooms,4 oz$6.49,https://farmtopeople.com/product/lions-mane-mushrooms-1499,False,2025-08-16T14:39:51.144892
+,dairy-eggs,Tivoli MushroomsTivoli MushroomsOrganic Yellow Oyster Mushrooms,6 oz$7.99,https://farmtopeople.com/product/yellow-oyster-mushrooms-1845,False,2025-08-16T14:39:51.160575
+,dairy-eggs,Tivoli MushroomsTivoli MushroomsOrganic Blue Oyster Mushrooms,4 oz$5.29,https://farmtopeople.com/product/blue-oyster-mushrooms-0632,False,2025-08-16T14:39:51.175833
+,dairy-eggs,Tivoli MushroomsTivoli MushroomsOrganic Pioppini Mushrooms,6 oz$8.99,https://farmtopeople.com/product/add-veg-4026,False,2025-08-16T14:39:51.190801
+,dairy-eggs,Tivoli MushroomsTivoli MushroomsOrganic Beech Mushrooms,4 oz$6.49,https://farmtopeople.com/product/beech-mushrooms-1906,False,2025-08-16T14:39:51.206099
+,dairy-eggs,Kennett Square SpecialtiesKennett Square Specia...Cremini Mushrooms,8 oz$3.49,https://farmtopeople.com/product/cremini-mushrooms-1498,False,2025-08-16T14:39:51.221856
+,dairy-eggs,Kennett Square SpecialtiesKennett Square Specia...Portobello Mushrooms,10 oz$4.49,https://farmtopeople.com/product/portobello-mushrooms-1736,False,2025-08-16T14:39:51.236706
+,dairy-eggs,Tivoli MushroomsTivoli MushroomsOrganic Maitake Mushrooms,4 oz$8.29,https://farmtopeople.com/product/maitake-mushrooms-1919,False,2025-08-16T14:39:51.252204
+,dairy-eggs,Tivoli MushroomsTivoli MushroomsOrganic Royal Trumpet Mushrooms,6 oz$8.29,https://farmtopeople.com/product/royal-trumpet-mushrooms-4132,False,2025-08-16T14:39:51.267132
+,dairy-eggs,Kennett Square SpecialtiesKennett Square Specia...Shiitake Mushrooms,6 oz$5.99,https://farmtopeople.com/product/shiitake-mushrooms-3941,False,2025-08-16T14:39:51.282453
+,dairy-eggs,Farm to PeopleFarm to PeopleCooking Essentials,$4.29,https://farmtopeople.com/product/cooking-essentials-0343,False,2025-08-16T14:39:51.297016
+,dairy-eggs,Christopher Ranch GarlicChristopher Ranch Gar...Organic Garlic,1 head$1.00,https://farmtopeople.com/product/garlic-1389,False,2025-08-16T14:39:51.313278
+,dairy-eggs,Dagele Brothers ProduceDagele Brothers Produ...Yellow Onions,3 pieces (1 lb)$1.79,https://farmtopeople.com/product/yellow-onions-0008,False,2025-08-16T14:39:51.328304
+,dairy-eggs,Dagele Brothers ProduceDagele Brothers Produ...Yellow Onions,2.0 Lbs$2.49,https://farmtopeople.com/product/add-veg-6810,False,2025-08-16T14:39:51.343838
+,dairy-eggs,Dagele Brothers ProduceDagele Brothers Produ...Red Onions,3 Pieces (1 lb)$1.79,https://farmtopeople.com/product/red-onions-1848,False,2025-08-16T14:39:51.361127
+,dairy-eggs,Dagele Brothers ProduceDagele Brothers Produ...Red Onions,2 Lbs$3.49,https://farmtopeople.com/product/add-veg-6816,False,2025-08-16T14:39:51.377821
+,dairy-eggs,Grown in CaliforniaGrown in CaliforniaShallots,4 pieces$2.49,https://farmtopeople.com/product/shallots-2534,False,2025-08-16T14:39:51.395013
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Garlic Scapes,1 bunch$3.99,https://farmtopeople.com/product/garlic-scapes-organic-4749,False,2025-08-16T14:39:51.412103
+,dairy-eggs,Row 7 Seed CompanyRow 7 Seed CompanyOrganic Sweet Garleek,8 oz$3.99,https://farmtopeople.com/product/add-veg-5296,False,2025-08-16T14:39:51.427399
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Scallions,1 bunch$3.99,https://farmtopeople.com/product/scallions-1487,False,2025-08-16T14:39:51.443234
+,dairy-eggs,FLX Farm FreshFLX Farm FreshOrganic Fresh Sweet Onions,1 piece$2.49,https://farmtopeople.com/product/add-veg-5560,False,2025-08-16T14:39:51.458122
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Fresh Basil,1 bunch$4.99,https://farmtopeople.com/product/sweet-broadleaf-basil-1983,False,2025-08-16T14:39:51.473761
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Italian Parsley,1 bunch$3.29,https://farmtopeople.com/product/italian-parsley-4742,False,2025-08-16T14:39:51.488946
+,dairy-eggs,Grown in CaliforniaGrown in CaliforniaOrganic Cilantro,1 bunch$2.99,https://farmtopeople.com/product/cilantro-3568,False,2025-08-16T14:39:51.504779
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Dill,1 bunch$3.49,https://farmtopeople.com/product/dill-1889,False,2025-08-16T14:39:51.519986
+,dairy-eggs,Sun Sprout FarmSun Sprout FarmOrganic Bunched Spearmint,1 bunch$3.99,https://farmtopeople.com/product/mint-1999,False,2025-08-16T14:39:51.535318
+,dairy-eggs,Sucker Brook FarmSucker Brook FarmOrganic Bunched Rosemary,1 bunch$4.99,https://farmtopeople.com/product/add-herb-5476,False,2025-08-16T14:39:51.551376
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Bunched Thyme,1 bunch$4.99,https://farmtopeople.com/product/thyme-2452,False,2025-08-16T14:39:51.566365
+,dairy-eggs,Sucker Brook FarmSucker Brook FarmOrganic Chives,1 bunch$4.99,https://farmtopeople.com/product/chives-2059,False,2025-08-16T14:39:51.580692
+,dairy-eggs,Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Bunched Sage,1 bunch$4.49,https://farmtopeople.com/product/sage-4743,False,2025-08-16T14:39:51.595974
+,dairy-eggs,Sunny HarvestSunny HarvestSeasonal Flower Bouquet,1 bouquet$16.99,https://farmtopeople.com/product/fall-bouquet-4966,False,2025-08-16T14:39:51.611751
+,dairy-eggs,Sunny HarvestSunny HarvestDahlias,1 bunch$15.99,https://farmtopeople.com/product/add-flo-5605,False,2025-08-16T14:39:51.628670
+,dairy-eggs,Sunny HarvestSunny HarvestMarigolds,1 bunch$15.99,https://farmtopeople.com/product/add-flo-5604,False,2025-08-16T14:39:51.643656
+,dairy-eggs,Sunny HarvestSunny HarvestSunflowers,1 bunch$7.99,https://farmtopeople.com/product/add-flo-5603,False,2025-08-16T14:39:51.658030
+,dairy-eggs,Seal the SeasonsSeal the SeasonsFrozen Pennsylvania Sliced Peaches,32.0 Ounce$13.79,https://farmtopeople.com/product/frozen-pennsylvania-sliced-peaches-3439,False,2025-08-16T14:39:51.672762
+,dairy-eggs,Seal the SeasonsSeal the SeasonsFrozen New York Tart Cherries,32.0 Ounce$13.79,https://farmtopeople.com/product/frozen-new-york-tart-cherries-3438,False,2025-08-16T14:39:51.688995
+,dairy-eggs,Seal the SeasonsSeal the SeasonsSuper Greens Cleanse Smoothie Mix,24.0 Ounce$12.99,https://farmtopeople.com/product/super-greens-cleanse-smoothie-mix-4508,False,2025-08-16T14:39:51.704031
+,dairy-eggs,Seal the SeasonsSeal the SeasonsCherry Berry Blend,32.0 Ounce$13.79,https://farmtopeople.com/product/cherry-berry-blend-4012,False,2025-08-16T14:39:51.719579
+,dairy-eggs,Seal the SeasonsSeal the SeasonsAçai Antioxidant Smoothie Mix,24.0 Ounce$12.99,https://farmtopeople.com/product/a-ai-antioxidant-smoothie-mix-4506,False,2025-08-16T14:39:51.734472
+,dairy-eggs,Seal the SeasonsSeal the SeasonsDragonfruit Probiotic Smoothie Mix,32.0 Ounce$13.79,https://farmtopeople.com/product/frozen-new-jersey-blueberries-3850,False,2025-08-16T14:39:51.749137
+,dairy-eggs,Seal the SeasonsSeal the SeasonsBlue Spirulina Tropical Smoothie Kit,24.0 oz$12.99,https://farmtopeople.com/product/add-sts-4434,False,2025-08-16T14:39:51.764184
+,dairy-eggs,Seal the SeasonsSeal the SeasonsOrganic Frozen New Jersey Blueberries,32.0 Ounce$16.99,https://farmtopeople.com/product/frozen-new-jersey-blueberries-3437,False,2025-08-16T14:39:51.780092
+,dairy-eggs,Seal the SeasonsSeal the SeasonsOrganic Frozen Maine Wild Blueberries,32.0 oz$16.99,https://farmtopeople.com/product/add-fru-6785,False,2025-08-16T14:39:51.795084
+,dairy-eggs,Headwater Food HubHeadwater Food HubFrozen Peas,24 oz$5.99,https://farmtopeople.com/product/add-veg-5507,False,2025-08-16T14:39:51.809789
+,dairy-eggs,Headwater Food HubHeadwater Food HubFrozen Corn,24 oz$5.99,https://farmtopeople.com/product/add-veg-5506,False,2025-08-16T14:39:51.824512
+,dairy-eggs,Headwater Food HubHeadwater Food HubFrozen Green Beans,20 oz$4.99,https://farmtopeople.com/product/add-veg-5512,False,2025-08-16T14:39:51.839204
+,dairy-eggs,Headwater Food HubHeadwater Food HubFrozen Carrots,24 oz$4.99,https://farmtopeople.com/product/add-veg-5511,False,2025-08-16T14:39:51.854232
+,dairy-eggs,Hudson HarvestHudson HarvestFrozen Diced Bell Peppers,10.0 Ounce$5.99,https://farmtopeople.com/product/frozen-diced-bell-peppers-3362,False,2025-08-16T14:39:51.869648
+,dairy-eggs,Hudson HarvestHudson HarvestFrozen Cherry Tomatoes,10.0 Ounce$5.49,https://farmtopeople.com/product/frozen-cherry-tomatoes-3351,False,2025-08-16T14:39:51.884697
+,dairy-eggs,Hudson HarvestHudson HarvestFrozen Cauliflower Rice,10.0 Ounce$5.99,https://farmtopeople.com/product/frozen-cauliflower-rice-3350,False,2025-08-16T14:39:51.900014

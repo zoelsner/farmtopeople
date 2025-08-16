@@ -1,0 +1,100 @@
+
+===== Farm to People Box Scanner =====
+
+Using persistent browser context (cookies and localStorage will be reused).
+Navigating to Farm to People...
+Checking login status...
+Already logged in!
+Clicking the cart button...
+Waiting for cart sidebar...
+Cart sidebar is visible
+  -> Pausing for 2 seconds to let cart settle...
+
+----- Cart Contents -----
+Found 3 items in cart
+  1. Seasonal Produce Box - Small - $25.00 (Qty: 1)
+  2. The Cook's Box - Paleo - $49.90 (Qty: 1)
+  3. Seasonal Fruit Medley - $10.95 (Qty: 1)
+
+----- Order Summary -----
+Delivery Date: Aug 19 (Tuesday)
+Subtotal: $85.85
+Delivery Fee: $0.00
+Credits Applied: $45.94
+Final Total: $49.91
+Items in Cart: 3
+
+----- DEBUG: Cart Sidebar Structure -----
+Error getting cart sidebar HTML: cannot access local variable 'cart_sidebar' where it is not associated with a value
+
+Processing box: Seasonal Produce Box - Small
+  -> Attempting JS click...
+  -> Scrolling to 'Seasonal Produce Box - Small' in cart sidebar...
+  -> Found CUSTOMIZE button, preparing to click...
+  -> Button location: x=1694, y=255.75, width=130.6796875, height=40
+  -> Clicking CUSTOMIZE button...
+  -> Direct click failed: Locator.click: Element is outside of the viewport
+Call log:
+  - waiting for locator("#cart aside, #cart [class*='cart_cartContent']").first.locator("article:has-text('Seasonal Produce Box - Small')").first.locator("button").filter(has_text=re.compile(r"CUSTOMIZE", re.IGNORECASE)).first
+  -     - locator resolved to <button native-type="button" class="button thin contained bold mt-2 self-start  ">…</button>
+  -   - attempting click action
+  -     - scrolling into view if needed
+  -     - done scrolling
+
+  -> Trying JavaScript click...
+  -> Waiting for customization overlay to appear...
+  -> Debug screenshot saved: farm_box_data/customize_overlay_seasonal_produce_box_-_small_20250816_134425.png
+  -> Waiting for customization overlay to load...
+  -> No items found in overlay, checking page structure...
+  -> Overlay HTML snippet: <span>1</span><span>in your box</span>
+  -> Found 0 selected items
+  -> Closing customization overlay...
+  -> Closed overlay using: button:has-text('X')
+
+Processing box: The Cook's Box - Paleo
+  -> Attempting JS click...
+  -> Scrolling to 'The Cook's Box - Paleo' in cart sidebar...
+  -> Found CUSTOMIZE button, preparing to click...
+  -> Button location: x=930, y=392.25, width=130.6796875, height=40
+  -> Clicking CUSTOMIZE button...
+  -> Click successful, waiting for overlay...
+  -> Waiting for customization overlay to appear...
+  -> Debug screenshot saved: farm_box_data/customize_overlay_the_cook's_box_-_paleo_20250816_134435.png
+  -> Waiting for customization overlay to load...
+  -> Found 17 items using selector: [class*='item']
+    - [✓] Selected: 1x Sunny HarvestSunny HarvestSugar Cube CantaloupeQty: 11 pieceSun Sprout FarmSun Sprout FarmOrganic Sungold Cherry Tomatoes Qty: 11 pintSun Sprout FarmSun Sprout FarmOrganic Red Fingerling PotatoesQty: 11.0 LbsSun Sprout FarmSun Sprout FarmOrganic Fairytale EggplantQty: 18.0 ozReeves FarmReeves FarmGreen ZucchiniQty: 12 piecesLancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Green BeansQty: 112.0 ozPedersen FarmsPedersen FarmsOrganic Romaine LettuceQty: 11 head
+    - [✓] Selected: 1x Sunny HarvestSunny HarvestSugar Cube CantaloupeQty: 11 piece
+    - [✓] Selected: 1x Sun Sprout FarmSun Sprout FarmOrganic Sungold Cherry Tomatoes Qty: 11 pint
+    - [✓] Selected: 1x Sun Sprout FarmSun Sprout FarmOrganic Red Fingerling PotatoesQty: 11.0 Lbs
+    - [✓] Selected: 1x Sun Sprout FarmSun Sprout FarmOrganic Fairytale EggplantQty: 18.0 oz
+    - [✓] Selected: 1x Reeves FarmReeves FarmGreen ZucchiniQty: 12 pieces
+    - [✓] Selected: 1x Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Green BeansQty: 112.0 oz
+    - [✓] Selected: 1x Pedersen FarmsPedersen FarmsOrganic Romaine LettuceQty: 11 head
+    - [✓] Selected: 1x Weaver's OrchardWeaver's OrchardWhite PeachesQty: 02 piecesLancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Jalapeno PeppersQty: 05 piecesSunny HarvestSunny HarvestAsian EggplantQty: 02 piecesPedersen FarmsPedersen FarmsOrganic Red KaleQty: 01 bunchReeves FarmReeves FarmSlicing CucumbersQty: 02 piecesDagele Brothers ProduceDagele Brothers Produ...Red OnionsQty: 02 LbsDagele Brothers ProduceDagele Brothers Produ...Yellow OnionsQty: 02.0 Lbs
+    - [✓] Selected: 1x Weaver's OrchardWeaver's OrchardWhite PeachesQty: 02 pieces
+    - [✓] Selected: 1x Lancaster Farm Fresh CooperativeLancaster Farm Fresh ...Organic Jalapeno PeppersQty: 05 pieces
+    - [✓] Selected: 1x Sunny HarvestSunny HarvestAsian EggplantQty: 02 pieces
+    - [✓] Selected: 1x Pedersen FarmsPedersen FarmsOrganic Red KaleQty: 01 bunch
+    - [✓] Selected: 1x Reeves FarmReeves FarmSlicing CucumbersQty: 02 pieces
+    - [✓] Selected: 1x Dagele Brothers ProduceDagele Brothers Produ...Red OnionsQty: 02 Lbs
+    - [✓] Selected: 1x Dagele Brothers ProduceDagele Brothers Produ...Yellow OnionsQty: 02.0 Lbs
+  -> Found 16 selected items
+  -> Closing customization overlay...
+  -> Closed overlay using: button:has-text('Close')
+
+Processing box: Seasonal Fruit Medley
+  -> Attempting JS click...
+  -> Scrolling to 'Seasonal Fruit Medley' in cart sidebar...
+  -> DEBUG: Cart item HTML structure:
+  -> Cart item HTML (first 1000 chars):
+<div class="cart-order_cartOrderItemContent__v635p body-small flex"><div class="cart-order_cartOrderItemContentImage__05NTv"><div class="product-tile_product-image__Cb9Tf "><img alt="Image from Farm to People" loading="lazy" decoding="async" data-nimg="fill" class=" fade active" sizes="50vw" srcset="https://cdn.sanity.io/images/ec9j7ju7/production/4e62c2ad926c6323c94b8b8f11707af88dbd7bab-800x533.jpg?w=384&amp;q=75&amp;fit=clip&amp;auto=format 384w, https://cdn.sanity.io/images/ec9j7ju7/production/4e62c2ad926c6323c94b8b8f11707af88dbd7bab-800x533.jpg?w=640&amp;q=75&amp;fit=clip&amp;auto=format 640w, https://cdn.sanity.io/images/ec9j7ju7/production/4e62c2ad926c6323c94b8b8f11707af88dbd7bab-800x533.jpg?w=750&amp;q=75&amp;fit=clip&amp;auto=format 750w, https://cdn.sanity.io/images/ec9j7ju7/production/4e62c2ad926c6323c94b8b8f11707af88dbd7bab-800x533.jpg?w=828&amp;q=75&amp;fit=clip&amp;auto=format 828w, https://cdn.sanity.io/images/ec9j7ju7/production/4e62c2ad926c6323c94b8b8f11707af88dbd7bab-8
+  -> Found 2 buttons in this cart item
+     Button 1: text='Hide items in Seasonal Fruit Medley', class='cart-order_itemToggle__Zv8_x self-start'
+     Button 2: text='Remove', class='cart-order_cartOrderItemRemove__d3yyu underline'
+  -> Found 0 elements containing 'CUSTOMIZE'
+  -> No CUSTOMIZE button found for this item
+  -> Saved box contents to farm_box_data/box_contents_20250816_134444_seasonal_produce_box__small.json
+  -> Saved box contents to farm_box_data/box_contents_20250816_134444_the_cooks_box__paleo.json
+  -> Saved box contents to farm_box_data/box_contents_20250816_134444_seasonal_fruit_medley.json
+
+Scan complete.

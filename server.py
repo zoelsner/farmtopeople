@@ -3,11 +3,15 @@ import os
 from pathlib import Path
 from urllib.parse import quote
 
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from twilio.twiml.messaging_response import MessagingResponse
+from twilio.rest import Client
 from dotenv import load_dotenv
 import supabase_client as db
+
+import meal_planner
+import farmbox_optimizer
 
 # More explicit .env loading
 from pathlib import Path
@@ -19,13 +23,48 @@ app = FastAPI()
 
 DATA_DIR = Path(".")
 
+# Twilio Client for sending messages
+twilio_client = Client(os.getenv("TWILIO_ACCOUNT_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
+
+def run_full_meal_plan_flow(phone_number: str):
+    """
+    This function runs in the background. It scrapes the user's cart,
+    generates a meal plan, formats it, and sends it as an SMS.
+    """
+    print(f"BACKGROUND: Starting full meal plan flow for {phone_number}")
+    
+    # Step 1: Run the scraper
+    # Note: We'll need to adapt the scraper to be importable and run without user input.
+    # For now, let's assume it runs and we get a new cart file.
+    farmbox_optimizer.scan_farm_box(phone_number)
+    
+    # Step 2: Run the meal planner with the new data
+    plan = meal_planner.run_main_planner() # We'll create this helper function
+    
+    # Step 3: Format the plan for SMS
+    if not plan or not plan.get("meals"):
+        sms_body = "Sorry, I had trouble generating a meal plan. Please try again later."
+    else:
+        sms_body = "🍽️ Your Farm to People meal plan is ready!\n\n"
+        for meal in plan['meals']:
+            sms_body += f"- {meal['title']}\n"
+        sms_body += "\nEnjoy your meals!"
+
+    # Step 4: Send the final SMS
+    print(f"BACKGROUND: Sending final meal plan SMS to {phone_number}")
+    twilio_client.messages.create(
+        body=sms_body,
+        from_=os.getenv("TWILIO_PHONE_NUMBER"),
+        to=phone_number
+    )
+
 @app.get("/healthz", status_code=200)
 def health_check():
     """Health check endpoint to confirm the server is running."""
     return {"status": "ok"}
 
 @app.post("/sms")
-async def sms_reply(request: Request, From: str = Form(...), Body: str = Form(...)):
+async def sms_reply(background_tasks: BackgroundTasks, From: str = Form(...), Body: str = Form(...)):
     """
     Handles incoming SMS messages from Twilio.
     This is the main entry point for user interaction.
@@ -44,8 +83,10 @@ async def sms_reply(request: Request, From: str = Form(...), Body: str = Form(..
     if "hello" in user_message:
         reply = "Hi there! I'm your Farm to People meal planning assistant. How can I help?"
     elif "plan" in user_message:
-        # TODO: Trigger the meal planner logic
-        reply = "I'm ready to help you plan! First, I'll check your latest cart contents..."
+        # Acknowledge immediately
+        reply = "Got it! I'm analyzing your latest cart contents now. Your personalized meal plan will arrive in a new message in just a moment..."
+        # Add the scraping/planning job to the background
+        background_tasks.add_task(run_full_meal_plan_flow, user_phone_number)
     elif "new" in user_message:
         # Intake start. Also offer secure link to provide login.
         login_link = f"{base_url}/login?phone={quote(user_phone_number)}"
@@ -57,7 +98,7 @@ async def sms_reply(request: Request, From: str = Form(...), Body: str = Form(..
         login_link = f"{base_url}/login?phone={quote(user_phone_number)}"
         reply = f"To securely provide your FTP email & password, open: {login_link}"
     else:
-        reply = "Sorry, I didn't understand that. You can say 'plan' to get meal ideas or 'new' if you're a new user."
+        reply = "Sorry, I didn't understand that. Text 'plan' for meal ideas."
 
     # Add the reply to the TwiML response
     resp.message(reply)
@@ -173,6 +214,21 @@ async def login_submit(phone: str = Form("") , email: str = Form(...), password:
     except Exception as e:
         print(f"Supabase save error: {e}")
         return PlainTextResponse("There was an error saving your info. Please try again.", status_code=500)
+
+# This is a new test endpoint
+@app.post("/test-full-flow")
+async def test_full_flow(background_tasks: BackgroundTasks):
+    """
+    An endpoint for manually triggering the full pipeline for testing.
+    Uses the default phone number from the .env file.
+    """
+    test_phone_number = os.getenv("YOUR_PHONE_NUMBER")
+    if not test_phone_number:
+        return {"status": "error", "message": "YOUR_PHONE_NUMBER not set in .env"}
+
+    print(f"--- TRIGGERING FULL FLOW FOR {test_phone_number} ---")
+    background_tasks.add_task(run_full_meal_plan_flow, test_phone_number)
+    return {"status": "ok", "message": f"Meal planning process started for {test_phone_number}. The result will be sent via SMS."}
 
 if __name__ == "__main__":
     import uvicorn

@@ -265,75 +265,55 @@ Please correct the `faulty_plan` and return the fixed JSON.
         return faulty_plan
 
 
-def main():
-    """Main function to run the meal planner."""
-    print("===== AI Meal Planner =====")
-    
-    # Load the master list of all possible products
+def run_main_planner():
+    """
+    A helper function to run the main meal planning logic and return the plan.
+    This is designed to be called from other scripts like the server.
+    """
     master_product_list = get_master_product_list(PRODUCT_CATALOG_FILE)
-    if master_product_list:
-        print(f"✅ Loaded {len(master_product_list)} unique products from the master catalog.")
-    
     latest_cart_file = get_latest_cart_file(FARM_BOX_DATA_DIR)
-    if not latest_cart_file:
-        print("Could not find cart data. Please run the scanner first.")
-        return
-        
-    print(f"\nUsing latest cart data from: {os.path.basename(latest_cart_file)}")
     
+    if not latest_cart_file:
+        return {"error": "Could not find cart data."}
+        
     with open(latest_cart_file, 'r') as f:
         cart_data = json.load(f)
         
-    print("\nGathering all your ingredients...")
     all_ingredients = get_all_ingredients_from_cart(cart_data, FARM_BOX_DATA_DIR)
     
-    print(f"\n🛒 You have {len(all_ingredients)} unique items in your cart:")
-    for item in all_ingredients:
-        # Final, robust name cleanup for display purposes
-        clean_name = item
-        # Remove button text and other artifacts that might have been scraped
-        clean_name = re.sub(r'^(Decrease quantity\d+Increase quantityRead more about)', '', clean_name).strip()
-        # Remove farm names and other parenthetical details
-        farm_names = ["Sunny Harvest", "Sun Sprout Farm", "Blue Moon Acres", "Weaver's Orchard", "Lancaster Farm Fresh Cooperative", "Eagle Road Farm", "Row by Row Farm", "Autumn's Harvest"]
-        for farm in farm_names:
-            clean_name = clean_name.split(farm)[0]
-        clean_name = re.sub(r'\s*\([^)]*\)', '', clean_name).strip()
-        if clean_name:
-            print(f"  - {clean_name}")
-    
-    # For now, we'll keep the user-specific inputs hardcoded here
-    # In the future, this will come from the Intake prompt (Section B)
+    # Use default preferences for now
     user_diet_hard = ["no_shellfish"]
     user_dislikes = ["beets", "turnips"]
     user_time_mode = "standard"
     
     meal_plan = generate_meal_plan(
-        all_ingredients,
-        master_product_list,
-        diet_hard=user_diet_hard,
-        dislikes=user_dislikes,
-        time_mode=user_time_mode
+        all_ingredients, master_product_list,
+        diet_hard=user_diet_hard, dislikes=user_dislikes, time_mode=user_time_mode
     )
     
-    print("\n--- Initial AI Response (Pre-Validation) ---")
-    print(json.dumps(meal_plan, indent=2))
-    print("------------------------------------------")
-
-    # --- Validation and Repair ---
     invalid_items = validate_meal_plan(meal_plan, all_ingredients, master_product_list)
     if invalid_items:
         repaired_plan = run_repair_prompt(meal_plan, invalid_items, all_ingredients, master_product_list)
-        # Re-validate the repaired plan to be safe
         final_invalid_items = validate_meal_plan(repaired_plan, all_ingredients, master_product_list)
-        if final_invalid_items:
-            print("   -> 🚨 Repair failed. Proceeding with potentially faulty plan.")
-            # We'll still use the repaired plan as it's likely better than the original
+        if not final_invalid_items:
             meal_plan = repaired_plan
-        else:
-            print("   -> ✅ Repair successful. Proceeding with corrected plan.")
-            meal_plan = repaired_plan # This is the crucial line that was missing
-    else:
-        print("\n✅ Meal plan validated successfully against master product list.")
+    
+    return meal_plan
+
+def main():
+    """Main function to run the meal planner from the command line."""
+    print("===== AI Meal Planner =====")
+    
+    meal_plan = run_main_planner() # Call the helper
+    
+    if meal_plan.get("error"):
+        print(meal_plan["error"])
+        return
+
+    # Print the results to the console (the original `main` logic)
+    print("\n--- Initial AI Response (Pre-Validation) ---")
+    print(json.dumps(meal_plan, indent=2))
+    print("------------------------------------------")
 
     print("\n💡 Here are some meal ideas based on your items:")
     for meal in meal_plan.get("meals", []):
