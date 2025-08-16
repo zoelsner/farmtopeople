@@ -29,8 +29,8 @@
             background: linear-gradient(135deg, #1a5d34, #2a6e3f);
             color: white;
             text-align: center;
-            padding: 15px 20px;
-            margin: -40px -20px 40px -20px;
+            padding: 20px;
+            margin: -40px -20px 50px -20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
@@ -43,8 +43,8 @@
         .hero {
             background: white;
             padding: 60px 50px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
             text-align: center;
             margin-bottom: 50px;
             border-top: 4px solid #1a5d34;
@@ -52,61 +52,65 @@
         
         .hero h1 {
             color: #1a5d34;
-            font-size: 3em;
+            font-size: 3.2em;
             margin-bottom: 25px;
             font-weight: 700;
+            letter-spacing: -0.02em;
         }
         
         .hero .subtitle {
-            font-size: 1.4em;
+            font-size: 1.3em;
             color: #5a6c57;
-            margin-bottom: 25px;
-            font-weight: 300;
-            line-height: 1.4;
+            margin-bottom: 30px;
+            font-weight: 400;
+            line-height: 1.5;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .hero .tagline {
-            font-size: 1.2em;
+            font-size: 1.1em;
             color: white;
             font-weight: 600;
             background: linear-gradient(135deg, #f4a261, #e76f51);
-            padding: 18px 30px;
-            border-radius: 30px;
+            padding: 15px 35px;
+            border-radius: 6px;
             display: inline-block;
-            margin-top: 15px;
-            box-shadow: 0 4px 15px rgba(244, 162, 97, 0.3);
+            margin-top: 20px;
+            box-shadow: 0 3px 12px rgba(244, 162, 97, 0.3);
         }
         
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 35px;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
             margin-bottom: 60px;
         }
         
         .feature {
             background: white;
             padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 3px 20px rgba(0,0,0,0.06);
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.06);
             transition: all 0.3s ease;
-            border-left: 5px solid #f4a261;
+            border-left: 4px solid #f4a261;
         }
         
         .feature:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
         }
         
         .feature h3 {
             color: #1a5d34;
             margin-bottom: 25px;
-            font-size: 1.5em;
+            font-size: 1.4em;
             font-weight: 600;
         }
         
         .feature ol, .feature ul {
-            margin-left: 25px;
+            margin-left: 20px;
         }
         
         .feature li {
@@ -117,34 +121,21 @@
         
         .feature strong {
             color: #1a5d34;
+            font-weight: 600;
         }
         
         .sms-policy {
-            background: linear-gradient(135deg, #f0f8f0, #e8f5e8);
+            background: linear-gradient(135deg, #f8fdf8, #f0f8f0);
             padding: 50px;
-            border-radius: 15px;
-            border: 3px solid #1a5d34;
+            border-radius: 8px;
+            border: 2px solid #1a5d34;
             margin-bottom: 50px;
-            position: relative;
-        }
-        
-        .sms-policy::before {
-            content: "";
-            position: absolute;
-            top: -3px;
-            left: -3px;
-            right: -3px;
-            bottom: -3px;
-            background: linear-gradient(135deg, #f4a261, #e76f51);
-            border-radius: 15px;
-            z-index: -1;
-            padding: 3px;
         }
         
         .sms-policy h3 {
             color: #1a5d34;
             margin-bottom: 30px;
-            font-size: 1.8em;
+            font-size: 1.6em;
             text-align: center;
             font-weight: 700;
         }
@@ -152,101 +143,102 @@
         .policy-highlight {
             background: white;
             padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 30px;
+            border-radius: 6px;
+            margin-bottom: 35px;
             text-align: center;
             font-weight: 600;
-            font-size: 1.2em;
-            border-left: 5px solid #f4a261;
+            font-size: 1.1em;
+            border-left: 4px solid #f4a261;
             color: #1a5d34;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
         
         .policy-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 25px;
         }
         
         .policy-item {
             background: white;
             padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            border-radius: 6px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             border-top: 3px solid #f4a261;
         }
         
         .policy-item strong {
             color: #1a5d34;
             display: block;
-            margin-bottom: 10px;
-            font-size: 1.1em;
+            margin-bottom: 12px;
+            font-size: 1em;
             font-weight: 700;
         }
         
         .policy-item p {
             color: #4a5568;
             margin: 0;
+            line-height: 1.5;
         }
         
         .tech-section {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 35px;
+            gap: 40px;
             margin-bottom: 50px;
         }
         
         .tech-stack, .use-case {
             background: white;
             padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 3px 20px rgba(0,0,0,0.06);
-            border-left: 5px solid #1a5d34;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+            border-left: 4px solid #1a5d34;
         }
         
         .tech-stack h3, .use-case h3 {
             color: #1a5d34;
             margin-bottom: 25px;
-            font-size: 1.5em;
+            font-size: 1.4em;
             font-weight: 600;
         }
         
         .tech-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 12px;
         }
         
         .tech-item {
-            background: linear-gradient(135deg, #faf9f7, #f0f8f0);
-            border: 2px solid #e8f5e8;
-            padding: 10px 18px;
-            border-radius: 25px;
-            font-size: 0.95em;
-            font-weight: 600;
+            background: #f8fdf8;
+            border: 1px solid #e8f5e8;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
             color: #1a5d34;
             transition: all 0.2s ease;
         }
         
         .tech-item:hover {
-            background: linear-gradient(135deg, #f4a261, #e76f51);
+            background: #f4a261;
             color: white;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
         
         .contact {
             text-align: center;
             background: white;
             padding: 50px;
-            border-radius: 15px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.08);
-            border-top: 5px solid #1a5d34;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            border-top: 4px solid #1a5d34;
         }
         
         .contact h3 {
             color: #1a5d34;
             margin-bottom: 25px;
-            font-size: 1.6em;
+            font-size: 1.5em;
             font-weight: 600;
         }
         
@@ -262,11 +254,6 @@
             text-decoration: underline;
         }
         
-        .emoji {
-            font-size: 1.4em;
-            margin-right: 12px;
-        }
-        
         .disclaimer {
             margin-top: 30px;
             font-size: 0.9em;
@@ -276,7 +263,7 @@
         }
         
         .use-case ul {
-            margin-left: 25px;
+            margin-left: 20px;
         }
         
         .use-case li {
@@ -295,16 +282,20 @@
                 padding: 40px 30px;
             }
             .hero h1 {
-                font-size: 2.4em;
+                font-size: 2.5em;
             }
             .hero .subtitle {
-                font-size: 1.2em;
+                font-size: 1.1em;
             }
             .container {
                 padding: 20px 15px;
             }
             .header-bar {
                 margin: -20px -15px 30px -15px;
+                padding: 15px;
+            }
+            .header-bar h1 {
+                font-size: 1.5em;
             }
             .feature, .sms-policy, .tech-stack, .use-case, .contact {
                 padding: 30px 25px;
@@ -321,28 +312,28 @@
 <body>
     <div class="container">
         <div class="header-bar">
-            <h1>🌱 Farm to People × AI Meal Planning</h1>
+            <h1>Farm to People × AI Meal Planning</h1>
         </div>
 
         <div class="hero">
-            <h1><span class="emoji">🍽️</span>Smart Meal Planning Assistant</h1>
-            <p class="subtitle">Transform your Farm to People orders into personalized, delicious meal plans with AI-powered recipe suggestions</p>
-            <div class="tagline">📱 Text-based service for Farm to People customers</div>
+            <h1>Smart Meal Planning Assistant</h1>
+            <p class="subtitle">Transform your Farm to People orders into personalized, delicious meal plans with AI-powered recipe suggestions tailored to your actual cart contents</p>
+            <div class="tagline">SMS-based service for Farm to People customers</div>
         </div>
 
         <div class="features">
             <div class="feature">
-                <h3><span class="emoji">🛒</span>Seamless Integration</h3>
+                <h3>Seamless Integration</h3>
                 <ol>
                     <li><strong>Secure connection:</strong> Link your Farm to People account through our encrypted web form</li>
-                    <li><strong>Smart analysis:</strong> AI reads your cart contents including customizable box selections</li>
-                    <li><strong>Instant planning:</strong> Text "plan" when you want personalized meal ideas</li>
+                    <li><strong>Smart analysis:</strong> AI reads your cart contents including customizable box selections and individual items</li>
+                    <li><strong>Instant planning:</strong> Text "plan" when you want personalized meal ideas based on your order</li>
                     <li><strong>Complete recipes:</strong> Get detailed cooking instructions using your exact ingredients</li>
                 </ol>
             </div>
 
             <div class="feature">
-                <h3><span class="emoji">🤖</span>Advanced AI Features</h3>
+                <h3>Advanced AI Features</h3>
                 <ul>
                     <li><strong>Real-time cart sync:</strong> Automatically analyzes your current Farm to People orders</li>
                     <li><strong>Box intelligence:</strong> Understands both selected items AND available swap options</li>
@@ -354,7 +345,7 @@
         </div>
 
         <div class="sms-policy">
-            <h3><span class="emoji">📱</span>SMS Service Policy & Compliance</h3>
+            <h3>SMS Service Policy & Compliance</h3>
             
             <div class="policy-highlight">
                 This service sends SMS messages <strong>exclusively in response to user requests</strong>. 
@@ -363,27 +354,27 @@
             
             <div class="policy-grid">
                 <div class="policy-item">
-                    <strong>🚀 Opt-in Method</strong>
+                    <strong>Opt-in Method</strong>
                     <p>Text our number to begin (examples: "hello", "plan", "new") or provide explicit verbal consent to the service owner</p>
                 </div>
                 <div class="policy-item">
-                    <strong>📅 Message Frequency</strong>
+                    <strong>Message Frequency</strong>
                     <p>Strictly on-demand/transactional - messages sent only when you actively request meal planning services</p>
                 </div>
                 <div class="policy-item">
-                    <strong>⛔ Opt-out Process</strong>
+                    <strong>Opt-out Process</strong>
                     <p>Reply "STOP" at any time to cease all messages. Reply "START" to re-enable the service</p>
                 </div>
                 <div class="policy-item">
-                    <strong>❓ Help & Support</strong>
+                    <strong>Help & Support</strong>
                     <p>Reply "HELP" for assistance, contact information, or service guidance</p>
                 </div>
                 <div class="policy-item">
-                    <strong>🔒 Privacy Protection</strong>
+                    <strong>Privacy Protection</strong>
                     <p>Phone numbers and messages used exclusively for meal planning. Data never sold, shared, or used for marketing</p>
                 </div>
                 <div class="policy-item">
-                    <strong>👥 Age Requirements</strong>
+                    <strong>Age Requirements</strong>
                     <p>Service designed for adults (18+). Must meet legal age requirements for SMS services</p>
                 </div>
             </div>
@@ -396,7 +387,7 @@
 
         <div class="tech-section">
             <div class="tech-stack">
-                <h3><span class="emoji">⚙️</span>Technology Stack</h3>
+                <h3>Technology Stack</h3>
                 <div class="tech-list">
                     <span class="tech-item">Python 3.13</span>
                     <span class="tech-item">FastAPI</span>
@@ -410,7 +401,7 @@
             </div>
 
             <div class="use-case">
-                <h3><span class="emoji">🎯</span>Service Overview</h3>
+                <h3>Service Overview</h3>
                 <p><strong>Core Function:</strong> Automated meal planning for Farm to People customers via transactional SMS</p>
                 <br>
                 <p><strong>Customer Journey:</strong></p>
@@ -426,7 +417,7 @@
         </div>
 
         <div class="contact">
-            <h3><span class="emoji">📧</span>Contact & Development</h3>
+            <h3>Contact & Development</h3>
             <p>Questions about this service? Reply "HELP" via SMS or explore the complete project documentation.</p>
             <br>
             <p><strong>GitHub Repository:</strong> 
