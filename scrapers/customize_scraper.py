@@ -8,6 +8,67 @@ import re
 
 load_dotenv()
 
+def scrape_individual_items(page):
+    """Scrape individual (non-box) items from the cart."""
+    individual_items = []
+    
+    print("🔍 Looking for individual items...")
+    
+    # Get all cart items
+    articles = page.locator("article[class*='cart-order_cartOrderItem']").all()
+    
+    for i, article in enumerate(articles):
+        try:
+            # Get item name
+            name_elem = article.locator("a[href*='/product/']").first
+            if name_elem.count() == 0:
+                continue
+                
+            item_name = name_elem.text_content().strip()
+            
+            # Check if this has sub-products (it's a box)
+            sub_list = article.locator("+ ul[class*='cart-order-line-item-subproducts']").first
+            has_sublist = sub_list.count() > 0
+            
+            # Skip boxes - we handle those separately
+            if has_sublist:
+                continue
+                
+            # This is an individual item
+            print(f"  📦 Individual item: {item_name}")
+            
+            # Get quantity
+            quantity_selector = article.locator("div[class*='quantity-selector']").first
+            quantity = 1
+            if quantity_selector.count() > 0:
+                quantity_span = quantity_selector.locator("span[class*='quantity']").first
+                if quantity_span.count() > 0:
+                    qty_text = quantity_span.text_content().strip()
+                    try:
+                        quantity = int(qty_text)
+                    except:
+                        quantity = 1
+            
+            # Get price
+            price_elem = article.locator("p[class*='font-medium']").first
+            price = ""
+            if price_elem.count() > 0:
+                price = price_elem.text_content().strip()
+            
+            individual_items.append({
+                "name": item_name,
+                "quantity": quantity,
+                "price": price,
+                "type": "individual"
+            })
+            
+        except Exception as e:
+            print(f"❌ Error processing individual item {i+1}: {e}")
+            continue
+    
+    print(f"✅ Found {len(individual_items)} individual items")
+    return individual_items
+
 def scrape_customize_modal(page):
     """Scrape both selected and available items from the customize modal."""
     
@@ -115,6 +176,9 @@ def main():
             cart_btn.click()
             page.wait_for_timeout(2000)
         
+        # First, get individual items from cart
+        individual_items = scrape_individual_items(page)
+        
         # Get all CUSTOMIZE buttons
         customize_btns = page.locator("button:has-text('CUSTOMIZE'), button:has-text('Customize')").all()
         
@@ -171,19 +235,34 @@ def main():
                 print(f"❌ Error processing box {i+1}: {e}")
                 continue
         
+        # Combine all data
+        complete_cart_data = {
+            "individual_items": individual_items,
+            "customizable_boxes": all_box_data,
+            "summary": {
+                "individual_items_count": len(individual_items),
+                "customizable_boxes_count": len(all_box_data),
+                "total_selected_in_boxes": sum(box['selected_count'] for box in all_box_data),
+                "total_alternatives_in_boxes": sum(box['alternatives_count'] for box in all_box_data)
+            }
+        }
+        
         # Save results
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        output_file = output_dir / f"customize_results_{timestamp}.json"
+        output_file = output_dir / f"complete_cart_results_{timestamp}.json"
         
         with open(output_file, 'w') as f:
-            json.dump(all_box_data, f, indent=2)
+            json.dump(complete_cart_data, f, indent=2)
         
         print(f"\n🎉 COMPLETE! Results saved to: {output_file}")
-        print(f"\n📈 SUMMARY:")
+        print(f"\n📈 CART SUMMARY:")
+        print(f"   🛒 Individual items: {len(individual_items)}")
+        print(f"   📦 Customizable boxes: {len(all_box_data)}")
+        
         for box_data in all_box_data:
-            print(f"  {box_data['box_name']}:")
-            print(f"    ✅ {box_data['selected_count']} selected")
-            print(f"    🔄 {box_data['alternatives_count']} alternatives")
+            print(f"     {box_data['box_name']}:")
+            print(f"       ✅ {box_data['selected_count']} selected")
+            print(f"       🔄 {box_data['alternatives_count']} alternatives")
         
         context.close()
 
