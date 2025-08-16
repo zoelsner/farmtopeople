@@ -253,14 +253,78 @@ def scrape_cart_item(article):
                         "selected": True
                     })
             
-            return {
+            # Prepare the item data structure
+            item_data = {
                 "name": item_name,
                 "type": "box",
                 "price": price,
                 "customizable": has_customize,
                 "selected_items": selected_items,
-                "available_alternatives": []  # Will be filled by customize scraper if needed
+                "available_alternatives": []
             }
+            
+            # If this box has customize button, click it and get alternatives
+            if has_customize:
+                print(f"   🔧 Box is customizable, clicking customize button...")
+                try:
+                    # Scroll customize button into view and click
+                    customize_btn.scroll_into_view_if_needed()
+                    page.wait_for_timeout(1000)
+                    customize_btn.click()
+                    page.wait_for_timeout(3000)
+                    
+                    # Wait for customize modal to appear
+                    page.wait_for_selector("aside[aria-label*='Customize']", timeout=10000)
+                    
+                    # Scrape alternatives from the modal
+                    modal = page.locator("aside[aria-label*='Customize']").first
+                    articles = modal.locator("article[aria-label]").all()
+                    
+                    available_alternatives = []
+                    print(f"   📋 Found {len(articles)} total items in customize modal")
+                    
+                    for article in articles:
+                        try:
+                            # Get item name from aria-label
+                            item_name_alt = article.get_attribute("aria-label")
+                            
+                            # Check if item has Add button (available alternative)
+                            add_button = article.locator("button:has-text('Add')").first
+                            
+                            if add_button.count() > 0:
+                                # Get additional details
+                                producer_elem = article.locator("p[class*='producer'] a").first
+                                producer = producer_elem.text_content().strip() if producer_elem.count() > 0 else ""
+                                
+                                details_elem = article.locator("div[class*='item-details'] p").first  
+                                unit_info = details_elem.text_content().strip() if details_elem.count() > 0 else ""
+                                
+                                available_alternatives.append({
+                                    "name": item_name_alt,
+                                    "producer": producer,
+                                    "unit_info": unit_info,
+                                    "available": True
+                                })
+                                
+                        except Exception as e:
+                            print(f"   ⚠️ Error processing modal item: {e}")
+                            continue
+                    
+                    item_data["available_alternatives"] = available_alternatives
+                    print(f"   🔄 Found {len(available_alternatives)} available alternatives")
+                    
+                    # Close the modal
+                    close_btn = page.locator("button:has-text('Close'), button[aria-label*='close']").first
+                    if close_btn.count() > 0:
+                        close_btn.click()
+                        page.wait_for_timeout(1000)
+                        print(f"   ✅ Closed customize modal")
+                        
+                except Exception as e:
+                    print(f"   ❌ Error getting alternatives: {e}")
+                    item_data["available_alternatives"] = []
+            
+            return item_data
         
         else:
             # This is an individual item - check for quantity selector
@@ -327,7 +391,7 @@ def main():
             return
         
         print("✅ Successfully logged in, proceeding with cart scraping...")
-        page.wait_for_timeout(2000)
+        page.wait_for_timeout(4000)  # Give it more time to fully load
         
         # Click cart button
         print("📦 Opening cart...")
