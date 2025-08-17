@@ -120,6 +120,9 @@ def run_full_meal_plan_flow(phone_number: str):
         # Remove the + prefix for Vonage API (like we do in the immediate reply)
         to_number = phone_number.lstrip("+")
         from_number = os.getenv("VONAGE_PHONE_NUMBER", "12019773745")
+        # Ensure the from number has country code
+        if not from_number.startswith("1"):
+            from_number = "1" + from_number
         
         print(f"📱 DEBUG: Sending SMS from={from_number} to={to_number}")
         print(f"📝 DEBUG: Message length={len(sms_body)} chars")
@@ -197,7 +200,7 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
         # Remove the + prefix for Vonage API
         to_number = user_phone_number.lstrip("+")
         response = vonage_client.sms.send_message({
-            "from": os.getenv("VONAGE_PHONE_NUMBER", "12019773745"),  # Use 'from' not 'from_'
+            "from": "1" + os.getenv("VONAGE_PHONE_NUMBER", "2019773745"),  # Ensure country code
             "to": to_number,
             "text": reply
         })
