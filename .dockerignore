@@ -1,0 +1,44 @@
+# Ignore unnecessary files for Docker build
+.git
+.gitignore
+README.md
+.env
+.venv
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local development files
+debug_*
+*.log
+ngrok.log
+*.png
+*.jpg
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Farm box data (will be generated in cloud)
+farm_box_data/
+scrapers/farm_box_data/
+
+# Browser data (using fresh sessions)
+browser_data/
+scrapers/browser_data/
+
+# Archive and backup files
+archive/
+*_BACKUP.py
+*_WORKING.py

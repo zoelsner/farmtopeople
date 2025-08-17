@@ -314,8 +314,10 @@ async def test_full_flow(background_tasks: BackgroundTasks):
 
 if __name__ == "__main__":
     import uvicorn
+    import os
     # To run this server locally, use the command:
     # uvicorn server:app --reload
-    print("Starting server... To test, run 'uvicorn server:app --reload' in your terminal.")
+    port = int(os.getenv("PORT", 8000))
+    print(f"Starting server on port {port}... To test locally, run 'uvicorn server:app --reload' in your terminal.")
     # This part is for local development and won't be used in production
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("server:app", host="0.0.0.0", port=port, reload=True)
