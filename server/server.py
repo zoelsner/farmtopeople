@@ -118,7 +118,7 @@ def run_full_meal_plan_flow(phone_number: str):
     try:
         # Remove the + prefix for Vonage API (like we do in the immediate reply)
         to_number = phone_number.lstrip("+")
-        response = vonage_client.sms.send({
+        response = vonage_client.sms.send_message({
             "from_": "12019773745",  # Your Vonage number without +1
             "to": to_number,
             "text": sms_body
@@ -179,7 +179,7 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
     try:
         # Remove the + prefix for Vonage API
         to_number = user_phone_number.lstrip("+")
-        response = vonage_client.sms.send({
+        response = vonage_client.sms.send_message({
             "from_": "12019773745",  # Your Vonage number
             "to": to_number,
             "text": reply
