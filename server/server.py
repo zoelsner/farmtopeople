@@ -6,7 +6,7 @@ from urllib.parse import quote
 from fastapi import FastAPI, Form, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse, PlainTextResponse
 import vonage
-from vonage_http_client import Auth
+from vonage import Auth
 from dotenv import load_dotenv
 # Add paths for imports
 import sys
@@ -37,11 +37,10 @@ async def health_check():
 DATA_DIR = Path(".")
 
 # Vonage Client for sending messages
-auth = Auth(
-    api_key=os.getenv("VONAGE_API_KEY"),
-    api_secret=os.getenv("VONAGE_API_SECRET")
+vonage_client = vonage.Client(
+    key=os.getenv("VONAGE_API_KEY"),
+    secret=os.getenv("VONAGE_API_SECRET")
 )
-vonage_client = vonage.Vonage(auth)
 
 def run_full_meal_plan_flow(phone_number: str):
     """
