@@ -30,6 +30,11 @@ load_dotenv(dotenv_path=project_root / '.env')
 
 app = FastAPI()
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Railway"""
+    return {"status": "healthy", "service": "farmtopeople-sms"}
+
 DATA_DIR = Path(".")
 
 # Vonage Client for sending messages
