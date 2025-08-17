@@ -148,7 +148,10 @@ python customize_scraper.py
 **Status:** ✅ FULLY FUNCTIONAL  
 **Immutable Backup:** `customize_scraper_PRODUCTION_WORKING_BACKUP.py`  
 **Capabilities:**
-- ✅ Authentication (session detection)
+- ✅ Authentication (session detection AND fresh login)
+- ✅ Environment variable flexibility (EMAIL/PASSWORD or FTP_EMAIL/FTP_PWD)
+- ✅ Login form handling (two-step: email → LOG IN → password → LOG IN)
+- ✅ Zipcode modal prevention (only clicks cart when logged in)
 - ✅ Cart access
 - ✅ Box detection
 - ✅ Customize clicking (with terminal confirmation)
@@ -187,6 +190,75 @@ Look for this in terminal output:
 ```bash
 cat farm_box_data/customize_results_*.json | grep -A5 "available_items"
 ```
+
+---
+
+## 🔐 AUTHENTICATION LESSONS LEARNED
+
+### The Authentication Issue (August 17, 2025)
+**Problem:** Scraper was clicking the cart button when not logged in, triggering zipcode modal
+**Root Cause:** Multiple environment variable naming conventions and login detection failures
+
+### What We Discovered:
+1. **Environment Variables Have Two Names:**
+   - Some code uses `EMAIL`/`PASSWORD`
+   - Some code uses `FTP_EMAIL`/`FTP_PWD`
+   - Solution: Check BOTH in code: `os.getenv("EMAIL") or os.getenv("FTP_EMAIL")`
+
+2. **Login Page Has Two-Step Process:**
+   - Step 1: Enter email → Click "LOG IN"
+   - Step 2: Enter password → Click "LOG IN" again
+   - Not a single form submission!
+
+3. **Zipcode Modal Only Appears When:**
+   - User is NOT logged in
+   - Cart button is clicked
+   - This is the key diagnostic: zipcode modal = not authenticated
+
+4. **Fresh Session Testing:**
+   - Clear browser_data folder OR
+   - Use incognito/private context
+   - Essential for testing login flow
+
+### Authentication Debug Checklist:
+- [ ] Check .env has credentials (EMAIL/PASSWORD or FTP_EMAIL/FTP_PWD)
+- [ ] Verify .env is loading from correct path
+- [ ] Test with fresh browser session (no saved data)
+- [ ] Watch for two-step login process
+- [ ] Confirm navigation away from login page
+- [ ] No zipcode modal = successful auth
+
+---
+
+## 🔄 SERVER RESTART LESSON LEARNED (August 17, 2025)
+
+### The Hidden Cache Issue
+**Problem:** Authentication fixes weren't working even though the code was correct
+**Root Cause:** Server process was running with OLD code cached in memory from before the fixes
+
+### What Happened:
+1. Server was started at 9:15 PM with old authentication code
+2. We fixed the authentication issues in the scraper files
+3. Tested the scraper directly - worked perfectly
+4. SMS flow still failed - server was using cached old code!
+
+### The Fix:
+```bash
+# Find the old server process
+ps aux | grep "python.*server.py"
+
+# Kill it
+kill [PID]
+
+# Restart with new code
+python server/server.py
+```
+
+### Key Lesson:
+**ALWAYS RESTART THE SERVER AFTER CODE CHANGES!**
+- Python caches imported modules
+- Running server processes don't see file changes
+- Direct script tests can work while server fails
 
 ---
 

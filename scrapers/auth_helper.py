@@ -9,8 +9,12 @@ import random
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Load environment variables
-load_dotenv()
+# This is the robust way to find the project root and load the .env file.
+# It finds the current script's directory and goes up one level.
+project_root = Path(__file__).resolve().parent.parent
+dotenv_path = project_root / '.env'
+load_dotenv(dotenv_path=dotenv_path)
+
 
 def login_to_farm_to_people(page):
     """
@@ -22,8 +26,8 @@ def login_to_farm_to_people(page):
     Returns:
         bool: True if login successful, False otherwise
     """
-    email = os.getenv("EMAIL")
-    password = os.getenv("PASSWORD")
+    email = os.getenv("EMAIL") or os.getenv("FTP_EMAIL")
+    password = os.getenv("PASSWORD") or os.getenv("FTP_PWD")
     
     if not email or not password:
         print("❌ No login credentials found in environment variables")
@@ -38,7 +42,7 @@ def login_to_farm_to_people(page):
         page.wait_for_timeout(2000)
         
         # Based on the actual page, look for email input with placeholder "Email address"
-        email_input = page.locator("input[placeholder='Email address']").first
+        email_input = page.locator("input[placeholder='Enter email address']").first
         
         if email_input.count() == 0:
             # Fallback selectors
@@ -46,10 +50,11 @@ def login_to_farm_to_people(page):
             
         if email_input.count() > 0:
             email_input.fill(email)
+            
             print("✅ Email filled")
             
             # Click the "Log in" button (the form appears to submit with just email)
-            login_button = page.locator("button:has-text('Log in')").first
+            login_button = page.locator("button span:has-text('Log in')").first
             
             if login_button.count() > 0:
                 login_button.click()

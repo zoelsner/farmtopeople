@@ -40,6 +40,10 @@ ls -lt ../farm_box_data/customize_results_*.json | head -1
 
 ### Common Issues:
 1. **Authentication** - Run auth tests first
+   - **Environment Variables**: Check BOTH `EMAIL`/`PASSWORD` and `FTP_EMAIL`/`FTP_PWD`
+   - **Fresh Sessions**: Clear browser_data or use incognito for login testing
+   - **Login Flow**: Email → LOG IN → Password → LOG IN (two-step process)
+   - **Zipcode Modal**: Only appears when clicking cart while NOT logged in
 2. **Cart access** - Verify cart opens
 3. **Customize clicking** - Watch browser behavior
 4. **Data extraction** - Check JSON completeness

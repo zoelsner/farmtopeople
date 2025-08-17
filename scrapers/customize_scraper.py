@@ -5,69 +5,13 @@ from pathlib import Path
 from datetime import datetime
 import json
 import re
+import sys
+sys.path.append(os.path.dirname(__file__))
+from auth_helper import ensure_logged_in, login_to_farm_to_people
 
-load_dotenv()
-
-def scrape_individual_items(page):
-    """Scrape individual (non-box) items from the cart."""
-    individual_items = []
-    
-    print("🔍 Looking for individual items...")
-    
-    # Get all cart items
-    articles = page.locator("article[class*='cart-order_cartOrderItem']").all()
-    
-    for i, article in enumerate(articles):
-        try:
-            # Get item name
-            name_elem = article.locator("a[href*='/product/']").first
-            if name_elem.count() == 0:
-                continue
-                
-            item_name = name_elem.text_content().strip()
-            
-            # Check if this has sub-products (it's a box)
-            sub_list = article.locator("+ ul[class*='cart-order-line-item-subproducts']").first
-            has_sublist = sub_list.count() > 0
-            
-            # Skip boxes - we handle those separately
-            if has_sublist:
-                continue
-                
-            # This is an individual item
-            print(f"  📦 Individual item: {item_name}")
-            
-            # Get quantity
-            quantity_selector = article.locator("div[class*='quantity-selector']").first
-            quantity = 1
-            if quantity_selector.count() > 0:
-                quantity_span = quantity_selector.locator("span[class*='quantity']").first
-                if quantity_span.count() > 0:
-                    qty_text = quantity_span.text_content().strip()
-                    try:
-                        quantity = int(qty_text)
-                    except:
-                        quantity = 1
-            
-            # Get price
-            price_elem = article.locator("p[class*='font-medium']").first
-            price = ""
-            if price_elem.count() > 0:
-                price = price_elem.text_content().strip()
-            
-            individual_items.append({
-                "name": item_name,
-                "quantity": quantity,
-                "price": price,
-                "type": "individual"
-            })
-            
-        except Exception as e:
-            print(f"❌ Error processing individual item {i+1}: {e}")
-            continue
-    
-    print(f"✅ Found {len(individual_items)} individual items")
-    return individual_items
+# Load .env from project root
+project_root = Path(__file__).resolve().parent.parent
+load_dotenv(dotenv_path=project_root / '.env', override=True)
 
 def scrape_customize_modal(page):
     """Scrape both selected and available items from the customize modal."""
@@ -154,31 +98,92 @@ def main():
     output_dir.mkdir(exist_ok=True)
     
     with sync_playwright() as p:
-        user_data_dir = Path("browser_data")
-        user_data_dir.mkdir(exist_ok=True)
-        
-        context = p.chromium.launch_persistent_context(
-            user_data_dir=str(user_data_dir),
-            headless=False,
-            viewport={"width": 1920, "height": 1080}
-        )
+        # Always use fresh browser session for multi-user support
+        print("🌐 Starting fresh browser session...")
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context(viewport={"width": 1920, "height": 1080})
         
         page = context.new_page()
-        
-        print("Opening Farm to People...")
+
+        # Navigate to home where header/cart lives
         page.goto("https://farmtopeople.com/home")
-        page.wait_for_timeout(3000)
+        page.wait_for_load_state("domcontentloaded")
+        page.wait_for_timeout(2000)  # Give page time to settle
+
+        # Check if we're on a login page or if login elements are visible
+        current_url = page.url
+        login_form_visible = page.locator("input[placeholder='Enter email address']").count() > 0
         
-        # Click cart button
+        # Also check if we see a "Log in" link/button which indicates we're not logged in
+        login_link_visible = page.locator("a:has-text('Log in'), button:has-text('Log in')").count() > 0
+        
+        if "login" in current_url or login_form_visible or login_link_visible:
+            print("🔐 Login page detected. Performing login...")
+            
+            # Get credentials - try both variable names
+            email = os.getenv("EMAIL") or os.getenv("FTP_EMAIL")
+            password = os.getenv("PASSWORD") or os.getenv("FTP_PWD")
+            
+            if not email or not password:
+                print("❌ No credentials found in environment (EMAIL/PASSWORD)")
+                print("   Looking in .env at:", project_root / '.env')
+                context.close()
+                return
+                
+            try:
+                # Fill email
+                email_input = page.locator("input[placeholder='Enter email address']").first
+                if email_input.count() > 0:
+                    email_input.fill(email)
+                    print(f"✅ Email entered: {email}")
+                    
+                    # Click LOG IN to proceed to password
+                    login_btn = page.locator("button:has-text('LOG IN')").first
+                    if login_btn.count() > 0:
+                        login_btn.click()
+                        page.wait_for_timeout(2000)
+                        
+                        # Now fill password
+                        password_input = page.locator("input[type='password']").first
+                        if password_input.count() > 0:
+                            password_input.fill(password)
+                            print("✅ Password entered")
+                            
+                            # Click LOG IN again
+                            final_login_btn = page.locator("button:has-text('LOG IN')").first
+                            if final_login_btn.count() > 0:
+                                final_login_btn.click()
+                                print("✅ Login submitted, waiting for navigation...")
+                                page.wait_for_timeout(5000)
+                                
+                                # Verify we're logged in
+                                if "login" not in page.url:
+                                    print("✅ Login successful!")
+                                else:
+                                    print("⚠️ Still on login page, may have failed")
+                            
+            except Exception as e:
+                print(f"❌ Login error: {e}")
+        else:
+            # Not on login page, use the auth helper to verify session
+            print("🔐 Checking session status...")
+            ensure_logged_in(page)
+        
+        # The scraper can now proceed assuming it's logged in.
         print("Opening cart...")
-        cart_btn = page.locator("div.cart-button.ml-auto.cursor-pointer").first
-        if cart_btn.count() > 0:
+        
+        # Prefer a cart button that isn’t inside any dialog
+        cart_btn = page.locator("body > div:not([role='dialog']) >> div.cart-button.ml-auto.cursor-pointer").first
+        
+        if cart_btn.is_visible():
+            print("✅ Cart button is visible and not in a modal. Clicking it.")
             cart_btn.click()
-            page.wait_for_timeout(2000)
-        
-        # First, get individual items from cart
-        individual_items = scrape_individual_items(page)
-        
+            page.wait_for_timeout(3000) # Wait for cart to open
+        else:
+            print("❌ Cart button not found or not visible. Trying direct navigation.")
+            page.goto("https://farmtopeople.com/cart")
+            page.wait_for_timeout(3000)
+
         # Get all CUSTOMIZE buttons
         customize_btns = page.locator("button:has-text('CUSTOMIZE'), button:has-text('Customize')").all()
         
@@ -235,36 +240,22 @@ def main():
                 print(f"❌ Error processing box {i+1}: {e}")
                 continue
         
-        # Combine all data
-        complete_cart_data = {
-            "individual_items": individual_items,
-            "customizable_boxes": all_box_data,
-            "summary": {
-                "individual_items_count": len(individual_items),
-                "customizable_boxes_count": len(all_box_data),
-                "total_selected_in_boxes": sum(box['selected_count'] for box in all_box_data),
-                "total_alternatives_in_boxes": sum(box['alternatives_count'] for box in all_box_data)
-            }
-        }
-        
         # Save results
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        output_file = output_dir / f"complete_cart_results_{timestamp}.json"
+        output_file = output_dir / f"customize_results_{timestamp}.json"
         
         with open(output_file, 'w') as f:
-            json.dump(complete_cart_data, f, indent=2)
+            json.dump(all_box_data, f, indent=2)
         
         print(f"\n🎉 COMPLETE! Results saved to: {output_file}")
-        print(f"\n📈 CART SUMMARY:")
-        print(f"   🛒 Individual items: {len(individual_items)}")
-        print(f"   📦 Customizable boxes: {len(all_box_data)}")
-        
+        print(f"\n📈 SUMMARY:")
         for box_data in all_box_data:
-            print(f"     {box_data['box_name']}:")
-            print(f"       ✅ {box_data['selected_count']} selected")
-            print(f"       🔄 {box_data['alternatives_count']} alternatives")
+            print(f"  {box_data['box_name']}:")
+            print(f"    ✅ {box_data['selected_count']} selected")
+            print(f"    🔄 {box_data['alternatives_count']} alternatives")
         
         context.close()
+        browser.close()
 
 if __name__ == "__main__":
     main()

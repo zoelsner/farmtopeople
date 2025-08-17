@@ -45,13 +45,21 @@ farmtopeople/
 └── requirements.txt                    # Dependencies
 ```
 
-## 3. The "Thursday Magic" User Flow
+## 3. The "Thursday Magic" User Flow - NOW LIVE! ✅
 
-This is the primary operational flow of the application.
+This is the primary operational flow of the application - **SUCCESSFULLY TESTED AND WORKING**.
 
+### Current Working SMS Flow:
+1. **User texts "plan" to Vonage number** → Triggers full meal planning flow
+2. **Server looks up user in Supabase** → Retrieves Farm to People credentials
+3. **Scraper authenticates and extracts cart** → Gets all boxes and alternatives
+4. **AI generates personalized meal plan** → Based on actual ingredients
+5. **SMS delivers meal suggestions** → User receives actionable recipes
+
+### Production Thursday Flow (Ready to Deploy):
 1.  **Thursday 2 PM (Box Lock):** The user's Farm to People box for the upcoming weekend delivery is locked and can no longer be customized.
-2.  **Thursday 3 PM (Automated Scrape):** The system automatically triggers the `scrapers/complete_cart_scraper.py` script for all active users. The scraper logs in, scrapes the final, confirmed contents of each user's boxes and individual items, and saves this data to our Supabase database.
-3.  **Thursday 3:05 PM (The Teaser SMS):** Immediately after the scrape, the system sends the first SMS to the user via Twilio.
+2.  **Thursday 3 PM (Automated Scrape):** The system automatically triggers the `scrapers/customize_scraper.py` script for all active users. The scraper logs in, scrapes the final, confirmed contents of each user's boxes and individual items, and saves this data to our Supabase database.
+3.  **Thursday 3:05 PM (The Teaser SMS):** Immediately after the scrape, the system sends the first SMS to the user via Vonage.
     *   **Example:** _"🌟 Zach, your Farm to People box is locked in! This week's stars include White Peaches and Organic Green Kale. How's your energy for the week? Reply: 1=Tired 😴, 2=Normal 😊, 3=Ambitious 🚀"_
 4.  **Thursday 6 PM (The Plan Delivery):** Based on the user's energy level response, the system sends the main event: a link to a beautifully generated PDF meal plan.
     *   **Example:** _"🍽️ Your adventures await! Based on your 'Normal' energy, your personalized meal plan is ready. It includes a 35-min version of our Peach and Kale Salad. View your full visual guide here: [link-to-pdf]"_
@@ -133,12 +141,26 @@ customize_btn.click()
 # - Price: p[class*='font-medium']
 ```
 
+### Authentication Architecture (PRODUCTION READY ✅)
+
+The authentication system now supports multi-user scenarios with robust login handling:
+
+1. **Environment Variable Support**: Checks both `EMAIL`/`PASSWORD` and `FTP_EMAIL`/`FTP_PWD`
+2. **Fresh Browser Sessions**: Always uses new browser context for each user (no session conflicts)
+3. **Two-Step Login Process**: Handles Farm to People's email → password flow
+4. **Smart Login Detection**: Checks URL, login form presence, and "Log in" links
+5. **Credentials from Supabase**: Server dynamically sets credentials for each user
+
 ### Current Scraper Modules
 
-#### **1. `complete_cart_scraper.py` - PRIMARY SCRAPER**
-- **Status**: ✅ Stable and recommended
-- **Purpose**: Handles both boxes and individual items
-- **Output**: Complete cart data + customer summary
+#### **1. `customize_scraper.py` - PRIMARY SCRAPER** ⭐
+- **Status**: ✅ PRODUCTION READY - Fully tested with SMS flow
+- **Purpose**: Handles boxes, individual items, AND alternatives
+- **Output**: Complete cart data with customization options
+- **Features**: 
+  - Fresh browser sessions for multi-user support
+  - Robust authentication with login detection
+  - Extracts both selected items and available swaps
 - **Use Case**: Primary scraper for production automation
 
 #### **2. `weekly_summary_scraper.py` - CUSTOMER COMMUNICATION**
