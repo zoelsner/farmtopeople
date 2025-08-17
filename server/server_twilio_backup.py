@@ -5,39 +5,30 @@ from urllib.parse import quote
 
 from fastapi import FastAPI, Form, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse, PlainTextResponse
-import vonage
-from vonage_http_client import Auth
+from twilio.twiml.messaging_response import MessagingResponse
+from twilio.rest import Client
 from dotenv import load_dotenv
-try:
-    from . import supabase_client as db
-    from . import meal_planner
-except ImportError:
-    # When running directly, use absolute imports
-    import supabase_client as db
-    import meal_planner
+from . import supabase_client as db
+
+from . import meal_planner
 # Import our current primary scraper
 import sys
 import os
-import importlib
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from scrapers.customize_scraper import main as run_cart_scraper
+from scrapers.complete_cart_scraper import main as run_cart_scraper
 
-# Load .env file from the project root
+# More explicit .env loading
 from pathlib import Path
-project_root = Path(__file__).parent.parent
-load_dotenv(dotenv_path=project_root / '.env')
+env_path = Path('.') / '.env'
+load_dotenv(dotenv_path=env_path)
 
 
 app = FastAPI()
 
 DATA_DIR = Path(".")
 
-# Vonage Client for sending messages
-auth = Auth(
-    api_key=os.getenv("VONAGE_API_KEY"),
-    api_secret=os.getenv("VONAGE_API_SECRET")
-)
-vonage_client = vonage.Vonage(auth)
+# Twilio Client for sending messages
+twilio_client = Client(os.getenv("TWILIO_ACCOUNT_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
 
 def run_full_meal_plan_flow(phone_number: str):
     """
@@ -46,57 +37,16 @@ def run_full_meal_plan_flow(phone_number: str):
     """
     print(f"BACKGROUND: Starting full meal plan flow for {phone_number}")
     
-    # Step 0: Look up user credentials from Supabase
-    print(f"🔍 Looking up user credentials for {phone_number}")
-    
-    # Normalize phone number format - try multiple formats
-    phone_formats = [phone_number, f"+{phone_number}", f"1{phone_number}" if not phone_number.startswith('1') else phone_number]
-    user_data = None
-    
-    try:
-        for phone_format in phone_formats:
-            user_data = db.get_user_by_phone(phone_format)
-            if user_data:
-                print(f"✅ User found with format: {phone_format}")
-                # Add a print statement to confirm what's found
-                print(f"   Email: {user_data.get('ftp_email')}, Password: {'******' if user_data.get('ftp_password') else 'Not found'}")
-                break
-        
-        if not user_data:
-            print(f"❌ No user found for phone number {phone_number}")
-            print("   User needs to register first by texting 'new' or visiting the login link")
-            # Still try to run scraper without credentials for basic functionality
-            user_data = {}
-    except Exception as e:
-        print(f"❌ Error looking up user: {e}")
-        user_data = {}
-    
-    # Step 1: Run the complete cart scraper
+    # Step 1: Run the current primary scraper
     print(f"🔍 Running complete cart scraper for user: {phone_number}")
     try:
-        if user_data and user_data.get('ftp_email') and user_data.get('ftp_password'):
-            print("🔐 Credentials found. Setting environment variables for scraper.")
-            os.environ['EMAIL'] = user_data['ftp_email']
-            os.environ['PASSWORD'] = user_data['ftp_password']
-        else:
-            print("⚠️ No credentials found for this user. Scraper will run without login.")
-            # Ensure env vars are not set from a previous run
-            if 'EMAIL' in os.environ: del os.environ['EMAIL']
-            if 'PASSWORD' in os.environ: del os.environ['PASSWORD']
-
-        run_cart_scraper()
+        run_cart_scraper()  # This will scrape the cart and generate outputs
         print("✅ Cart scraping completed successfully")
     except Exception as e:
-        print(f"❌ Cart scraping failed: {e}")
-        # Clean up env vars
-        if 'EMAIL' in os.environ: del os.environ['EMAIL']
-        if 'PASSWORD' in os.environ: del os.environ['PASSWORD']
-        return # Stop the flow if scraping fails
-
-    # Clean up environment variables immediately after use
-    if 'EMAIL' in os.environ: del os.environ['EMAIL']
-    if 'PASSWORD' in os.environ: del os.environ['PASSWORD']
-
+        print(f"❌ Error running cart scraper: {e}")
+        # Continue with meal planning even if scraping fails
+        pass
+    
     # Step 2: Run the meal planner with the new data
     plan = meal_planner.run_main_planner() # We'll create this helper function
     
@@ -111,44 +61,30 @@ def run_full_meal_plan_flow(phone_number: str):
 
     # Step 4: Send the final SMS
     print(f"BACKGROUND: Sending final meal plan SMS to {phone_number}")
-    print(f"SMS body length: {len(sms_body)} characters")
-    print(f"SMS preview: {sms_body[:100]}...")
-    try:
-        # Remove the + prefix for Vonage API (like we do in the immediate reply)
-        to_number = phone_number.lstrip("+")
-        response = vonage_client.sms.send({
-            "from_": "12019773745",  # Your Vonage number without +1
-            "to": to_number,
-            "text": sms_body
-        })
-        print(f"✅ SMS sent successfully to {to_number}: {response}")
-    except Exception as e:
-        print(f"❌ Error sending SMS: {e}")
+    twilio_client.messages.create(
+        body=sms_body,
+        from_=os.getenv("TWILIO_PHONE_NUMBER"),
+        to=phone_number
+    )
 
 @app.get("/healthz", status_code=200)
 def health_check():
     """Health check endpoint to confirm the server is running."""
     return {"status": "ok"}
 
-@app.get("/sms/incoming")
-@app.post("/sms/incoming")
-async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msisdn: str = None, text: str = None):
+@app.post("/sms")
+async def sms_reply(background_tasks: BackgroundTasks, From: str = Form(...), Body: str = Form(...)):
     """
-    Handles incoming SMS messages from Vonage.
+    Handles incoming SMS messages from Twilio.
     This is the main entry point for user interaction.
     """
-    # Handle both GET and POST requests from Vonage
-    if request.method == "GET":
-        # Vonage sends via query parameters
-        query_params = request.query_params
-        user_phone_number = "+" + query_params.get("msisdn", "")
-        user_message = query_params.get("text", "").lower().strip()
-    else:
-        # POST request with form data
-        user_phone_number = "+" + (msisdn or "")
-        user_message = (text or "").lower().strip()
+    user_phone_number = From
+    user_message = Body.lower().strip()
 
     print(f"Received message from {user_phone_number}: '{user_message}'")
+
+    # Initialize the response object
+    resp = MessagingResponse()
 
     # --- Main App Logic Router ---
     base_url = str(request.base_url).rstrip('/')
@@ -173,21 +109,12 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
     else:
         reply = "Sorry, I didn't understand that. Text 'plan' for meal ideas."
 
-    # Send immediate reply via Vonage
-    try:
-        # Remove the + prefix for Vonage API
-        to_number = user_phone_number.lstrip("+")
-        response = vonage_client.sms.send({
-            "from_": "12019773745",  # Your Vonage number
-            "to": to_number,
-            "text": reply
-        })
-        print(f"✅ Immediate SMS reply sent: {response}")
-    except Exception as e:
-        print(f"❌ Error sending immediate SMS reply: {e}")
+    # Add the reply to the TwiML response
+    resp.message(reply)
 
-    # Return 200 OK to Vonage
-    return {"status": "ok"}
+    # Return the response as XML
+    # Use the `str()` function on the response object to get the TwiML XML
+    return str(resp)
 
 
 @app.get("/login", response_class=HTMLResponse)

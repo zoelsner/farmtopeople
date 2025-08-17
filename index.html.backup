@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered meal planning assistant for Farm to People customers. Get personalized recipes via SMS based on your actual grocery orders.">
+    <title>Farm to People Meal Planning Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f8f6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .hero {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .hero h1 {
+            color: #2a6e3f;
+            font-size: 2.8em;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .hero .subtitle {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+        
+        .hero .tagline {
+            font-size: 1.1em;
+            color: #2a6e3f;
+            font-weight: 600;
+            background: #e8f5e8;
+            padding: 15px 25px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .feature {
+            background: white;
+            padding: 35px;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease;
+        }
+        
+        .feature:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature h3 {
+            color: #2a6e3f;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+        
+        .feature ol, .feature ul {
+            margin-left: 20px;
+        }
+        
+        .feature li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .feature strong {
+            color: #2a6e3f;
+        }
+        
+        .sms-policy {
+            background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+            padding: 40px;
+            border-radius: 12px;
+            border: 2px solid #2a6e3f;
+            margin-bottom: 40px;
+        }
+        
+        .sms-policy h3 {
+            color: #2a6e3f;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+        
+        .policy-highlight {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1em;
+            border-left: 4px solid #2a6e3f;
+        }
+        
+        .policy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .policy-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .policy-item strong {
+            color: #2a6e3f;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        
+        .tech-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .tech-stack, .use-case {
+            background: white;
+            padding: 35px;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        }
+        
+        .tech-stack h3, .use-case h3 {
+            color: #2a6e3f;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .tech-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .tech-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .contact {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        }
+        
+        .contact h3 {
+            color: #2a6e3f;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .contact a {
+            color: #2a6e3f;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .contact a:hover {
+            text-decoration: underline;
+        }
+        
+        .emoji {
+            font-size: 1.4em;
+            margin-right: 12px;
+        }
+        
+        .disclaimer {
+            margin-top: 25px;
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.2em;
+            }
+            .hero .subtitle {
+                font-size: 1.1em;
+            }
+            .container {
+                padding: 20px 15px;
+            }
+            .feature, .sms-policy, .tech-stack, .use-case, .contact {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1><span class="emoji">🌱</span>Farm to People Meal Planning Assistant</h1>
+            <p class="subtitle">AI-powered meal planning that transforms your weekly grocery orders into delicious, personalized recipes</p>
+            <div class="tagline">📱 SMS-based service for Farm to People customers</div>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <h3><span class="emoji">🛒</span>How It Works</h3>
+                <ol>
+                    <li><strong>Connect securely:</strong> Link your Farm to People account through our secure web form</li>
+                    <li><strong>Text when ready:</strong> Send "plan" to our number when you want meal ideas</li>
+                    <li><strong>Get personalized recipes:</strong> Receive AI-generated meal plans based on your actual cart contents</li>
+                    <li><strong>Cook with confidence:</strong> Use every ingredient with detailed cooking guidance</li>
+                </ol>
+            </div>
+
+            <div class="feature">
+                <h3><span class="emoji">🤖</span>Smart AI Features</h3>
+                <ul>
+                    <li><strong>Real-time cart analysis:</strong> Automatically analyzes your current Farm to People orders</li>
+                    <li><strong>Box customization aware:</strong> Understands both your selected items AND available alternatives</li>
+                    <li><strong>Advanced AI planning:</strong> Uses OpenAI GPT to generate personalized, nutritious recipes</li>
+                    <li><strong>Zero waste approach:</strong> Creates comprehensive meal plans using everything in your cart</li>
+                    <li><strong>Dietary preferences:</strong> Adapts to your cooking style and dietary needs</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sms-policy">
+            <h3><span class="emoji">📱</span>SMS Service Policy & Compliance</h3>
+            
+            <div class="policy-highlight">
+                This service sends SMS messages <strong>only in direct response to user requests</strong>. 
+                No marketing, promotional messaging, or unsolicited communications.
+            </div>
+            
+            <div class="policy-grid">
+                <div class="policy-item">
+                    <strong>🚀 Opt-in Method</strong>
+                    Text our number to start (examples: "hello", "plan", "new") or provide explicit verbal consent
+                </div>
+                <div class="policy-item">
+                    <strong>📅 Message Frequency</strong>
+                    On-demand/transactional only - messages sent only when you interact or request services
+                </div>
+                <div class="policy-item">
+                    <strong>⛔ Opt-out Instructions</strong>
+                    Reply "STOP" at any time to stop receiving messages. Reply "START" to re-enable
+                </div>
+                <div class="policy-item">
+                    <strong>❓ Help Instructions</strong>
+                    Reply "HELP" for assistance or contact information
+                </div>
+                <div class="policy-item">
+                    <strong>🔒 Privacy & Data</strong>
+                    Phone numbers and messages used solely for meal planning. Data never sold or shared with third parties
+                </div>
+                <div class="policy-item">
+                    <strong>👥 Age Requirement</strong>
+                    Service intended for adults (18+). Must be legal age to use SMS services
+                </div>
+            </div>
+            
+            <div class="disclaimer">
+                <strong>Carrier Disclaimer:</strong> Message and data rates may apply. 
+                This is a personal development project for demonstration and educational purposes.
+            </div>
+        </div>
+
+        <div class="tech-section">
+            <div class="tech-stack">
+                <h3><span class="emoji">⚙️</span>Technology Stack</h3>
+                <div class="tech-list">
+                    <span class="tech-item">Python 3.13</span>
+                    <span class="tech-item">FastAPI Web Framework</span>
+                    <span class="tech-item">Playwright Browser Automation</span>
+                    <span class="tech-item">OpenAI GPT-4</span>
+                    <span class="tech-item">Supabase Database</span>
+                    <span class="tech-item">SMS API Integration</span>
+                    <span class="tech-item">Pandas Data Analysis</span>
+                    <span class="tech-item">Real-time Web Scraping</span>
+                </div>
+            </div>
+
+            <div class="use-case">
+                <h3><span class="emoji">🎯</span>Service Use Case</h3>
+                <p><strong>Primary Function:</strong> Transactional meal planning automation for Farm to People customers</p>
+                <br>
+                <p><strong>User Journey:</strong></p>
+                <ul>
+                    <li>Customer places Farm to People order</li>
+                    <li>Customer texts our service when ready to meal plan</li>
+                    <li>AI analyzes cart contents and generates personalized recipes</li>
+                    <li>Customer receives actionable meal plan via SMS</li>
+                </ul>
+                <br>
+                <p><strong>Benefits:</strong> Reduces food waste, improves meal variety, saves planning time</p>
+            </div>
+        </div>
+
+        <div class="contact">
+            <h3><span class="emoji">📧</span>Contact & Development</h3>
+            <p>For questions about this service, reply "HELP" via SMS or explore the project repository.</p>
+            <br>
+            <p><strong>GitHub Repository:</strong> 
+                <a href="https://github.com/zoelsner/farmtopeople" target="_blank">
+                    github.com/zoelsner/farmtopeople
+                </a>
+            </p>
+            <br>
+            <p><strong>Developer:</strong> Zachary Oelsner</p>
+            <div class="disclaimer">
+                This is a personal development project showcasing AI-powered automation, 
+                web scraping, and SMS integration technologies. Built for educational 
+                and demonstration purposes.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

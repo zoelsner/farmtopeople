@@ -1,0 +1,446 @@
+t=2025-08-16T20:53:27-0400 lvl=info msg="no configuration paths supplied"
+t=2025-08-16T20:53:27-0400 lvl=info msg="using configuration at default config path" path="/Users/zach/Library/Application Support/ngrok/ngrok.yml"
+t=2025-08-16T20:53:27-0400 lvl=info msg="open config file" path="/Users/zach/Library/Application Support/ngrok/ngrok.yml" err=nil
+t=2025-08-16T20:53:27-0400 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+t=2025-08-16T20:53:27-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-16T20:53:27-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-16T20:53:27-0400 lvl=info msg="started tunnel" obj=tunnels name=command_line addr=http://localhost:8000 url=https://2d9839989d29.ngrok-free.app
+t=2025-08-16T20:53:39-0400 lvl=info msg=start pg=/api/tunnels id=79fdc5c36de30e8b
+t=2025-08-16T20:53:39-0400 lvl=info msg=end pg=/api/tunnels id=79fdc5c36de30e8b status=200 dur=253.834µs
+t=2025-08-16T21:09:51-0400 lvl=warn msg="failed to open private leg" id=b5a56b11a2a6 privaddr=localhost:8000 err="dial tcp 127.0.0.1:8000: connect: connection refused"
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/ id=71449cb50254e344
+t=2025-08-16T21:20:27-0400 lvl=info msg=end pg=/ id=71449cb50254e344 status=302 dur=305µs
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/inspect/http id=7d07852a9bdd4acf
+t=2025-08-16T21:20:27-0400 lvl=info msg=end pg=/inspect/http id=7d07852a9bdd4acf status=200 dur=345.166µs
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/static/css/app.398abcb27117c32bb620.css id=9bed26831cae0639
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/static/js/rpx.00716456c1ab12797503.js id=2a4918f98e97369d
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/static/js/vendor.af72dc946622407d0fca.js id=6f0652b32e999d19
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/static/js/app.c10e08047399653bf94e.js id=d3d1456009c1b271
+t=2025-08-16T21:20:27-0400 lvl=info msg=end pg=/static/css/app.398abcb27117c32bb620.css id=9bed26831cae0639 status=200 dur=11.46725ms
+t=2025-08-16T21:20:27-0400 lvl=info msg=end pg=/static/js/rpx.00716456c1ab12797503.js id=2a4918f98e97369d status=200 dur=7.309375ms
+t=2025-08-16T21:20:27-0400 lvl=info msg=end pg=/static/js/app.c10e08047399653bf94e.js id=d3d1456009c1b271 status=200 dur=4.17675ms
+t=2025-08-16T21:20:27-0400 lvl=info msg=end pg=/static/js/vendor.af72dc946622407d0fca.js id=6f0652b32e999d19 status=200 dur=5.998ms
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/grpc/agent.Web/Preloaded id=c44841e5ed382041
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/grpc/agent.Web/State id=556aa8cd301931ee
+t=2025-08-16T21:20:27-0400 lvl=info msg=end pg=/grpc/agent.Web/Preloaded id=c44841e5ed382041 status=200 dur=2.495917ms
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff2 id=4b574cbb185426df
+t=2025-08-16T21:20:27-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff2 id=4b574cbb185426df status=404 dur=83.291µs
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff id=1204e9c20aec8700
+t=2025-08-16T21:20:27-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff id=1204e9c20aec8700 status=404 dur=76.625µs
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.ttf id=209ff112c5234ae3
+t=2025-08-16T21:20:27-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.ttf id=209ff112c5234ae3 status=404 dur=126.666µs
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/static/assets/060b2710bdbbe3dfe48b.svg id=8517242f974d9d2a
+t=2025-08-16T21:20:27-0400 lvl=info msg=end pg=/static/assets/060b2710bdbbe3dfe48b.svg id=8517242f974d9d2a status=404 dur=87µs
+t=2025-08-16T21:20:27-0400 lvl=info msg=start pg=/static/favicon.ico id=12605aedae37fed8
+t=2025-08-16T21:20:27-0400 lvl=info msg=end pg=/static/favicon.ico id=12605aedae37fed8 status=200 dur=254.583µs
+t=2025-08-16T21:24:00-0400 lvl=info msg=end pg=/grpc/agent.Web/State id=556aa8cd301931ee status=200 dur=3m32.977180292s
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/ id=51ef4e270f23e9ed
+t=2025-08-16T21:24:57-0400 lvl=info msg=end pg=/ id=51ef4e270f23e9ed status=302 dur=102.167µs
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/inspect/http id=bdd973376ad7991d
+t=2025-08-16T21:24:57-0400 lvl=info msg=end pg=/inspect/http id=bdd973376ad7991d status=200 dur=267.417µs
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/static/js/rpx.00716456c1ab12797503.js id=5412f8f12f76bd9f
+t=2025-08-16T21:24:57-0400 lvl=info msg=end pg=/static/js/rpx.00716456c1ab12797503.js id=5412f8f12f76bd9f status=304 dur=49.583µs
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/static/css/app.398abcb27117c32bb620.css id=5823b5123eacae93
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/static/js/vendor.af72dc946622407d0fca.js id=92125d834cdf4623
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/static/js/app.c10e08047399653bf94e.js id=2f13dc3a21f2acac
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/static/favicon.ico id=979732b9b36667ed
+t=2025-08-16T21:24:57-0400 lvl=info msg=end pg=/static/favicon.ico id=979732b9b36667ed status=304 dur=42.208µs
+t=2025-08-16T21:24:57-0400 lvl=info msg=end pg=/static/css/app.398abcb27117c32bb620.css id=5823b5123eacae93 status=304 dur=154.5µs
+t=2025-08-16T21:24:57-0400 lvl=info msg=end pg=/static/js/app.c10e08047399653bf94e.js id=2f13dc3a21f2acac status=304 dur=69.125µs
+t=2025-08-16T21:24:57-0400 lvl=info msg=end pg=/static/js/vendor.af72dc946622407d0fca.js id=92125d834cdf4623 status=304 dur=645.834µs
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/grpc/agent.Web/Preloaded id=6fd910e4680d5c7e
+t=2025-08-16T21:24:57-0400 lvl=info msg=end pg=/grpc/agent.Web/Preloaded id=6fd910e4680d5c7e status=200 dur=1.333791ms
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/grpc/agent.Web/State id=2c34c4c1c4adf507
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff2 id=2255a8c775368379
+t=2025-08-16T21:24:57-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff2 id=2255a8c775368379 status=404 dur=113.958µs
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff id=aa224465c156e766
+t=2025-08-16T21:24:57-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff id=aa224465c156e766 status=404 dur=59.333µs
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.ttf id=3e9bf0ccedb1d11b
+t=2025-08-16T21:24:57-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.ttf id=3e9bf0ccedb1d11b status=404 dur=46.333µs
+t=2025-08-16T21:24:57-0400 lvl=info msg=start pg=/static/assets/060b2710bdbbe3dfe48b.svg id=0ad36597507b8e61
+t=2025-08-16T21:24:57-0400 lvl=info msg=end pg=/static/assets/060b2710bdbbe3dfe48b.svg id=0ad36597507b8e61 status=404 dur=42.208µs
+t=2025-08-16T21:24:59-0400 lvl=info msg=end pg=/grpc/agent.Web/State id=2c34c4c1c4adf507 status=200 dur=2.784973792s
+t=2025-08-16T21:24:59-0400 lvl=info msg=start pg=/ id=14fd969b9665d61a
+t=2025-08-16T21:24:59-0400 lvl=info msg=end pg=/ id=14fd969b9665d61a status=302 dur=127.125µs
+t=2025-08-16T21:24:59-0400 lvl=info msg=start pg=/inspect/http id=c27df8ee156715f1
+t=2025-08-16T21:24:59-0400 lvl=info msg=end pg=/inspect/http id=c27df8ee156715f1 status=200 dur=105.958µs
+t=2025-08-16T21:24:59-0400 lvl=info msg=start pg=/grpc/agent.Web/Preloaded id=24d9186d3eb2c6e6
+t=2025-08-16T21:24:59-0400 lvl=info msg=end pg=/grpc/agent.Web/Preloaded id=24d9186d3eb2c6e6 status=200 dur=364.75µs
+t=2025-08-16T21:24:59-0400 lvl=info msg=start pg=/grpc/agent.Web/State id=861e5b0418b6a040
+t=2025-08-16T21:25:00-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff2 id=9c9b7a0201536df7
+t=2025-08-16T21:25:00-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff2 id=9c9b7a0201536df7 status=404 dur=115µs
+t=2025-08-16T21:25:00-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff id=e47b2e07bbf83468
+t=2025-08-16T21:25:00-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff id=e47b2e07bbf83468 status=404 dur=106.833µs
+t=2025-08-16T21:25:00-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.ttf id=6f1d74ba8f3b3f57
+t=2025-08-16T21:25:00-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.ttf id=6f1d74ba8f3b3f57 status=404 dur=62.625µs
+t=2025-08-16T21:25:00-0400 lvl=info msg=start pg=/static/assets/060b2710bdbbe3dfe48b.svg id=31f36b164eb7d4d9
+t=2025-08-16T21:25:00-0400 lvl=info msg=end pg=/static/assets/060b2710bdbbe3dfe48b.svg id=31f36b164eb7d4d9 status=404 dur=39.083µs
+t=2025-08-16T21:29:25-0400 lvl=info msg=end pg=/grpc/agent.Web/State id=861e5b0418b6a040 status=200 dur=4m25.972587875s
+t=2025-08-16T21:29:25-0400 lvl=info msg=start pg=/ id=e269aace0ac47b6e
+t=2025-08-16T21:29:25-0400 lvl=info msg=end pg=/ id=e269aace0ac47b6e status=302 dur=90.458µs
+t=2025-08-16T21:29:25-0400 lvl=info msg=start pg=/inspect/http id=1b5f57cc531f08b2
+t=2025-08-16T21:29:25-0400 lvl=info msg=end pg=/inspect/http id=1b5f57cc531f08b2 status=200 dur=267.5µs
+t=2025-08-16T21:29:25-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff2 id=5e4f698544d145d2
+t=2025-08-16T21:29:25-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff2 id=5e4f698544d145d2 status=404 dur=56.166µs
+t=2025-08-16T21:29:25-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff id=a1f2434fb9c87a1e
+t=2025-08-16T21:29:25-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff id=a1f2434fb9c87a1e status=404 dur=109.125µs
+t=2025-08-16T21:29:25-0400 lvl=info msg=start pg=/static/assets/060b2710bdbbe3dfe48b.svg id=49b264cf990a74eb
+t=2025-08-16T21:29:25-0400 lvl=info msg=end pg=/static/assets/060b2710bdbbe3dfe48b.svg id=49b264cf990a74eb status=404 dur=47.875µs
+t=2025-08-16T21:29:25-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.ttf id=6f08a46291c41822
+t=2025-08-16T21:29:25-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.ttf id=6f08a46291c41822 status=404 dur=108.292µs
+t=2025-08-16T21:29:26-0400 lvl=info msg=start pg=/static/css/app.398abcb27117c32bb620.css id=1b8d60ec8d8850a0
+t=2025-08-16T21:29:26-0400 lvl=info msg=end pg=/static/css/app.398abcb27117c32bb620.css id=1b8d60ec8d8850a0 status=304 dur=155.833µs
+t=2025-08-16T21:29:26-0400 lvl=info msg=start pg=/static/js/vendor.af72dc946622407d0fca.js id=0c2e53f786c6fff6
+t=2025-08-16T21:29:26-0400 lvl=info msg=end pg=/static/js/vendor.af72dc946622407d0fca.js id=0c2e53f786c6fff6 status=304 dur=249µs
+t=2025-08-16T21:29:26-0400 lvl=info msg=start pg=/static/js/rpx.00716456c1ab12797503.js id=024072e28c79438d
+t=2025-08-16T21:29:26-0400 lvl=info msg=end pg=/static/js/rpx.00716456c1ab12797503.js id=024072e28c79438d status=304 dur=48.916µs
+t=2025-08-16T21:29:26-0400 lvl=info msg=start pg=/static/js/app.c10e08047399653bf94e.js id=e76a741935c85a2d
+t=2025-08-16T21:29:26-0400 lvl=info msg=end pg=/static/js/app.c10e08047399653bf94e.js id=e76a741935c85a2d status=304 dur=85.5µs
+t=2025-08-16T21:29:26-0400 lvl=info msg=start pg=/grpc/agent.Web/Preloaded id=e23c977ebdc0ac66
+t=2025-08-16T21:29:26-0400 lvl=info msg=start pg=/grpc/agent.Web/State id=ad824f72494d8cf1
+t=2025-08-16T21:29:26-0400 lvl=info msg=end pg=/grpc/agent.Web/Preloaded id=e23c977ebdc0ac66 status=200 dur=2.106792ms
+t=2025-08-16T21:30:50-0400 lvl=info msg=end pg=/grpc/agent.Web/State id=ad824f72494d8cf1 status=200 dur=1m24.847633083s
+t=2025-08-16T21:30:50-0400 lvl=info msg=start pg=/inspect/http id=3d8ca7daaf72a0b9
+t=2025-08-16T21:30:50-0400 lvl=info msg=end pg=/inspect/http id=3d8ca7daaf72a0b9 status=200 dur=181.125µs
+t=2025-08-16T21:30:51-0400 lvl=info msg=start pg=/grpc/agent.Web/Preloaded id=080a5cedb47a2d40
+t=2025-08-16T21:30:51-0400 lvl=info msg=end pg=/grpc/agent.Web/Preloaded id=080a5cedb47a2d40 status=200 dur=592.542µs
+t=2025-08-16T21:30:51-0400 lvl=info msg=start pg=/grpc/agent.Web/State id=8f310b961e8d4f8f
+t=2025-08-16T21:30:51-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff2 id=e47e8b5a98efa50d
+t=2025-08-16T21:30:51-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff2 id=e47e8b5a98efa50d status=404 dur=125.209µs
+t=2025-08-16T21:30:51-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff id=fed23d29bf860fd1
+t=2025-08-16T21:30:51-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff id=fed23d29bf860fd1 status=404 dur=63.583µs
+t=2025-08-16T21:30:51-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.ttf id=061a84e67ba8cc21
+t=2025-08-16T21:30:51-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.ttf id=061a84e67ba8cc21 status=404 dur=77.709µs
+t=2025-08-16T21:30:51-0400 lvl=info msg=start pg=/static/assets/060b2710bdbbe3dfe48b.svg id=ee1b0e9a564713d6
+t=2025-08-16T21:30:51-0400 lvl=info msg=end pg=/static/assets/060b2710bdbbe3dfe48b.svg id=ee1b0e9a564713d6 status=404 dur=78.459µs
+t=2025-08-16T21:32:19-0400 lvl=info msg=end pg=/grpc/agent.Web/State id=8f310b961e8d4f8f status=200 dur=1m28.951817291s
+t=2025-08-16T21:32:19-0400 lvl=info msg=start pg=/inspect/http id=7cb9db7bfc7a92d8
+t=2025-08-16T21:32:19-0400 lvl=info msg=end pg=/inspect/http id=7cb9db7bfc7a92d8 status=200 dur=190.917µs
+t=2025-08-16T21:32:20-0400 lvl=info msg=start pg=/grpc/agent.Web/Preloaded id=1882b5f33e359f07
+t=2025-08-16T21:32:20-0400 lvl=info msg=end pg=/grpc/agent.Web/Preloaded id=1882b5f33e359f07 status=200 dur=982µs
+t=2025-08-16T21:32:20-0400 lvl=info msg=start pg=/grpc/agent.Web/State id=a0d1907b2afbfd64
+t=2025-08-16T21:32:20-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff2 id=993f585f6989c4e0
+t=2025-08-16T21:32:20-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff2 id=993f585f6989c4e0 status=404 dur=78.791µs
+t=2025-08-16T21:32:20-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff id=bc3028f74b9d452d
+t=2025-08-16T21:32:20-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff id=bc3028f74b9d452d status=404 dur=96.625µs
+t=2025-08-16T21:32:20-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.ttf id=224662f461c9accb
+t=2025-08-16T21:32:20-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.ttf id=224662f461c9accb status=404 dur=127.375µs
+t=2025-08-16T21:32:20-0400 lvl=info msg=start pg=/static/assets/060b2710bdbbe3dfe48b.svg id=b17a386266176bb9
+t=2025-08-16T21:32:20-0400 lvl=info msg=end pg=/static/assets/060b2710bdbbe3dfe48b.svg id=b17a386266176bb9 status=404 dur=69.5µs
+t=2025-08-16T21:33:13-0400 lvl=info msg=start pg=/api/tunnels id=2321a75c3e406233
+t=2025-08-16T21:33:13-0400 lvl=info msg=end pg=/api/tunnels id=2321a75c3e406233 status=200 dur=143.375µs
+t=2025-08-16T21:34:02-0400 lvl=info msg="join connections" obj=join id=457650a846cb l=127.0.0.1:8000 r=216.147.14.183:43864
+t=2025-08-16T21:35:51-0400 lvl=info msg=start pg=/api/tunnels id=540236c70158552d
+t=2025-08-16T21:35:51-0400 lvl=info msg=end pg=/api/tunnels id=540236c70158552d status=200 dur=280.584µs
+t=2025-08-16T21:36:08-0400 lvl=info msg="join connections" obj=join id=07ff3a144319 l=127.0.0.1:8000 r=216.147.14.183:48922
+t=2025-08-16T21:37:03-0400 lvl=info msg=end pg=/grpc/agent.Web/State id=a0d1907b2afbfd64 status=200 dur=4m43.429767375s
+t=2025-08-16T21:37:03-0400 lvl=info msg=start pg=/inspect/http id=a3f74ad2bd8d5300
+t=2025-08-16T21:37:03-0400 lvl=info msg=end pg=/inspect/http id=a3f74ad2bd8d5300 status=200 dur=254.917µs
+t=2025-08-16T21:37:03-0400 lvl=info msg=start pg=/static/css/app.398abcb27117c32bb620.css id=a5dd6bcc8d1e4692
+t=2025-08-16T21:37:03-0400 lvl=info msg=end pg=/static/css/app.398abcb27117c32bb620.css id=a5dd6bcc8d1e4692 status=304 dur=238.875µs
+t=2025-08-16T21:37:03-0400 lvl=info msg=start pg=/static/js/rpx.00716456c1ab12797503.js id=4d2ebd60cc91e9fe
+t=2025-08-16T21:37:03-0400 lvl=info msg=end pg=/static/js/rpx.00716456c1ab12797503.js id=4d2ebd60cc91e9fe status=304 dur=249.083µs
+t=2025-08-16T21:37:03-0400 lvl=info msg=start pg=/static/js/app.c10e08047399653bf94e.js id=032c76f45d89c186
+t=2025-08-16T21:37:03-0400 lvl=info msg=end pg=/static/js/app.c10e08047399653bf94e.js id=032c76f45d89c186 status=304 dur=80.583µs
+t=2025-08-16T21:37:03-0400 lvl=info msg=start pg=/static/js/vendor.af72dc946622407d0fca.js id=d73d049e7442b2fe
+t=2025-08-16T21:37:03-0400 lvl=info msg=end pg=/static/js/vendor.af72dc946622407d0fca.js id=d73d049e7442b2fe status=304 dur=303µs
+t=2025-08-16T21:37:03-0400 lvl=info msg=start pg=/grpc/agent.Web/Preloaded id=b19ff2cb1176787f
+t=2025-08-16T21:37:03-0400 lvl=info msg=end pg=/grpc/agent.Web/Preloaded id=b19ff2cb1176787f status=200 dur=1.17075ms
+t=2025-08-16T21:37:03-0400 lvl=info msg=start pg=/grpc/agent.Web/State id=177b7739b4ad5aa2
+t=2025-08-16T21:37:03-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff2 id=e8968abf2b89422c
+t=2025-08-16T21:37:03-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff2 id=e8968abf2b89422c status=404 dur=71.416µs
+t=2025-08-16T21:37:03-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.woff id=e94cbb44cc7753e3
+t=2025-08-16T21:37:03-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.woff id=e94cbb44cc7753e3 status=404 dur=33.958µs
+t=2025-08-16T21:37:03-0400 lvl=info msg=start pg=/static/assets/glyphicons-halflings-regular.ttf id=b54e168945712e67
+t=2025-08-16T21:37:03-0400 lvl=info msg=end pg=/static/assets/glyphicons-halflings-regular.ttf id=b54e168945712e67 status=404 dur=58.917µs
+t=2025-08-16T21:37:03-0400 lvl=info msg=start pg=/static/assets/060b2710bdbbe3dfe48b.svg id=fe110ace97452b84
+t=2025-08-16T21:37:03-0400 lvl=info msg=end pg=/static/assets/060b2710bdbbe3dfe48b.svg id=fe110ace97452b84 status=404 dur=65.792µs
+t=2025-08-16T21:37:22-0400 lvl=info msg=start pg=/api/tunnels id=887cc66ba02d0e9c
+t=2025-08-16T21:37:22-0400 lvl=info msg=end pg=/api/tunnels id=887cc66ba02d0e9c status=200 dur=96.875µs
+t=2025-08-16T21:37:52-0400 lvl=info msg="join connections" obj=join id=40bd5f3557d8 l=127.0.0.1:8000 r=216.147.14.183:15438
+t=2025-08-16T21:43:03-0400 lvl=info msg="join connections" obj=join id=202ee7a63f11 l=127.0.0.1:8000 r=216.147.14.104:64387
+t=2025-08-16T21:50:07-0400 lvl=info msg="join connections" obj=join id=e52ce71c555f l=127.0.0.1:8000 r=216.147.14.183:49367
+t=2025-08-16T21:52:41-0400 lvl=info msg="join connections" obj=join id=96c1542b2090 l=127.0.0.1:8000 r=216.147.14.104:33309
+t=2025-08-16T22:20:32-0400 lvl=info msg="join connections" obj=join id=a3e1cfef5f35 l=127.0.0.1:8000 r=216.147.14.104:58254
+t=2025-08-16T22:25:33-0400 lvl=info msg="join connections" obj=join id=2466a918dba0 l=127.0.0.1:8000 r=216.147.14.104:15260
+t=2025-08-16T22:26:13-0400 lvl=info msg="join connections" obj=join id=2207b981bf7a l=127.0.0.1:8000 r=216.147.14.104:12757
+t=2025-08-16T22:30:40-0400 lvl=info msg="join connections" obj=join id=2efaeba04336 l=127.0.0.1:8000 r=216.147.14.183:61864
+t=2025-08-16T22:33:43-0400 lvl=info msg="join connections" obj=join id=1235b7bc986c l=127.0.0.1:8000 r=216.147.14.183:20338
+t=2025-08-16T22:37:09-0400 lvl=info msg="join connections" obj=join id=93384f91aa28 l=127.0.0.1:8000 r=216.147.14.183:3662
+t=2025-08-16T22:42:30-0400 lvl=info msg="join connections" obj=join id=28c95911e13e l=127.0.0.1:8000 r=216.147.14.183:64596
+t=2025-08-16T23:17:28-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=f2bdfc5f984b clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-16T23:17:28-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="session closed"
+t=2025-08-16T23:17:28-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-16T23:17:28-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-16T23:18:54-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read EOF from remote peer"
+t=2025-08-16T23:18:54-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-16T23:18:54-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-16T23:19:14-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=a1a7ebde7bd8 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-16T23:19:19-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read EOF from remote peer"
+t=2025-08-16T23:19:19-0400 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="authentication failed: Your account is limited to 1 simultaneous ngrok agent sessions.\nYou can run multiple simultaneous tunnels from a single agent session by defining the tunnels in your agent configuration file and starting them with the command `ngrok start --all`.\nRead more about the agent configuration file: https://ngrok.com/docs/secure-tunnels/ngrok-agent/reference/config\nYou can view your current agent sessions in the dashboard:\nhttps://dashboard.ngrok.com/agents\r\n\r\nERR_NGROK_108\r\n"
+t=2025-08-16T23:19:20-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-16T23:19:20-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-16T23:21:14-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=f380936d4b93 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-16T23:22:31-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=a10cc10d6361 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-16T23:22:31-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="session closed"
+t=2025-08-16T23:22:31-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-16T23:22:31-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-16T23:29:37-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:55747->3.134.73.173:443: read: connection reset by peer"
+t=2025-08-16T23:29:37-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-16T23:29:37-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-16T23:29:54-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=d285ca8f80c0 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-16T23:32:03-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=07791775d34d clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-16T23:32:03-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="session closed"
+t=2025-08-16T23:32:03-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-16T23:32:03-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-16T23:33:14-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read EOF from remote peer"
+t=2025-08-16T23:33:14-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-16T23:33:14-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-16T23:33:23-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=de41f815f629 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-16T23:37:08-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=84cfa77f9c3b clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-16T23:37:08-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="session closed"
+t=2025-08-16T23:45:30-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-16T23:45:30-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-16T23:54:34-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:56197->3.12.62.205:443: read: connection reset by peer"
+t=2025-08-16T23:54:35-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-16T23:54:35-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T00:03:39-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:56245->3.16.250.205:443: read: connection reset by peer"
+t=2025-08-17T00:03:39-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T00:03:39-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T00:03:48-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=38077728e645 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T00:04:05-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=fc0af04ada79 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T00:13:05-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:56287->3.20.27.198:443: read: connection reset by peer"
+t=2025-08-17T00:13:05-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T00:13:05-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T00:22:09-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:56375->3.20.27.198:443: read: connection reset by peer"
+t=2025-08-17T00:22:10-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T00:22:10-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T00:22:14-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=fa4baa062d71 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T00:22:24-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=6662484e6015 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T00:24:39-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read EOF from remote peer"
+t=2025-08-17T00:24:40-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T00:24:40-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T00:27:24-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=a6f6bab0a1a6 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T00:27:55-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=ff877226f72d clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T00:27:55-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="session closed"
+t=2025-08-17T00:30:35-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T00:30:35-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T00:31:00-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read EOF from remote peer"
+t=2025-08-17T00:31:00-0400 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="authentication failed: Your account is limited to 1 simultaneous ngrok agent sessions.\nYou can run multiple simultaneous tunnels from a single agent session by defining the tunnels in your agent configuration file and starting them with the command `ngrok start --all`.\nRead more about the agent configuration file: https://ngrok.com/docs/secure-tunnels/ngrok-agent/reference/config\nYou can view your current agent sessions in the dashboard:\nhttps://dashboard.ngrok.com/agents\r\n\r\nERR_NGROK_108\r\n"
+t=2025-08-17T00:31:01-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T00:31:01-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T00:33:22-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=5a7492b43934 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T00:33:30-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read EOF from remote peer"
+t=2025-08-17T00:33:31-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T00:33:31-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T00:34:04-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=32628df2ae1c clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T00:43:25-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=e7876fd59e6d clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T00:43:25-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="session closed"
+t=2025-08-17T00:43:25-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T00:43:25-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T00:50:46-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:56888->3.133.228.214:443: read: connection reset by peer"
+t=2025-08-17T00:50:46-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T00:50:46-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T00:59:48-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:56930->3.136.132.147:443: read: connection reset by peer"
+t=2025-08-17T00:59:49-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T00:59:49-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T00:59:53-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=549ecc2e63d6 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T01:10:53-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=4d83ee09eb47 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T01:12:45-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=01e62ac1e7c9 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T01:12:45-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="session closed"
+t=2025-08-17T01:12:45-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T01:12:45-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T01:26:39-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=ddb7252e061c clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T01:26:39-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="session closed"
+t=2025-08-17T01:26:39-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T01:26:39-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T01:35:50-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:57187->3.20.27.198:443: read: connection reset by peer"
+t=2025-08-17T01:44:43-0400 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to send authentication request: session closed"
+t=2025-08-17T01:44:44-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T01:44:44-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T01:53:48-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:57365->3.12.62.205:443: read: connection reset by peer"
+t=2025-08-17T01:53:48-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T01:53:48-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T01:53:51-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=db0810cdacba clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T01:57:48-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=6a7200559ddf clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T02:00:09-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=919b6935b591 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T02:00:09-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="session closed"
+t=2025-08-17T02:00:09-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T02:00:09-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T02:18:08-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:57516->3.16.250.205:443: read: connection reset by peer"
+t=2025-08-17T02:18:08-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T02:18:08-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T02:27:13-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:57561->3.16.250.205:443: read: connection reset by peer"
+t=2025-08-17T02:27:13-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T02:27:13-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T02:36:12-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=f89929a12056 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T02:36:17-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:57608->3.16.250.205:443: read: connection reset by peer"
+t=2025-08-17T02:36:18-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T02:36:18-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T02:44:26-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=25c21730b3f3 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T02:53:26-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:57651->3.16.250.205:443: read: connection reset by peer"
+t=2025-08-17T02:53:26-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T02:53:26-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T02:53:31-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=6e2c06b7b61c clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T03:02:31-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:57697->3.12.62.205:443: read: connection reset by peer"
+t=2025-08-17T03:02:31-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T03:02:31-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T03:02:37-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=d3b36bed94a2 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T03:07:56-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=4c90452f788f clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T03:16:56-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:57739->3.136.132.147:443: read: connection reset by peer"
+t=2025-08-17T03:16:56-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T03:16:56-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T03:26:00-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:57848->3.136.132.147:443: read: connection reset by peer"
+t=2025-08-17T03:26:00-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T03:26:00-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T03:26:05-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=dd9edd5eebbd clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T03:35:02-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:57891->3.136.132.147:443: read: connection reset by peer"
+t=2025-08-17T03:35:02-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T03:35:02-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T03:35:07-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=f245c9438213 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T03:44:06-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:57933->3.16.250.205:443: read: connection reset by peer"
+t=2025-08-17T03:44:07-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T03:44:07-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T03:44:11-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=cf1120582e4b clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T03:49:34-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:57977->3.136.132.147:443: read: connection reset by peer"
+t=2025-08-17T03:49:34-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T03:49:34-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T03:58:33-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=3e65dc229c2c clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T03:58:39-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:58021->3.12.62.205:443: read: connection reset by peer"
+t=2025-08-17T03:58:39-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T03:58:39-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T03:58:52-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=2deccedc06ed clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T04:07:52-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:58069->3.20.27.198:443: read: connection reset by peer"
+t=2025-08-17T04:07:52-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T04:07:52-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T04:07:56-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=c41401920c96 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T04:16:56-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:58116->3.133.228.214:443: read: connection reset by peer"
+t=2025-08-17T04:16:57-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T04:16:57-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T04:25:55-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=d5d6812b0251 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T04:26:01-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:58158->3.12.62.205:443: read: connection reset by peer"
+t=2025-08-17T04:26:01-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T04:26:01-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T04:35:00-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=2b5c6eaa2d6e clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T04:44:00-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:58203->3.12.62.205:443: read: connection reset by peer"
+t=2025-08-17T04:44:00-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T04:44:00-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T04:44:05-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=4e979db39b57 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T04:53:05-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:58246->3.20.27.198:443: read: connection reset by peer"
+t=2025-08-17T04:53:05-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T04:53:05-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T05:02:04-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=8f30f1fac7cf clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T05:02:09-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:58288->3.136.132.147:443: read: connection reset by peer"
+t=2025-08-17T05:02:09-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T05:02:09-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T05:02:17-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=411ed9bdbe56 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T05:08:43-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:58338->3.16.250.205:443: read: connection reset by peer"
+t=2025-08-17T05:08:43-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T05:08:43-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T05:08:48-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=e733490eed80 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T05:09:08-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read EOF from remote peer"
+t=2025-08-17T05:09:08-0400 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="authentication failed: Your account is limited to 1 simultaneous ngrok agent sessions.\nYou can run multiple simultaneous tunnels from a single agent session by defining the tunnels in your agent configuration file and starting them with the command `ngrok start --all`.\nRead more about the agent configuration file: https://ngrok.com/docs/secure-tunnels/ngrok-agent/reference/config\nYou can view your current agent sessions in the dashboard:\nhttps://dashboard.ngrok.com/agents\r\n\r\nERR_NGROK_108\r\n"
+t=2025-08-17T05:09:09-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T05:09:09-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T05:09:26-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=2c2d016f5059 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T05:09:38-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=54d1d92de88e clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T05:22:53-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=def5ad1c7eda clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T05:22:53-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="session closed"
+t=2025-08-17T05:22:53-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T05:22:53-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T05:31:57-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:58730->3.134.73.173:443: read: connection reset by peer"
+t=2025-08-17T05:31:57-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T05:31:57-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T05:38:04-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:58774->3.133.228.214:443: read: connection reset by peer"
+t=2025-08-17T05:38:04-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T05:38:04-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T05:38:17-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=ad89dea7f9f5 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T05:38:29-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=776d60452685 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T05:50:32-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=82ca2f73a807 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T05:50:32-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="session closed"
+t=2025-08-17T05:50:33-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T05:50:33-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T06:08:27-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:59047->3.136.132.147:443: read: connection reset by peer"
+t=2025-08-17T06:08:27-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T06:08:27-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T06:17:31-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:59114->3.134.73.173:443: read: connection reset by peer"
+t=2025-08-17T06:17:31-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T06:17:31-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T06:17:36-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=1435081eabe5 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T06:26:33-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:59165->3.136.132.147:443: read: connection reset by peer"
+t=2025-08-17T06:26:33-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T06:26:33-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T06:35:32-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=71e457f602cb clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T06:35:37-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:59208->3.134.73.173:443: read: connection reset by peer"
+t=2025-08-17T06:35:37-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T06:35:37-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T06:44:34-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=112bf500cfca clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T06:44:39-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:59251->3.133.228.214:443: read: connection reset by peer"
+t=2025-08-17T06:44:40-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T06:44:40-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T06:53:38-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=f4c5a765d69b clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T06:59:29-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:59295->3.20.27.198:443: read: connection reset by peer"
+t=2025-08-17T06:59:30-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T06:59:30-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T06:59:34-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=52e4239b0ae4 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T07:00:57-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=3d28dfcf902f clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T07:02:27-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=e52b07b53e28 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T07:02:27-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="session closed"
+t=2025-08-17T07:02:27-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T07:02:27-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T07:11:31-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:59449->3.20.27.198:443: read: connection reset by peer"
+t=2025-08-17T07:11:31-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T07:11:31-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T07:11:59-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=e9ffe7e4973d clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T07:24:41-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:59492->3.16.250.205:443: read: connection reset by peer"
+t=2025-08-17T07:24:41-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T07:24:41-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T07:24:42-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=fcb68a3fee2f clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T07:33:45-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:59644->3.12.62.205:443: read: connection reset by peer"
+t=2025-08-17T07:33:46-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T07:33:46-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T07:34:05-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=a60e6cb10729 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T07:43:04-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:59688->3.134.73.173:443: read: connection reset by peer"
+t=2025-08-17T07:43:04-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T07:43:04-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T07:52:11-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:59772->3.133.228.214:443: read: connection reset by peer"
+t=2025-08-17T07:52:11-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T07:52:11-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T07:52:15-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=1123c9f295b9 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T07:52:28-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=26bc7b13ff4d clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T07:54:15-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read EOF from remote peer"
+t=2025-08-17T07:54:15-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T07:54:15-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T07:54:19-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=4de002eb4722 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T08:03:19-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:59954->3.20.27.198:443: read: connection reset by peer"
+t=2025-08-17T08:03:20-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T08:03:20-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T08:10:37-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=917d7faeadad clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T08:10:42-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:60009->3.20.27.198:443: read: connection reset by peer"
+t=2025-08-17T08:10:43-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T08:10:43-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T08:24:46-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:60091->3.133.228.214:443: read: connection reset by peer"
+t=2025-08-17T08:24:46-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T08:24:46-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T08:24:51-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=aa1c44e2fb65 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T08:25:02-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=42bb3dc7bc7d clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T08:34:01-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:60137->3.16.250.205:443: read: connection reset by peer"
+t=2025-08-17T08:34:01-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T08:34:01-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T08:40:31-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:60229->3.136.132.147:443: read: connection reset by peer"
+t=2025-08-17T08:40:31-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T08:40:31-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T08:49:30-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=4a2442bf6b33 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T08:49:35-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:60272->3.133.228.214:443: read: connection reset by peer"
+t=2025-08-17T08:49:36-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T08:49:36-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T08:50:21-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=65e000fd9842 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T08:56:04-0400 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=2cb7bc8e9822 err="read tcp 192.168.1.71:60319->3.16.250.205:443: read: connection reset by peer"
+t=2025-08-17T08:56:05-0400 lvl=info msg="client session established" obj=tunnels.session
+t=2025-08-17T08:56:05-0400 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-08-17T08:56:09-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=922066f9a9b9 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T08:56:19-0400 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=6c5aa6697ee2 clientid=6e71317456794a7813cfd690376f5a56
+t=2025-08-17T09:38:33-0400 lvl=info msg="join connections" obj=join id=6ab4b287ef62 l=127.0.0.1:8000 r=216.147.14.104:12682
+t=2025-08-17T09:41:26-0400 lvl=info msg="join connections" obj=join id=0a0bb9998ae2 l=127.0.0.1:8000 r=216.147.14.183:31980
+t=2025-08-17T09:45:20-0400 lvl=info msg="join connections" obj=join id=4f9a56f3cdae l=127.0.0.1:8000 r=216.147.14.104:8595
+t=2025-08-17T09:48:16-0400 lvl=info msg="join connections" obj=join id=fd2b8f684325 l=127.0.0.1:8000 r=216.147.14.183:28445
