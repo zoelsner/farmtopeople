@@ -62,7 +62,7 @@ def get_box_recommendation(preferences: Dict[str, Any]) -> Dict[str, Any]:
     
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Here are my preferences: {json.dumps(preferences)}"}
@@ -95,7 +95,7 @@ def run_chat_agent(user_data: Dict[str, Any], recommendation: Dict[str, Any]):
         messages = [{"role": "system", "content": system_prompt}, *chat_history, {"role": "user", "content": user_input}]
         
         try:
-            response = client.chat.completions.create(model="gpt-4o-mini", messages=messages)
+            response = client.chat.completions.create(model="gpt-5-mini", messages=messages)
             ai_response = response.choices[0].message.content
             print(f"Assistant: {ai_response}")
             chat_history.extend([{"role": "user", "content": user_input}, {"role": "assistant", "content": ai_response}])

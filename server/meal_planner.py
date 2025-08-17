@@ -101,7 +101,7 @@ def generate_meal_plan(ingredients: list[str], master_product_list: list[str], d
     if client:
         try:
             print("   -> Contacting OpenAI's GPT model with upgraded prompt...")
-            MODEL = "gpt-4o-mini" # Use a model that supports JSON mode well    
+            MODEL = "gpt-5-mini" # Use a model that supports JSON mode well    
             
             # Convert inputs into a string format for the prompt
             items_str = json.dumps(ingredients)
@@ -216,7 +216,7 @@ def run_repair_prompt(faulty_plan: Dict[str, Any], invalid_items: List[str], ava
         return faulty_plan
 
     try:
-        MODEL = "gpt-4o-mini"
+        MODEL = "gpt-5-mini"
         
         faulty_plan_str = json.dumps(faulty_plan)
         invalid_items_str = json.dumps(invalid_items)
