@@ -20,9 +20,7 @@ COPY . .
 # Install Playwright browsers (Chromium only for efficiency)
 RUN playwright install chromium
 
-# Create non-root user for security
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
+# Railway handles user security automatically
 
 # Set environment variables
 ENV PYTHONPATH=/app
@@ -31,9 +29,7 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 # Expose port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8000/health || exit 1
+# Health check will be handled by Railway
 
 # Start the FastAPI server with dynamic port
 CMD ["sh", "-c", "uvicorn server.server:app --host 0.0.0.0 --port ${PORT:-8000}"]
