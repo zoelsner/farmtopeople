@@ -179,11 +179,15 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
         reply = "Hi there! I'm your Farm to People meal planning assistant. How can I help?"
     elif "plan" in user_message:
         # Acknowledge immediately
-        reply = "Got it! I'm analyzing your latest cart contents now. Your personalized meal plan will arrive in a new message in just a moment..."
+        reply = "Thank you for your text! 📱 We are preparing your personalized meal plan now. Please wait a moment while we analyze your cart contents... 🛒✨"
         # Add the scraping/planning job to the background
         print(f"🎯 Adding background task for meal plan flow: {user_phone_number}")
-        background_tasks.add_task(run_full_meal_plan_flow, user_phone_number)
-        print(f"✅ Background task added successfully")
+        try:
+            background_tasks.add_task(run_full_meal_plan_flow, user_phone_number)
+            print(f"✅ Background task added successfully")
+        except Exception as e:
+            print(f"❌ Error adding background task: {e}")
+            reply = "Thank you for your text! 📱 We're experiencing a technical issue. Please try again in a moment."
     elif "new" in user_message:
         # Intake start. Also offer secure link to provide login.
         login_link = f"{base_url}/login?phone={quote(user_phone_number)}"
