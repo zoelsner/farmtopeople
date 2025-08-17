@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 from dotenv import load_dotenv
 import openai
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Union, Optional
 import pandas as pd
 
 # --- Configuration ---
@@ -22,7 +22,7 @@ else:
     client = openai.OpenAI(api_key=api_key)
 
 
-def get_latest_cart_file(directory: str) -> str | None:
+def get_latest_cart_file(directory: str) -> Union[str, None]:
     """Finds the most recent cart_contents JSON file."""
     try:
         cart_files = glob.glob(os.path.join(directory, "cart_contents_*.json"))

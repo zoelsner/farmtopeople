@@ -8,18 +8,17 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 import vonage
 from vonage_http_client import Auth
 from dotenv import load_dotenv
-try:
-    from . import supabase_client as db
-    from . import meal_planner
-except ImportError:
-    # When running directly, use absolute imports
-    import supabase_client as db
-    import meal_planner
-# Import our current primary scraper
+# Add paths for imports
 import sys
 import os
 import importlib
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.dirname(__file__))  # For server directory imports
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))  # For scrapers
+
+# Direct imports from the server directory
+import supabase_client as db
+import meal_planner
+# Import our current primary scraper
 from scrapers.customize_scraper import main as run_cart_scraper
 
 # Load .env file from the project root
