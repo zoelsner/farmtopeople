@@ -11,14 +11,24 @@ import pandas as pd
 # --- Configuration ---
 FARM_BOX_DATA_DIR = "farm_box_data"
 PRODUCT_CATALOG_FILE = "../data/farmtopeople_products.csv"
-load_dotenv()
+
+# Load environment variables (Railway uses direct env vars, local uses .env file)
+from pathlib import Path
+project_root = Path(__file__).parent.parent
+# Try to load .env file, but don't fail if it doesn't exist (Railway doesn't have .env)
+try:
+    load_dotenv(dotenv_path=project_root / '.env')
+except:
+    pass  # Railway uses direct environment variables
 
 # --- OpenAI Setup ---
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     print("⚠️ WARNING: OPENAI_API_KEY not found in environment variables.")
+    print(f"   Environment check: {len(os.environ)} total env vars found")
     client = None
 else:
+    print(f"✅ OPENAI_API_KEY found (length: {len(api_key)})")
     client = openai.OpenAI(api_key=api_key)
 
 
@@ -43,7 +53,7 @@ def get_latest_box_file(directory: str, box_name_slug: str) -> Union[str, None]:
     except Exception as e:
         return None
 
-def get_all_ingredients_from_cart(cart_data: dict, data_dir: str) -> list[str]:
+def get_all_ingredients_from_cart(cart_data: dict, data_dir: str) -> List[str]:
     """Extracts a clean list of all available ingredients."""
     ingredients = set()
 
@@ -86,7 +96,7 @@ def get_master_product_list(catalog_file: str) -> List[str]:
         return []
 
 
-def generate_meal_plan(ingredients: list[str], master_product_list: list[str], diet_hard: list[str] = None, dislikes: list[str] = None, time_mode: str = "standard", allow_surf_turf: bool = False) -> dict:
+def generate_meal_plan(ingredients: List[str], master_product_list: List[str], diet_hard: List[str] = None, dislikes: List[str] = None, time_mode: str = "standard", allow_surf_turf: bool = False) -> dict:
     """
     Generates a meal plan using the OpenAI API based on the detailed "Plan from Items" prompt.
     """
