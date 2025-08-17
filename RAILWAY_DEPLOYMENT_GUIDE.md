@@ -13,12 +13,12 @@ railway login
 ```
 This will open your browser - sign up/login with GitHub.
 
-### Step 3: Create New Project
-```bash
-railway new
-```
-- Choose "Empty Project"
-- Name it: `farmtopeople-ai`
+### Step 3: Create New Project from GitHub
+- Go to railway.app in browser
+- Click "New Project"
+- Choose "Deploy from GitHub repo"
+- Select your `farmtopeople` repository
+- Choose `feature/customer-automation` branch
 
 ### Step 4: Link to Your Repo
 ```bash
@@ -212,3 +212,4 @@ railway restart
 ---
 
 **You're all set!** Railway makes deployment incredibly simple compared to other platforms. The whole process should take under 10 minutes! 🚀
+
