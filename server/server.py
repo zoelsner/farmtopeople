@@ -46,7 +46,8 @@ def run_full_meal_plan_flow(phone_number: str):
     This function runs in the background. It scrapes the user's cart,
     generates a meal plan, formats it, and sends it as an SMS.
     """
-    print(f"BACKGROUND: Starting full meal plan flow for {phone_number}")
+    print(f"🚀 BACKGROUND: Starting full meal plan flow for {phone_number}")
+    print(f"🔧 DEBUG: Available env vars: VONAGE_API_KEY={bool(os.getenv('VONAGE_API_KEY'))}, VONAGE_PHONE_NUMBER={os.getenv('VONAGE_PHONE_NUMBER')}")
     
     # Step 0: Look up user credentials from Supabase
     print(f"🔍 Looking up user credentials for {phone_number}")
@@ -118,14 +119,20 @@ def run_full_meal_plan_flow(phone_number: str):
     try:
         # Remove the + prefix for Vonage API (like we do in the immediate reply)
         to_number = phone_number.lstrip("+")
+        from_number = os.getenv("VONAGE_PHONE_NUMBER", "12019773745")
+        
+        print(f"📱 DEBUG: Sending SMS from={from_number} to={to_number}")
+        print(f"📝 DEBUG: Message length={len(sms_body)} chars")
+        
         response = vonage_client.sms.send_message({
-            "from_": "12019773745",  # Your Vonage number without +1
+            "from": from_number,  # Use 'from' not 'from_'
             "to": to_number,
             "text": sms_body
         })
-        print(f"✅ SMS sent successfully to {to_number}: {response}")
+        print(f"✅ SMS sent successfully: {response}")
     except Exception as e:
         print(f"❌ Error sending SMS: {e}")
+        print(f"🔧 DEBUG: Vonage client config - API key exists: {bool(os.getenv('VONAGE_API_KEY'))}")
 
 @app.get("/healthz", status_code=200)
 def health_check():
@@ -180,7 +187,7 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
         # Remove the + prefix for Vonage API
         to_number = user_phone_number.lstrip("+")
         response = vonage_client.sms.send_message({
-            "from_": "12019773745",  # Your Vonage number
+            "from": os.getenv("VONAGE_PHONE_NUMBER", "12019773745"),  # Use 'from' not 'from_'
             "to": to_number,
             "text": reply
         })
