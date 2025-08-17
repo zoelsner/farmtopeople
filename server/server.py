@@ -181,7 +181,9 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
         # Acknowledge immediately
         reply = "Got it! I'm analyzing your latest cart contents now. Your personalized meal plan will arrive in a new message in just a moment..."
         # Add the scraping/planning job to the background
+        print(f"🎯 Adding background task for meal plan flow: {user_phone_number}")
         background_tasks.add_task(run_full_meal_plan_flow, user_phone_number)
+        print(f"✅ Background task added successfully")
     elif "new" in user_message:
         # Intake start. Also offer secure link to provide login.
         login_link = f"{base_url}/login?phone={quote(user_phone_number)}"
