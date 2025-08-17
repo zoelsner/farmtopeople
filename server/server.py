@@ -146,16 +146,26 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
     Handles incoming SMS messages from Vonage.
     This is the main entry point for user interaction.
     """
-    # Handle both GET and POST requests from Vonage
+    # Handle GET, POST form, and JSON-POST requests from Vonage
     if request.method == "GET":
         # Vonage sends via query parameters
         query_params = request.query_params
         user_phone_number = "+" + query_params.get("msisdn", "")
         user_message = query_params.get("text", "").lower().strip()
+        print(f"GET request - Phone: {user_phone_number}, Message: '{user_message}'")
     else:
-        # POST request with form data
-        user_phone_number = "+" + (msisdn or "")
-        user_message = (text or "").lower().strip()
+        # POST request - try JSON first, then form data
+        try:
+            json_data = await request.json()
+            user_phone_number = "+" + json_data.get("msisdn", "")
+            user_message = json_data.get("text", "").lower().strip()
+            print(f"JSON-POST request - Phone: {user_phone_number}, Message: '{user_message}'")
+            print(f"📋 JSON data received: {json_data}")
+        except:
+            # Fallback to form data (current method)
+            user_phone_number = "+" + (msisdn or "")
+            user_message = (text or "").lower().strip()
+            print(f"Form POST request - Phone: {user_phone_number}, Message: '{user_message}'")
 
     print(f"Received message from {user_phone_number}: '{user_message}'")
 
