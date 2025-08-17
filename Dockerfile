@@ -31,6 +31,6 @@ EXPOSE 8000
 
 # Health check will be handled by Railway
 
-# Start the FastAPI server - Railway will set PORT env var
-CMD ["python", "-m", "uvicorn", "server.server:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start the FastAPI server - server.py handles PORT env var
+CMD ["python", "server/server.py"]
 
