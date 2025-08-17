@@ -16,7 +16,7 @@ load_dotenv()
 # --- OpenAI Setup ---
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
-    print("⚠️ WARNING: OPENAI_API_KEY not found in .env file.")
+    print("⚠️ WARNING: OPENAI_API_KEY not found in environment variables.")
     client = None
 else:
     client = openai.OpenAI(api_key=api_key)
@@ -32,7 +32,7 @@ def get_latest_cart_file(directory: str) -> Union[str, None]:
     except Exception as e:
         return None
 
-def get_latest_box_file(directory: str, box_name_slug: str) -> str | None:
+def get_latest_box_file(directory: str, box_name_slug: str) -> Union[str, None]:
     """Finds the most recent box_contents file for a specific box."""
     try:
         search_pattern = os.path.join(directory, f"box_contents_*{box_name_slug}.json")
