@@ -6,7 +6,6 @@ from urllib.parse import quote
 from fastapi import FastAPI, Form, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse, PlainTextResponse
 import vonage
-from vonage import Auth
 from dotenv import load_dotenv
 # Add paths for imports
 import sys
