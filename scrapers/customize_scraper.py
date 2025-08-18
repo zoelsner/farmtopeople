@@ -100,7 +100,7 @@ def main():
     with sync_playwright() as p:
         # Always use fresh browser session for multi-user support
         print("🌐 Starting fresh browser session...")
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)  # Must be headless in cloud environment
         context = browser.new_context(viewport={"width": 1920, "height": 1080})
         
         page = context.new_page()
@@ -167,7 +167,7 @@ def main():
         else:
             # Not on login page, use the auth helper to verify session
             print("🔐 Checking session status...")
-            ensure_logged_in(page)
+            ensure_logged_in(page)  
         
         # The scraper can now proceed assuming it's logged in.
         print("Opening cart...")
