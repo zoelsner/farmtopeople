@@ -35,10 +35,10 @@ def login_to_farm_to_people(page):
         
         # Go to the actual login page
         page.goto("https://farmtopeople.com/login")
-        page.wait_for_timeout(2000)
+        page.wait_for_timeout(2500)
         
         # Based on the actual page, look for email input with placeholder "Email address"
-        email_input = page.locator("input[placeholder='Email address']").first
+        email_input = page.locator("input[type='email'][placeholder='Email address']").first
         
         if email_input.count() == 0:
             # Fallback selectors
