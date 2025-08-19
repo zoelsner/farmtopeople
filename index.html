@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="AI-powered meal planning assistant for Farm to People customers. Get personalized recipes via SMS based on your actual grocery orders.">
     <title>Farm to People Meal Planning Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,10 +16,10 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background-color: #faf9f7;
+            color: #3a3a3a;
+            background-color: #fdfdfc;
         }
         
         .container {
@@ -32,6 +35,8 @@
             padding: 20px;
             margin: -40px -20px 50px -20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
         }
         
         .header-bar h1 {
@@ -69,16 +74,40 @@
             margin-right: auto;
         }
         
-        .hero .tagline {
-            font-size: 1.1em;
-            color: white;
+        .cta-section {
+            margin-top: 40px;
+            background: #fff7f2; /* Subtle orange background */
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #fcecdf; /* Lighter orange border */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .cta-section h3 {
+            font-size: 1.4em;
+            color: #1a5d34;
+            margin-bottom: 15px;
             font-weight: 600;
-            background: linear-gradient(135deg, #f4a261, #e76f51);
-            padding: 15px 35px;
-            border-radius: 6px;
-            display: inline-block;
-            margin-top: 20px;
-            box-shadow: 0 3px 12px rgba(244, 162, 97, 0.3);
+        }
+
+        .cta-section p {
+            font-size: 1.1em;
+            color: #4a5568;
+        }
+
+        .phone-number {
+            font-family: monospace;
+            background: #e8f5e8;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #1a5d34;
+            font-weight: 600;
+        }
+
+        .disclaimer-cta {
+            font-size: 0.85em !important;
+            color: #6b7280;
+            margin-top: 15.
         }
         
         .features {
@@ -275,42 +304,6 @@
         .use-case p {
             color: #4a5568;
             line-height: 1.6;
-        }
-        
-        .cta-section {
-            margin-top: 40px;
-            background: #f8fdf8;
-            padding: 30px;
-            border-radius: 8px;
-            border: 1px solid #e8f5e8;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .cta-section h3 {
-            font-size: 1.4em;
-            color: #1a5d34;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .cta-section p {
-            font-size: 1.1em;
-            color: #4a5568;
-        }
-
-        .phone-number {
-            font-family: monospace;
-            background: #e8f5e8;
-            padding: 4px 8px;
-            border-radius: 4px;
-            color: #1a5d34;
-            font-weight: 600;
-        }
-
-        .disclaimer-cta {
-            font-size: 0.85em !important;
-            color: #6b7280;
-            margin-top: 15px;
         }
         
         @media (max-width: 768px) {
