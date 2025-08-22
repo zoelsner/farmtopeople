@@ -18,7 +18,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))  # For scrapers
 import supabase_client as db
 import meal_planner
 # Import our current primary scraper
-from scrapers.customize_scraper import main as run_cart_scraper
+from scrapers.comprehensive_scraper import main as run_cart_scraper
 
 # Load .env file from the project root
 from pathlib import Path
@@ -41,6 +41,23 @@ vonage_client = vonage.Client(
     secret=os.getenv("VONAGE_API_SECRET")
 )
 
+def send_progress_sms(phone_number: str, message: str):
+    """Send a progress update SMS to the user"""
+    try:
+        to_number = phone_number.lstrip("+")
+        from_number = os.getenv("VONAGE_PHONE_NUMBER", "12019773745")
+        if not from_number.startswith("1"):
+            from_number = "1" + from_number
+        
+        response = vonage_client.sms.send_message({
+            "from": from_number,
+            "to": to_number,
+            "text": message
+        })
+        print(f"📱 Progress SMS sent: {message}")
+    except Exception as e:
+        print(f"❌ Error sending progress SMS: {e}")
+
 def run_full_meal_plan_flow(phone_number: str):
     """
     This function runs in the background. It scrapes the user's cart,
@@ -48,6 +65,9 @@ def run_full_meal_plan_flow(phone_number: str):
     """
     print(f"🚀 BACKGROUND: Starting full meal plan flow for {phone_number}")
     print(f"🔧 DEBUG: Available env vars: VONAGE_API_KEY={bool(os.getenv('VONAGE_API_KEY'))}, VONAGE_PHONE_NUMBER={os.getenv('VONAGE_PHONE_NUMBER')}")
+    
+    # Progress update 1: Starting process
+    send_progress_sms(phone_number, "🔍 Looking up your account...")
     
     # Step 0: Look up user credentials from Supabase
     print(f"🔍 Looking up user credentials for {phone_number}")
@@ -68,14 +88,26 @@ def run_full_meal_plan_flow(phone_number: str):
         if not user_data:
             print(f"❌ No user found for phone number {phone_number}")
             print("   User needs to register first by texting 'new' or visiting the login link")
-            # Still try to run scraper without credentials for basic functionality
-            user_data = {}
+            send_progress_sms(phone_number, "❌ Account not found. Please text 'FEED ME' to get set up first!")
+            return
     except Exception as e:
         print(f"❌ Error looking up user: {e}")
-        user_data = {}
+        send_progress_sms(phone_number, "❌ Having trouble accessing your account. Please try again in a moment.")
+        return
+    
+    # Progress update 2: Found account, starting login
+    if user_data.get('ftp_email'):
+        send_progress_sms(phone_number, "🔐 Found your account! Logging into Farm to People...")
+    else:
+        send_progress_sms(phone_number, "⚠️ No Farm to People account linked. Please text 'FEED ME' to connect your account.")
+        return
     
     # Step 1: Run the complete cart scraper
     print(f"🔍 Running complete cart scraper for user: {phone_number}")
+    
+    # Progress update 3: Starting cart analysis
+    send_progress_sms(phone_number, "📦 Analyzing your current cart and customizable boxes...")
+    
     try:
         if user_data and user_data.get('ftp_email') and user_data.get('ftp_password'):
             print("🔐 Credentials found. Setting environment variables for scraper.")
@@ -89,8 +121,13 @@ def run_full_meal_plan_flow(phone_number: str):
 
         run_cart_scraper()
         print("✅ Cart scraping completed successfully")
+        
+        # Progress update 4: Cart scraped, generating meal plan
+        send_progress_sms(phone_number, "🤖 Generating personalized meal plans with your ingredients...")
+        
     except Exception as e:
         print(f"❌ Cart scraping failed: {e}")
+        send_progress_sms(phone_number, "❌ Having trouble accessing your cart. Please check your Farm to People account and try again.")
         # Clean up env vars
         if 'EMAIL' in os.environ: del os.environ['EMAIL']
         if 'PASSWORD' in os.environ: del os.environ['PASSWORD']

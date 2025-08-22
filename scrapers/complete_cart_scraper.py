@@ -383,15 +383,74 @@ def main():
         
         print("🌱 Opening Farm to People...")
         
-        # Ensure we're logged in before proceeding
-        if not ensure_logged_in(page):
-            print("❌ Failed to log in to Farm to People")
-            print("   Please check your EMAIL and PASSWORD in .env file")
-            context.close()
-            return
+        # Navigate to home where header/cart lives (using working customize_scraper logic)
+        page.goto("https://farmtopeople.com/home")
+        page.wait_for_load_state("domcontentloaded")
+        page.wait_for_timeout(2000)  # Give page time to settle
+
+        # Check if we're on a login page or if login elements are visible
+        current_url = page.url
+        login_form_visible = page.locator("input[placeholder='Enter email address']").count() > 0
         
-        print("✅ Successfully logged in, proceeding with cart scraping...")
-        page.wait_for_timeout(4000)  # Give it more time to fully load
+        # Also check if we see a "Log in" link/button which indicates we're not logged in
+        login_link_visible = page.locator("a:has-text('Log in'), button:has-text('Log in')").count() > 0
+        
+        if "login" in current_url or login_form_visible or login_link_visible:
+            print("🔐 Login page detected. Performing login...")
+            
+            # Get credentials - try both variable names
+            email = os.getenv("EMAIL") or os.getenv("FTP_EMAIL")
+            password = os.getenv("PASSWORD") or os.getenv("FTP_PWD")
+            
+            if not email or not password:
+                print("❌ No credentials found in environment (EMAIL/PASSWORD)")
+                print("   Need EMAIL and PASSWORD in .env file")
+                context.close()
+                return
+            
+            try:
+                # Fill email
+                email_input = page.locator("input[placeholder='Enter email address']").first
+                if email_input.count() > 0:
+                    email_input.fill(email)
+                    print(f"✅ Email entered: {email}")
+                    
+                    # Click LOG IN to proceed to password
+                    login_btn = page.locator("button:has-text('LOG IN')").first
+                    if login_btn.count() > 0:
+                        login_btn.click()
+                        page.wait_for_timeout(2000)
+                        
+                        # Now enter password
+                        password_input = page.locator("input[type='password']").first
+                        if password_input.count() > 0:
+                            password_input.fill(password)
+                            print("✅ Password entered")
+                            
+                            # Click LOG IN again
+                            final_login_btn = page.locator("button:has-text('LOG IN')").first
+                            if final_login_btn.count() > 0:
+                                final_login_btn.click()
+                                print("✅ Login submitted, waiting for navigation...")
+                                page.wait_for_timeout(5000)
+                                
+                                # Verify we're logged in
+                                if "login" not in page.url:
+                                    print("✅ Login successful!")
+                                else:
+                                    print("❌ Still on login page, login may have failed")
+                                    context.close()
+                                    return
+                            
+            except Exception as e:
+                print(f"❌ Login error: {e}")
+                context.close()
+                return
+        else:
+            print("✅ Already logged in (no login page detected)")
+        
+        print("✅ Authentication complete, proceeding with cart scraping...")
+        page.wait_for_timeout(2000)  # Give it time to fully load
         
         # Click cart button
         print("📦 Opening cart...")

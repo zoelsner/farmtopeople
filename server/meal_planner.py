@@ -163,7 +163,7 @@ allow_surf_turf = {str(allow_surf_turf).lower()}
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ]
-            response = client.chat.completions.create(model=MODEL, messages=prompt_messages, response_format={"type": "json_object"}, temperature=0.5)
+            response = client.chat.completions.create(model=MODEL, messages=prompt_messages, response_format={"type": "json_object"})
             ai_response_json = json.loads(response.choices[0].message.content)
             print("   -> AI meal plan received!")
             return ai_response_json
