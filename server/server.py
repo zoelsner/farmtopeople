@@ -58,6 +58,106 @@ def send_progress_sms(phone_number: str, message: str):
     except Exception as e:
         print(f"❌ Error sending progress SMS: {e}")
 
+async def handle_meal_plan_confirmation(phone_number: str, user_message: str, background_tasks: BackgroundTasks):
+    """Handle user responses to meal plan confirmation"""
+    try:
+        message_lower = user_message.lower().strip()
+        
+        if "confirm" in message_lower:
+            # User confirmed - generate detailed recipes
+            reply = "✅ Perfect! Generating your detailed recipes now..."
+            
+            # Clear the confirmation step
+            db.update_user_meal_plan_step(phone_number, None)
+            
+            # Start PDF recipe generation
+            background_tasks.add_task(generate_confirmed_meal_plan, phone_number)
+            
+        elif "drop meal" in message_lower:
+            # User wants to remove a specific meal
+            reply = "🔄 Got it! Updating your meal plan..."
+            background_tasks.add_task(handle_meal_plan_modification, phone_number, user_message)
+            
+        elif "no breakfast" in message_lower:
+            # User doesn't want breakfast meals
+            reply = "🔄 Removing breakfast meals and regenerating plan..."
+            background_tasks.add_task(handle_meal_plan_modification, phone_number, user_message)
+            
+        else:
+            # User sent custom modifications
+            reply = "🔄 Processing your changes and updating the meal plan..."
+            background_tasks.add_task(handle_meal_plan_modification, phone_number, user_message)
+        
+        # Send immediate reply
+        send_progress_sms(phone_number, reply)
+        return PlainTextResponse("OK", status_code=200)
+        
+    except Exception as e:
+        print(f"❌ Error handling meal plan confirmation: {e}")
+        error_reply = "❌ Error processing your response. Please try again or text 'CONFIRM' to proceed."
+        send_progress_sms(phone_number, error_reply)
+        return PlainTextResponse("Error", status_code=500)
+
+def generate_confirmed_meal_plan(phone_number: str):
+    """Generate detailed PDF recipes after user confirmation"""
+    try:
+        print(f"🍳 Generating confirmed meal plan for {phone_number}")
+        
+        # Get user preferences
+        user_data = db.get_user_by_phone(phone_number)
+        skill_level = user_data.get('cooking_skill_level', 'intermediate') if user_data else 'intermediate'
+        
+        # Generate detailed PDF
+        from pdf_meal_planner import generate_pdf_meal_plan
+        pdf_path = generate_pdf_meal_plan(generate_detailed_recipes=True, user_skill_level=skill_level)
+        
+        if pdf_path:
+            # Send PDF link
+            base_url = "http://localhost:8000"  # TODO: Use actual domain
+            pdf_filename = pdf_path.split('/')[-1]
+            pdf_url = f"{base_url}/pdfs/{pdf_filename}"
+            
+            final_message = (
+                "🍽️ Your personalized meal plan is ready!\n\n"
+                f"📄 View your detailed recipes: {pdf_url}\n\n"
+                "Each recipe includes:\n"
+                "• Step-by-step cooking instructions\n"
+                "• Storage tips for ingredients\n"
+                "• Chef techniques and tips\n\n"
+                "Happy cooking! 👨‍🍳"
+            )
+        else:
+            final_message = "❌ Error generating your recipe PDF. Please try again with 'plan'."
+        
+        send_progress_sms(phone_number, final_message)
+        
+    except Exception as e:
+        print(f"❌ Error generating confirmed meal plan: {e}")
+        send_progress_sms(phone_number, "❌ Error generating recipes. Please try again.")
+
+def handle_meal_plan_modification(phone_number: str, user_request: str):
+    """Handle user requests to modify the meal plan"""
+    try:
+        print(f"🔄 Handling meal plan modification for {phone_number}: {user_request}")
+        
+        # For now, just regenerate the cart analysis
+        import meal_planner
+        modified_analysis = meal_planner.generate_cart_analysis_summary()
+        
+        confirmation_message = (
+            "🔄 Here's your updated meal plan:\n\n" +
+            modified_analysis
+        )
+        
+        send_progress_sms(phone_number, confirmation_message)
+        
+        # Keep user in confirmation state
+        db.update_user_meal_plan_step(phone_number, 'awaiting_confirmation')
+        
+    except Exception as e:
+        print(f"❌ Error handling meal plan modification: {e}")
+        send_progress_sms(phone_number, "❌ Error modifying meal plan. Please try 'CONFIRM' to proceed with original plan.")
+
 def run_full_meal_plan_flow(phone_number: str):
     """
     This function runs in the background. It scrapes the user's cart,
@@ -122,8 +222,31 @@ def run_full_meal_plan_flow(phone_number: str):
         run_cart_scraper()
         print("✅ Cart scraping completed successfully")
         
-        # Progress update 4: Cart scraped, generating meal plan
-        send_progress_sms(phone_number, "🤖 Generating personalized meal plans with your ingredients...")
+        # ✅ NEW: Check if user has preferences, if not collect them
+        user_preferences = check_and_collect_preferences(phone_number, user_data)
+        if not user_preferences:
+            # Preferences collection started, will continue in another message
+            return
+        
+        # ✅ NEW: Generate cart analysis summary for confirmation
+        send_progress_sms(phone_number, "📋 Analyzing your cart and creating strategic meal plan...")
+        
+        try:
+            cart_analysis = meal_planner.generate_cart_analysis_summary()
+            
+            # Send cart analysis for user confirmation
+            send_progress_sms(phone_number, cart_analysis)
+            
+            # Mark user as waiting for meal plan confirmation
+            db.update_user_meal_plan_step(phone_number, 'awaiting_confirmation')
+            
+            print(f"✅ Cart analysis sent to {phone_number}, awaiting confirmation")
+            return  # Stop here, wait for user confirmation
+            
+        except Exception as e:
+            print(f"❌ Error generating cart analysis: {e}")
+            send_progress_sms(phone_number, "❌ Error analyzing your cart. Please try again in a moment.")
+            return
         
     except Exception as e:
         print(f"❌ Cart scraping failed: {e}")
@@ -137,11 +260,32 @@ def run_full_meal_plan_flow(phone_number: str):
     if 'EMAIL' in os.environ: del os.environ['EMAIL']
     if 'PASSWORD' in os.environ: del os.environ['PASSWORD']
 
-    # Step 2: Run the meal planner with the new data
-    plan = meal_planner.run_main_planner() # We'll create this helper function
+    # Step 2: Run the meal planner with user preferences
+    skill_level = user_preferences.get('cooking_skill_level', 'intermediate')
+    plan = meal_planner.run_main_planner(generate_detailed_recipes=True, user_skill_level=skill_level)
     
-    # Step 3: Format the plan for SMS
-    if not plan or not plan.get("meals"):
+    # Step 3: Generate PDF meal plan (now with professional recipes)
+    pdf_path = None
+    try:
+        from pdf_meal_planner import generate_pdf_meal_plan
+        # PDF generator will now use the enhanced meal plan with detailed recipes
+        pdf_path = generate_pdf_meal_plan(generate_detailed_recipes=True, user_skill_level="intermediate")
+        if pdf_path:
+            print(f"✅ PDF generated with professional recipes: {pdf_path}")
+        else:
+            print("⚠️ PDF generation failed, will send text version")
+    except Exception as e:
+        print(f"❌ PDF generation error: {e}")
+        pdf_path = None
+    
+    # Step 4: Format the plan for SMS
+    if pdf_path:
+        # Send link to PDF instead of text
+        base_url = "http://localhost:8000"  # TODO: Use actual domain
+        pdf_filename = pdf_path.split('/')[-1]
+        pdf_url = f"{base_url}/pdfs/{pdf_filename}"
+        sms_body = f"🍽️ Your professional Farm to People meal plan is ready!\n\n📄 View your complete plan with storage tips and recipes: {pdf_url}\n\nEnjoy your meals!"
+    elif not plan or not plan.get("meals"):
         sms_body = "Sorry, I had trouble generating a meal plan. Please try again later."
     else:
         sms_body = "🍽️ Your Farm to People meal plan is ready!\n\n"
@@ -149,7 +293,7 @@ def run_full_meal_plan_flow(phone_number: str):
             sms_body += f"- {meal['title']}\n"
         sms_body += "\nEnjoy your meals!"
 
-    # Step 4: Send the final SMS
+    # Step 5: Send the final SMS
     print(f"BACKGROUND: Sending final meal plan SMS to {phone_number}")
     print(f"SMS body length: {len(sms_body)} characters")
     print(f"SMS preview: {sms_body[:100]}...")
@@ -211,6 +355,15 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
 
     # --- Main App Logic Router ---
     base_url = str(request.base_url).rstrip('/')
+
+    # Check if user is in meal plan confirmation flow
+    try:
+        user_data = db.get_user_by_phone(user_phone_number)
+        if user_data and user_data.get('meal_plan_step') == 'awaiting_confirmation':
+            # Handle meal plan confirmation responses
+            return await handle_meal_plan_confirmation(user_phone_number, user_message, background_tasks)
+    except Exception as e:
+        print(f"⚠️ Error checking meal plan step: {e}")
 
     if "hello" in user_message:
         reply = "Hi there! I'm your Farm to People meal planning assistant. How can I help?"
@@ -361,6 +514,19 @@ async def login_submit(phone: str = Form("") , email: str = Form(...), password:
     except Exception as e:
         print(f"Supabase save error: {e}")
         return PlainTextResponse("There was an error saving your info. Please try again.", status_code=500)
+
+# Serve PDF files
+@app.get("/pdfs/{filename}")
+async def serve_pdf(filename: str):
+    """Serve PDF meal plans"""
+    from fastapi.responses import FileResponse
+    import os
+    
+    pdf_path = f"../pdfs/{filename}"
+    if os.path.exists(pdf_path):
+        return FileResponse(pdf_path, media_type="application/pdf", filename=filename)
+    else:
+        return PlainTextResponse("PDF not found", status_code=404)
 
 # This is a new test endpoint
 @app.post("/test-full-flow")

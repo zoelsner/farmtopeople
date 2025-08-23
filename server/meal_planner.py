@@ -11,7 +11,9 @@ from difflib import SequenceMatcher
 
 # --- Configuration ---
 FARM_BOX_DATA_DIR = "../farm_box_data"
-PRODUCT_CATALOG_FILE = "../data/farmtopeople_products.csv"
+# TODO: Move product catalog to Supabase for production deployment
+# Currently using local CSV file for development
+PRODUCT_CATALOG_FILE = "/Users/zach/Projects/farmtopeople/data/farmtopeople_products.csv"
 
 # Load environment variables (Railway uses direct env vars, local uses .env file)
 from pathlib import Path
@@ -532,10 +534,293 @@ Please correct the `faulty_plan` and return the fixed JSON.
         return faulty_plan
 
 
-def run_main_planner():
+def add_pricing_to_analysis(analysis_text: str) -> str:
+    """
+    Post-process the GPT-5 analysis to add pricing from the catalog.
+    Finds suggested items and replaces them with catalog prices.
+    """
+    try:
+        # Load the product catalog with pricing
+        if not os.path.exists(PRODUCT_CATALOG_FILE):
+            print("⚠️ Product catalog not found, skipping pricing")
+            return analysis_text
+            
+        df = pd.read_csv(PRODUCT_CATALOG_FILE)
+        product_catalog = {}
+        
+        # Build product lookup dictionary
+        for _, row in df.iterrows():
+            name = row.get('name', '')
+            price = row.get('price', 'Price TBD')
+            if name and name not in product_catalog:
+                product_catalog[name] = price
+        
+        print(f"💰 Loaded {len(product_catalog)} products for pricing lookup")
+        
+        # Hardcoded preferred proteins (exact matches)
+        preferred_proteins = {
+            "chicken breast": ("Locust Point Farm Boneless Skinless Chicken Breast", "$12.99", "0.7-1 lb"),
+            "chicken thighs": ("Locust Point Farm Boneless Skinless Chicken Thighs", "$8.99", "0.6-1 lb"),
+            "bone-in chicken thighs": ("Locust Point Farm Bone-in Chicken Thighs", "$7.59", "0.7-1 lb"),
+            "ground beef": ("100% Grass-fed Ground Beef", "$9.99", "1.0 lb"),
+        }
+        
+        # Find and replace items with pricing
+        enhanced_text = analysis_text
+        replacements_made = []
+        
+        # Look for protein suggestions
+        for generic_name, (full_name, price, weight) in preferred_proteins.items():
+            if generic_name in enhanced_text.lower():
+                # Replace with full details
+                pattern = generic_name
+                replacement = f"{full_name} ({weight}) - {price}"
+                enhanced_text = enhanced_text.replace(pattern, replacement)
+                replacements_made.append(f"{generic_name} → {replacement}")
+        
+        # Look for common fresh items and find catalog matches
+        fresh_items_to_find = [
+            "garlic", "lemon", "lemons", "onion", "onions", "basil", "parsley", 
+            "cilantro", "lime", "limes", "ginger", "scallions", "herbs"
+        ]
+        
+        for item in fresh_items_to_find:
+            if item in enhanced_text.lower():
+                # Find best match in catalog
+                best_match = find_best_catalog_match(item, product_catalog)
+                if best_match:
+                    catalog_name, catalog_price = best_match
+                    # Only replace if we found a good match and it's not already priced
+                    if "$" not in enhanced_text[enhanced_text.lower().find(item):enhanced_text.lower().find(item)+50]:
+                        pattern = item
+                        replacement = f"{catalog_name} - {catalog_price}"
+                        enhanced_text = enhanced_text.replace(pattern, replacement, 1)  # Replace only first occurrence
+                        replacements_made.append(f"{item} → {replacement}")
+        
+        if replacements_made:
+            print(f"💰 Added pricing for: {', '.join([r.split(' → ')[0] for r in replacements_made])}")
+        
+        return enhanced_text
+        
+    except Exception as e:
+        print(f"❌ Error adding pricing: {e}")
+        return analysis_text  # Return original if pricing fails
+
+def find_best_catalog_match(suggestion: str, product_catalog: dict) -> Optional[tuple]:
+    """Find the best matching product in the catalog with fuzzy matching"""
+    if not suggestion or not product_catalog:
+        return None
+    
+    best_match = None
+    best_score = 0.0
+    suggestion_lower = suggestion.lower().strip()
+    
+    for product_name, price in product_catalog.items():
+        if not product_name:
+            continue
+            
+        product_lower = product_name.lower()
+        
+        # Calculate similarity score
+        score = SequenceMatcher(None, suggestion_lower, product_lower).ratio()
+        
+        # Boost score for partial matches
+        if suggestion_lower in product_lower:
+            score = max(score, 0.8)
+        elif any(word in product_lower for word in suggestion_lower.split()):
+            score = max(score, 0.7)
+        
+        # Update best match if this is better
+        if score > best_score and score > 0.6:  # Minimum threshold
+            best_score = score
+            best_match = (product_name, price)
+    
+    return best_match
+
+def generate_cart_analysis_summary() -> str:
+    """
+    Generate a sophisticated cart analysis summary with proper swap logic.
+    Only suggests swaps from available alternatives in the same customizable box.
+    """
+    try:
+        # Get the latest cart data
+        latest_comprehensive_file = get_latest_comprehensive_file(FARM_BOX_DATA_DIR)
+        
+        if not latest_comprehensive_file:
+            return "❌ No cart data found. Please make sure you have items in your Farm to People cart."
+        
+        with open(latest_comprehensive_file, 'r') as f:
+            comprehensive_data = json.load(f)
+        
+        all_ingredients, analysis_data = get_comprehensive_ingredients_and_data(comprehensive_data)
+        
+        if not all_ingredients:
+            return "❌ No ingredients found in your cart. Please add some items and try again."
+        
+        # Build cart summary with swap options
+        cart_analysis = []
+        available_swaps = []
+        
+        # Individual items (no swaps possible)
+        individual_items = analysis_data.get('individual_items', [])
+        if individual_items:
+            cart_analysis.append("**Individual Items:**")
+            for item in individual_items:
+                name = item.get('name', 'Unknown item')
+                qty = item.get('quantity', 1)
+                unit = item.get('unit', '')
+                price = item.get('price', 'Price TBD')
+                cart_analysis.append(f"- {name} ({qty} {unit}) - {price}")
+        
+        # Non-customizable boxes (no swaps possible)
+        non_custom_boxes = analysis_data.get('non_customizable_boxes', [])
+        for box in non_custom_boxes:
+            box_name = box.get('box_name', 'Unknown box')
+            cart_analysis.append(f"\n**{box_name} (Non-customizable):**")
+            for item in box.get('selected_items', []):
+                name = item.get('name', 'Unknown item')
+                qty = item.get('quantity', 1)
+                unit = item.get('unit', '')
+                cart_analysis.append(f"- {name} ({qty} {unit})")
+        
+        # Customizable boxes (with available swaps)
+        custom_boxes = analysis_data.get('customizable_boxes', [])
+        for box in custom_boxes:
+            box_name = box.get('box_name', 'Unknown box')
+            selected_items = box.get('selected_items', [])
+            available_alternatives = box.get('available_alternatives', [])
+            
+            cart_analysis.append(f"\n**{box_name} (Customizable):**")
+            cart_analysis.append(f"Selected Items ({len(selected_items)}):")
+            for item in selected_items:
+                name = item.get('name', 'Unknown item')
+                qty = item.get('quantity', 1)
+                unit = item.get('unit', '')
+                cart_analysis.append(f"- {name} ({qty} {unit})")
+            
+            # Add available alternatives for this box
+            if available_alternatives:
+                swap_info = {
+                    'box_name': box_name,
+                    'selected_items': [item.get('name', '') for item in selected_items],
+                    'available_alternatives': [item.get('name', '') for item in available_alternatives]
+                }
+                available_swaps.append(swap_info)
+        
+        cart_summary = "\n".join(cart_analysis)
+        
+        # Build swap options text
+        swap_options_text = ""
+        if available_swaps:
+            swap_options_text = "\n**AVAILABLE SWAP OPTIONS:**\n"
+            for swap_info in available_swaps:
+                box_name = swap_info['box_name']
+                alternatives = swap_info['available_alternatives']
+                swap_options_text += f"{box_name} alternatives: {', '.join(alternatives[:5])}{'...' if len(alternatives) > 5 else ''}\n"
+        
+        # Create the AI prompt (clean, no catalog data)
+        analysis_prompt = f"""You are an expert meal planning strategist analyzing a Farm to People cart. Provide a sophisticated meal plan analysis.
+
+CURRENT CART CONTENTS:
+{cart_summary}
+
+{swap_options_text}
+
+IMPORTANT RULES:
+- You can ONLY suggest swaps using the available alternatives listed above
+- Each swap must be from the SAME customizable box
+- Focus on strategic swaps that improve meal flexibility
+- When recommending protein additions, suggest healthy options (chicken, fish, turkey, eggs) with approximate quantities
+- When recommending fresh items, suggest specific items and rough quantities (e.g., "2 lemons", "1 bulb garlic")
+
+Please provide analysis in exactly this format:
+
+## Your Cart Analysis & Strategic Meal Plan
+
+### Current Cart Overview
+[Brief summary of what they have - individual items, boxes, total variety]
+
+### Recommended Swaps for Better Meal Flexibility
+[Suggest 2-3 strategic swaps ONLY from available alternatives within same box]
+
+Priority Swap #1: [Box name] - Swap [current item] → [available alternative]
+Reasoning: [Why this swap improves meal options]
+
+Priority Swap #2: [Box name] - Swap [current item] → [available alternative]  
+Reasoning: [Strategic benefit]
+
+Optional Swap #3: [Box name] - Swap [current item] → [available alternative]
+Reasoning: [Additional benefit]
+
+### Recommended Protein Additions to Cart
+Healthy protein options (no beef):
+- [Specific proteins that work with these ingredients]
+
+### Strategic Meal Plan (5 balanced meals)
+
+Meal 1: [Creative name] (X servings)
+Using: [Specific cart ingredients]
+Status: ✅ [Brief completeness note]
+
+Meal 2: [Creative name] (X servings)  
+Using: [Specific cart ingredients]
+Status: ✅ [Brief completeness note]
+
+[Continue for 5 total meals]
+
+### Additional Fresh Items Needed
+- [Essential additions like garlic, herbs, citrus]
+
+### Pantry Staples Needed
+- [Basic pantry items for the recipes]
+
+### Summary
+With recommended proteins: You'll have X-Y complete servings with excellent variety and no food waste!
+
+Focus on maximizing ingredient usage across multiple meals while maintaining balanced nutrition."""
+
+        # Call GPT-5
+        if not client:
+            return "❌ AI service not available. Please try again later."
+        
+        print("🚀 Generating cart analysis with GPT-5...")
+        print(f"   -> Analyzing {len(all_ingredients)} ingredients")
+        print(f"   -> Found {len(available_swaps)} customizable boxes with alternatives")
+        
+        response = client.chat.completions.create(
+            model="gpt-5",
+            messages=[
+                {"role": "user", "content": analysis_prompt}
+            ]
+        )
+        
+        analysis_result = response.choices[0].message.content.strip()
+        
+        # Post-process to add pricing from catalog
+        enhanced_analysis = add_pricing_to_analysis(analysis_result)
+        
+        # Store the full analysis for web view
+        analysis_id = store_analysis_for_web_view(enhanced_analysis)
+        
+        # Create SMS summary
+        sms_summary = create_sms_summary(enhanced_analysis, analysis_id)
+        
+        return sms_summary
+        
+    except Exception as e:
+        print(f"❌ Error generating cart analysis: {e}")
+        import traceback
+        traceback.print_exc()
+        return f"❌ Error analyzing your cart. Please try again in a moment."
+
+def run_main_planner(generate_detailed_recipes: bool = False, user_skill_level: str = "intermediate"):
     """
     A helper function to run the main meal planning logic and return the plan.
     This is designed to be called from other scripts like the server.
+    
+    Args:
+        generate_detailed_recipes: If True, enhance meals with professional recipe details
+        user_skill_level: Cooking skill level for recipe generation ("beginner", "intermediate", "advanced")
     """
     master_product_list = get_master_product_list(PRODUCT_CATALOG_FILE)
     
@@ -584,6 +869,15 @@ def run_main_planner():
         final_invalid_items = validate_meal_plan(repaired_plan, all_ingredients, master_product_list)
         if not final_invalid_items:
             meal_plan = repaired_plan
+    
+    # Optionally enhance with detailed recipes
+    if generate_detailed_recipes:
+        try:
+            from recipe_generator import enhance_meal_plan_with_recipes
+            meal_plan = enhance_meal_plan_with_recipes(meal_plan, user_skill_level)
+            print("✅ Enhanced meal plan with professional recipe details")
+        except Exception as e:
+            print(f"⚠️ Could not enhance recipes: {e}")
     
     return meal_plan
 
