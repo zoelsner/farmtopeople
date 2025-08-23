@@ -18,13 +18,16 @@ def scrape_farm_to_people_catalog():
     output_dir = Path("farm_box_data")
     output_dir.mkdir(exist_ok=True)
     
-    # Categories to scrape (based on current site structure)
+    # Categories to scrape - full catalog
     categories = {
         "produce": "https://farmtopeople.com/shop/produce",
-        "meat-seafood": "https://farmtopeople.com/shop/meat-seafood", 
-        "dairy-eggs": "https://farmtopeople.com/shop/dairy-eggs",
+        "meat-seafood": "https://farmtopeople.com/shop/meat-seafood",
+        "dairy-eggs": "https://farmtopeople.com/shop/dairy-eggs", 
         "pantry": "https://farmtopeople.com/shop/pantry"
     }
+    
+    # No limit - full scrape
+    MAX_PRODUCTS_PER_CATEGORY = None
     
     all_products = []
     
@@ -44,18 +47,43 @@ def scrape_farm_to_people_catalog():
         print(f"📅 Scraping date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"🎯 Categories to scrape: {len(categories)}")
         
+        # Check if login is required by visiting main site first
+        print("🔐 Checking authentication status...")
+        try:
+            page.goto("https://farmtopeople.com", timeout=30000)
+            page.wait_for_timeout(3000)
+            
+            # Check if we need to login
+            if "login" in page.url.lower() or page.locator("input[type='email']").count() > 0:
+                print("⚠️ Login required - shop pages may not be accessible without authentication")
+            else:
+                print("✅ Site accessible without login")
+        except Exception as e:
+            print(f"⚠️ Could not check main site: {e}")
+        
         for category_name, category_url in categories.items():
             print(f"\n🔍 SCRAPING CATEGORY: {category_name.upper()}")
             print(f"🌐 URL: {category_url}")
             
             try:
-                page.goto(category_url)
-                page.wait_for_timeout(3000)  # Wait for page load
+                print(f"🌐 Navigating to {category_url}...")
+                page.goto(category_url, timeout=60000)  # Increased timeout
+                page.wait_for_timeout(5000)  # Longer wait for page load
+                
+                # Check if page loaded correctly
+                page_title = page.title()
+                print(f"📄 Page title: {page_title}")
                 
                 # Take screenshot for debugging
                 screenshot_file = output_dir / f"category_{category_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
                 page.screenshot(path=str(screenshot_file))
                 print(f"📸 Screenshot saved: {screenshot_file}")
+                
+                # Wait for main content to load
+                try:
+                    page.wait_for_selector("main, .main-content, [role='main']", timeout=10000)
+                except:
+                    print("⚠️ Main content selector not found, proceeding anyway...")
                 
                 # Scroll to load all products (many sites use lazy loading)
                 print("📜 Scrolling to load all products...")
@@ -63,7 +91,7 @@ def scrape_farm_to_people_catalog():
                     () => {
                         return new Promise((resolve) => {
                             var totalHeight = 0;
-                            var distance = 100;
+                            var distance = 150;
                             var timer = setInterval(() => {
                                 var scrollHeight = document.body.scrollHeight;
                                 window.scrollBy(0, distance);
@@ -73,20 +101,25 @@ def scrape_farm_to_people_catalog():
                                     clearInterval(timer);
                                     resolve();
                                 }
-                            }, 100);
+                            }, 200);  // Slower scrolling
                         })
                     }
                 """)
                 
-                page.wait_for_timeout(2000)  # Wait for lazy loading
+                page.wait_for_timeout(5000)  # Longer wait for lazy loading
                 
-                # Look for product containers (these selectors may need adjustment)
+                # Look for product containers with more comprehensive selectors
                 product_selectors = [
                     "article[class*='product']",
                     "div[class*='product-item']", 
                     "div[class*='product-card']",
                     ".product-grid .grid__item",
-                    "[data-product-id]"
+                    "[data-product-id]",
+                    ".product-list article",
+                    ".grid article",
+                    "article",  # Fallback to any article
+                    "div[class*='item'][class*='grid']",
+                    ".collection article"
                 ]
                 
                 products_found = []
@@ -96,6 +129,14 @@ def scrape_farm_to_people_catalog():
                         print(f"✅ Found {len(products)} products using selector: {selector}")
                         products_found = products
                         break
+                
+                # If still no products, try a more general approach
+                if not products_found:
+                    print("🔍 Trying general link-based detection...")
+                    product_links = page.locator("a[href*='/product/']").all()
+                    if len(product_links) > 0:
+                        print(f"✅ Found {len(product_links)} product links")
+                        products_found = product_links
                 
                 if not products_found:
                     print(f"⚠️ No products found for {category_name}. May need to update selectors.")
@@ -109,18 +150,85 @@ def scrape_farm_to_people_catalog():
                 category_products = []
                 
                 for i, product in enumerate(products_found):
+                    # Check if we have a limit and stop if reached
+                    if MAX_PRODUCTS_PER_CATEGORY and len(category_products) >= MAX_PRODUCTS_PER_CATEGORY:
+                        print(f"⏹️ Reached limit of {MAX_PRODUCTS_PER_CATEGORY} products for {category_name}")
+                        break
+                        
                     try:
-                        # Extract product information (selectors may need adjustment)
-                        name_elem = product.locator("h3, h4, .product-title, [class*='product-name'], a[href*='/product/']").first
-                        name = name_elem.text_content().strip() if name_elem.count() > 0 else "Unknown Product"
+                        # Extract product information with Farm to People specific selectors
+                        name_selectors = [
+                            ".product-tile_product-name__yMGzm",  # Specific FTP class
+                            ".product-name",                      # Generic product name class
+                            "a.product-tile_product-name__yMGzm", # Link with specific class
+                            "[class*='product-name']",            # Fallback for product name
+                            "a[class*='product-name']",           # Product name links
+                            ".product-title",                     # Generic title
+                            "h3, h4"                             # Header fallbacks
+                        ]
                         
-                        # Price extraction
-                        price_elem = product.locator(".price, [class*='price'], [data-price]").first
-                        price = price_elem.text_content().strip() if price_elem.count() > 0 else "Price not found"
+                        name = "Unknown Product"
+                        for name_selector in name_selectors:
+                            name_elem = product.locator(name_selector).first
+                            if name_elem.count() > 0:
+                                name = name_elem.text_content().strip()
+                                if name and name != "":
+                                    break
                         
-                        # Vendor/Producer extraction
-                        vendor_elem = product.locator(".vendor, [class*='vendor'], [class*='producer'], .brand").first
-                        vendor = vendor_elem.text_content().strip() if vendor_elem.count() > 0 else "Unknown Vendor"
+                        # Price extraction with Farm to People specific selectors
+                        price_selectors = [
+                            "[aria-label='unit price']",             # Specific FTP price selector
+                            "span[aria-label='unit price']",         # More specific span with aria-label
+                            ".price",                                # Generic price class
+                            "[class*='price']",                      # Any class containing 'price'
+                            "[data-price]",                          # Data attribute
+                            "span:has-text('$')",                    # Any span containing $
+                            ".cost, .amount"                        # Fallback cost/amount
+                        ]
+                        
+                        price = "Price not found"
+                        for price_selector in price_selectors:
+                            price_elem = product.locator(price_selector).first
+                            if price_elem.count() > 0:
+                                price = price_elem.text_content().strip()
+                                if price and "$" in price:
+                                    break
+                        
+                        # Extract weight/unit information
+                        unit_selectors = [
+                            "p.weight",                              # Specific weight class from example
+                            ".weight",                               # Generic weight class
+                            "[class*='weight']",                     # Any class containing weight
+                            "[class*='unit']",                       # Unit classes
+                            "p:has-text('Lbs'), p:has-text('oz')",   # Paragraphs with weight units
+                            ".unit, .size"                          # Generic unit/size classes
+                        ]
+                        
+                        unit = ""
+                        for unit_selector in unit_selectors:
+                            unit_elem = product.locator(unit_selector).first
+                            if unit_elem.count() > 0:
+                                unit = unit_elem.text_content().strip()
+                                if unit and unit != "":
+                                    break
+                        
+                        # Vendor/Producer extraction with Farm to People specific selectors
+                        vendor_selectors = [
+                            ".name-and-producer .producer",         # Specific FTP producer in name-and-producer section
+                            ".product-tile_name-and-producer__9lSea .producer", # More specific FTP selector
+                            "[class*='producer']",                   # Any class containing producer
+                            ".vendor",                              # Generic vendor class
+                            "[class*='vendor']",                    # Any class containing vendor
+                            ".brand, .farm, .supplier"             # Other supplier-related classes
+                        ]
+                        
+                        vendor = "Unknown Vendor"
+                        for vendor_selector in vendor_selectors:
+                            vendor_elem = product.locator(vendor_selector).first
+                            if vendor_elem.count() > 0:
+                                vendor = vendor_elem.text_content().strip()
+                                if vendor and vendor != "":
+                                    break
                         
                         # Product URL
                         link_elem = product.locator("a[href*='/product/']").first
@@ -129,19 +237,58 @@ def scrape_farm_to_people_catalog():
                             product_url = f"https://farmtopeople.com{product_url}"
                         
                         # Check if sold out
-                        sold_out_indicators = product.locator(".sold-out, [class*='sold-out'], .unavailable").all()
+                        sold_out_indicators = product.locator(".sold-out, [class*='sold-out'], .unavailable, [class*='out-of-stock']").all()
                         is_sold_out = len(sold_out_indicators) > 0
                         
-                        # Clean up extracted data
-                        name = re.sub(r'\s+', ' ', name)
-                        price = re.sub(r'\s+', ' ', price)
-                        vendor = re.sub(r'\s+', ' ', vendor)
+                        # Enhanced data cleaning
+                        name = re.sub(r'\s+', ' ', name).strip()
+                        # Only clean if name is empty after basic cleaning
+                        if not name or name == "":
+                            name = "Unknown Product"
+                        
+                        # Clean price - handle multiple prices like "$7.64$8.99"
+                        price = re.sub(r'\s+', ' ', price).strip()
+                        # Extract first price if multiple prices found
+                        price_match = re.search(r'\$[\d,]+\.?\d*', price)
+                        if price_match:
+                            price = price_match.group()
+                        
+                        # Clean vendor names - fix concatenated vendor+product issue
+                        vendor = re.sub(r'\s+', ' ', vendor).strip()
+                        
+                        # The vendor selector captures "VendorNameVendorNameProductName" pattern
+                        # We need to extract just the vendor name
+                        if vendor and name != "Unknown Product":
+                            # Method 1: Remove the product name from the end if it appears there
+                            if name in vendor:
+                                # Remove the product name from the vendor string
+                                vendor = vendor.replace(name, '').strip()
+                            
+                            # Method 2: Handle duplicated vendor patterns like "Sun Sprout FarmSun Sprout Farm"
+                            # Check for exact duplication (vendor repeated twice)
+                            if len(vendor) > 10:  # Only process reasonably long strings
+                                # Try different split points to find duplication
+                                for split_point in range(len(vendor) // 3, (len(vendor) * 2) // 3):
+                                    potential_vendor = vendor[:split_point]
+                                    remaining = vendor[split_point:]
+                                    
+                                    # Check if the remaining part starts with the same vendor name
+                                    if remaining.startswith(potential_vendor):
+                                        vendor = potential_vendor
+                                        break
+                        
+                        if not vendor or vendor == "":
+                            vendor = "Unknown Vendor"
+                        
+                        # Clean unit information
+                        unit = re.sub(r'\s+', ' ', unit).strip()
                         
                         product_data = {
                             "name": name,
                             "category": category_name,
                             "vendor": vendor,
                             "price": price,
+                            "unit": unit,
                             "product_url": product_url,
                             "is_sold_out": is_sold_out,
                             "scraped_at": datetime.now().isoformat()
@@ -160,6 +307,16 @@ def scrape_farm_to_people_catalog():
                 
             except Exception as e:
                 print(f"❌ Error scraping category {category_name}: {e}")
+                print(f"⏭️ Continuing with next category...")
+                
+                # Still save a screenshot for debugging
+                try:
+                    error_screenshot = output_dir / f"error_{category_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+                    page.screenshot(path=str(error_screenshot))
+                    print(f"📸 Error screenshot saved: {error_screenshot}")
+                except:
+                    pass
+                
                 continue
         
         context.close()
@@ -176,7 +333,7 @@ def scrape_farm_to_people_catalog():
     csv_file = output_dir / f"farmtopeople_products_{timestamp}.csv"
     with open(csv_file, 'w', newline='', encoding='utf-8') as f:
         if all_products:
-            fieldnames = ["name", "category", "vendor", "price", "product_url", "is_sold_out", "scraped_at"]
+            fieldnames = ["name", "category", "vendor", "price", "unit", "product_url", "is_sold_out", "scraped_at"]
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(all_products)
@@ -185,7 +342,7 @@ def scrape_farm_to_people_catalog():
     main_csv_file = Path("../data/farmtopeople_products.csv")
     with open(main_csv_file, 'w', newline='', encoding='utf-8') as f:
         if all_products:
-            fieldnames = ["name", "category", "vendor", "price", "product_url", "is_sold_out", "scraped_at"]
+            fieldnames = ["name", "category", "vendor", "price", "unit", "product_url", "is_sold_out", "scraped_at"]
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(all_products)

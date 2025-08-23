@@ -356,21 +356,84 @@ def main():
                 
                 print(f"\n=== PROCESSING BOX {i+1}: {box_name} ===")
                 
-                # Scroll button into view and click
-                customize_btn.scroll_into_view_if_needed()
-                page.wait_for_timeout(500)
+                # Improved clicking with retries and better error handling
+                box_data = None
+                max_retries = 3
                 
-                print(f"Clicking CUSTOMIZE...")
-                try:
-                    customize_btn.click()
-                    page.wait_for_timeout(3000)
-                except Exception as e:
-                    print(f"Regular click failed, trying JS: {e}")
-                    customize_btn.evaluate("element => element.click()")
-                    page.wait_for_timeout(3000)
+                for attempt in range(max_retries):
+                    try:
+                        print(f"Clicking CUSTOMIZE... (attempt {attempt + 1}/{max_retries})")
+                        
+                        # Ensure button is in viewport and ready
+                        customize_btn.scroll_into_view_if_needed()
+                        page.wait_for_timeout(1000)  # Longer wait for page stability
+                        
+                        # Wait for button to be visible and enabled
+                        customize_btn.wait_for(state="visible", timeout=5000)
+                        
+                        # Try different clicking methods in order
+                        click_success = False
+                        
+                        # Method 1: Regular click
+                        try:
+                            customize_btn.click()
+                            click_success = True
+                            print("✅ Regular click succeeded")
+                        except Exception as e:
+                            print(f"⚠️ Regular click failed: {e}")
+                        
+                        # Method 2: Force click if regular click failed
+                        if not click_success:
+                            try:
+                                customize_btn.click(force=True)
+                                click_success = True
+                                print("✅ Force click succeeded")
+                            except Exception as e:
+                                print(f"⚠️ Force click failed: {e}")
+                        
+                        # Method 3: JavaScript click if both failed
+                        if not click_success:
+                            try:
+                                customize_btn.evaluate("element => element.click()")
+                                click_success = True
+                                print("✅ JavaScript click succeeded")
+                            except Exception as e:
+                                print(f"⚠️ JavaScript click failed: {e}")
+                        
+                        if not click_success:
+                            raise Exception("All click methods failed")
+                        
+                        # Wait for modal to appear and verify it loaded
+                        page.wait_for_timeout(3000)
+                        
+                        # Check if modal actually opened
+                        modal_present = page.locator("aside[aria-label*='Customize']").count() > 0
+                        if modal_present:
+                            print("✅ Customize modal opened successfully")
+                            box_data = scrape_customize_modal(page)
+                            break  # Success, exit retry loop
+                        else:
+                            print("⚠️ Modal didn't open, retrying...")
+                            page.wait_for_timeout(2000)  # Wait before retry
+                            
+                    except Exception as e:
+                        print(f"❌ Attempt {attempt + 1} failed: {e}")
+                        if attempt < max_retries - 1:
+                            print(f"🔄 Retrying in 3 seconds...")
+                            page.wait_for_timeout(3000)
+                        else:
+                            print(f"❌ All {max_retries} attempts failed for {box_name}")
                 
-                # Scrape the customize modal
-                box_data = scrape_customize_modal(page)
+                # If we still don't have box_data, create empty structure
+                if box_data is None:
+                    print(f"⚠️ Could not get data for {box_name}, creating empty structure")
+                    box_data = {
+                        "selected_items": [],
+                        "available_alternatives": [],
+                        "total_items": 0,
+                        "selected_count": 0,
+                        "alternatives_count": 0
+                    }
                 box_data["box_name"] = box_name
                 box_data["box_index"] = i + 1
                 

@@ -268,6 +268,43 @@ plan = meal_planner.run_main_planner()  # Uses latest JSON
 - **Input:** Comprehensive cart contents from latest JSON file
 - **Output:** Structured meal suggestions using all available ingredients
 
+### **MEAL PLAN FORMATTING REQUIREMENTS:**
+
+#### **Essential Format Elements:**
+1. **Cart Contents Analysis** - Complete inventory with quantities
+2. **Quantity Sufficiency Check** - Verify ingredients support meal suggestions
+3. **Alternative Swap Recommendations** - Suggest optimal swaps from available alternatives
+4. **Protein Addition Suggestions** - Recommend healthy proteins (avoid beef for health-conscious users)
+5. **Separate Lists** - Keep "Additional Fresh Items" separate from "Pantry Staples"
+
+#### **Required Structure:**
+```
+## Current Cart Contents
+[Complete inventory with quantities]
+
+## Recommended Swaps for Better Meal Flexibility
+[Specific swap suggestions with reasoning]
+
+## Recommended Protein Additions to Cart
+[Healthy protein options, avoid beef]
+
+## Quantity-Adjusted Meal Plan
+[Meals with quantity verification status]
+
+## Additional Fresh Items Still Needed
+[Fresh items beyond cart contents]
+
+## Pantry Staples Needed  
+[Basic pantry items for cooking]
+```
+
+#### **Key Features:**
+- **Quantity Analysis:** Check if cart quantities support meal suggestions
+- **Status Indicators:** ✅ Sufficient, ⚠️ Need more, etc.
+- **Swap Logic:** Recommend best alternatives from available options
+- **Health Focus:** Suggest healthy proteins, avoid beef for health-conscious users
+- **Serving Estimates:** Provide total serving counts for meal planning
+
 ---
 
 ## 🔄 CURRENT DATA FLOW
