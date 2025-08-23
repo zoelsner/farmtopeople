@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 from dotenv import load_dotenv
 import openai
-from typing import Dict, List, Any, Union, Optional
+from typing import Dict, List, Any, Union, Optional, Tuple
 import pandas as pd
 from difflib import SequenceMatcher
 
@@ -90,7 +90,7 @@ def get_all_ingredients_from_cart(cart_data: dict, data_dir: str) -> List[str]:
             
     return sorted(list(ingredients))
 
-def get_comprehensive_ingredients_and_data(comprehensive_data: dict) -> tuple[List[str], dict]:
+def get_comprehensive_ingredients_and_data(comprehensive_data: dict) -> Tuple[List[str], dict]:
     """Extracts ingredients from comprehensive scraper format and returns analysis data."""
     ingredients = set()
     analysis_data = {
