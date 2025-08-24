@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from pathlib import Path
 from urllib.parse import quote
 
@@ -36,10 +37,9 @@ async def health_check():
 DATA_DIR = Path(".")
 
 # Vonage Client for sending messages
-vonage_client = vonage.Client(
-    key=os.getenv("VONAGE_API_KEY"),
-    secret=os.getenv("VONAGE_API_SECRET")
-)
+# Temporarily disabled for web endpoint testing
+vonage_client = None
+print("⚠️ SMS disabled for testing - web endpoint will work")
 
 def send_progress_sms(phone_number: str, message: str):
     """Send a progress update SMS to the user"""
@@ -527,6 +527,488 @@ async def serve_pdf(filename: str):
         return FileResponse(pdf_path, media_type="application/pdf", filename=filename)
     else:
         return PlainTextResponse("PDF not found", status_code=404)
+
+
+def parse_analysis_to_html(content: str) -> str:
+    """
+    Parse GPT-5 analysis content into properly formatted HTML
+    matching the quality of preview_analysis.html
+    """
+    
+    # Split content into sections
+    sections = content.split('### ')
+    html_parts = []
+    
+    for i, section in enumerate(sections):
+        if i == 0:
+            # First section is the main title
+            if section.strip().startswith('## '):
+                continue
+            
+        if not section.strip():
+            continue
+            
+        lines = section.strip().split('\n')
+        section_title = lines[0] if lines else ""
+        section_content = '\n'.join(lines[1:]) if len(lines) > 1 else ""
+        
+        if 'Current Cart Overview' in section_title:
+            html_parts.append(format_cart_overview_section(section_content))
+        elif 'Recommended Swaps' in section_title:
+            html_parts.append(format_swaps_section(section_content))
+        elif 'Strategic Meal Plan' in section_title:
+            html_parts.append(format_meals_section(section_content))
+        elif 'Recommended Protein Additions' in section_title:
+            html_parts.append(format_proteins_section(section_content))
+        elif 'Additional Fresh Items' in section_title:
+            html_parts.append(format_shopping_section(section_title, section_content))
+        elif 'Pantry Staples' in section_title:
+            html_parts.append(format_shopping_section(section_title, section_content))
+        elif 'Summary' in section_title:
+            html_parts.append(format_summary_section(section_content))
+        else:
+            # Generic section
+            html_parts.append(f'<h2>{section_title}</h2><div>{format_generic_content(section_content)}</div>')
+    
+    return '\n'.join(html_parts)
+
+def clean_cart_item(item_text: str) -> str:
+    """Clean up cart item text to be consistent and neat"""
+    # Extract quantity/size info before cleaning
+    quantity = ""
+    quantity_match = re.search(r'\(([\d.-]+\s*(?:lb|lbs|oz|pieces?|bunch|pint|dozen))\)', item_text)
+    if not quantity_match:
+        # Try to find qty format
+        qty_match = re.search(r'\bqty[:\s]+(\d+)', item_text)
+        if qty_match:
+            quantity = f"({qty_match.group(1)} pieces)"
+    else:
+        quantity = f"({quantity_match.group(1)})"
+    
+    # Remove all parenthetical content for cleaning
+    item_text = re.sub(r'\([^)]*\)', '', item_text)
+    
+    # Clean up redundant text patterns
+    item_text = re.sub(r'(?i)\bboneless,?\s*skinless\s*', '', item_text)
+    item_text = re.sub(r';\s*duplicates.*', '', item_text, flags=re.IGNORECASE)
+    
+    # Trim and clean
+    item_text = item_text.strip()
+    
+    # Ensure proper capitalization
+    words = []
+    for word in item_text.split():
+        if word == '&' or word.lower() in ['and', 'or', 'with']:
+            words.append(word)
+        else:
+            # Capitalize first letter of significant words
+            words.append(word[0].upper() + word[1:] if len(word) > 1 else word.upper())
+    
+    result = ' '.join(words)
+    
+    # Add quantity back if we have it
+    if quantity:
+        result += f" {quantity}"
+    
+    return result
+
+def format_cart_overview_section(content: str) -> str:
+    """Format cart overview with proper styling"""
+    html = '<h2>Current Cart Overview</h2>'
+    
+    # Parse the content more intelligently - handle both bulleted and indented lists
+    lines = content.strip().split('\n')
+    current_category = None
+    items = {'Proteins': [], 'Vegetables': [], 'Fruits': []}
+    
+    for line in lines:
+        # Check for category headers - handle both old and new formats
+        if line.strip() == '- Proteins:' or line.strip() == '**Proteins:**':
+            current_category = 'Proteins'
+        elif line.strip() == '- Vegetables:' or line.strip() == '**Vegetables:**':
+            current_category = 'Vegetables'
+        elif line.strip() == '- Fruits:' or line.strip() == '**Fruits:**':
+            current_category = 'Fruits'
+        # Handle items that are indented with two spaces and a dash
+        elif line.startswith('  - ') and current_category:
+            item_text = line[4:].strip()
+            # Clean up the item text for current cart (no prices)
+            item_text = clean_cart_item(item_text)
+            items[current_category].append(item_text)
+        # Handle items with single dash (for new format)
+        elif line.startswith('- ') and current_category and not any(cat in line for cat in ['Proteins:', 'Vegetables:', 'Fruits:']):
+            item_text = line[2:].strip()
+            # Clean up the item text for current cart (no prices)
+            item_text = clean_cart_item(item_text)
+            items[current_category].append(item_text)
+    
+    # Build HTML for each category that has items
+    for category in ['Proteins', 'Vegetables', 'Fruits']:
+        if items[category]:
+            html += f'\n        <h3>{category}:</h3>\n        <ul>'
+            for item in items[category]:
+                html += f'\n            <li>{item}</li>'
+            html += '\n        </ul>'
+    
+    return html
+
+def format_swaps_section(content: str) -> str:
+    """Format swap recommendations with highlight boxes"""
+    html = '<h2>Recommended Swaps for Better Meal Flexibility</h2>'
+    
+    # Split into individual swaps - look for both Priority and Optional swaps
+    all_swaps = re.findall(r'(?:Priority Swap #\d+|Optional Swap #\d+):.*?(?=(?:Priority Swap #\d+|Optional Swap #\d+):|$)', content, re.DOTALL)
+    
+    if not all_swaps:
+        # Try alternative format without numbers
+        all_swaps = re.findall(r'(?:Priority Swap|Optional Swap).*?(?=(?:Priority Swap|Optional Swap)|$)', content, re.DOTALL)
+    
+    for swap in all_swaps:
+        lines = swap.strip().split('\n')
+        if lines:
+            # Parse the title line which contains the swap
+            title_line = lines[0]
+            # Ensure arrows are properly formatted
+            title_line = title_line.replace('->', '→')
+            
+            # Find reasoning in subsequent lines
+            reasoning = ""
+            for line in lines[1:]:
+                if line.strip().startswith('Reasoning:'):
+                    reasoning = line.strip()
+                elif line.strip() and not line.strip().startswith(('Priority', 'Optional')):
+                    # Sometimes reasoning is on next line without "Reasoning:" prefix
+                    if not reasoning:
+                        reasoning = "Reasoning: " + line.strip()
+            
+            html += f'''
+            <div class="swap-item">
+                <strong>{title_line}</strong><br>
+                <em>{reasoning}</em>
+            </div>
+            '''
+    
+    return html
+
+def format_meals_section(content: str) -> str:
+    """Format meal plans with meal cards"""
+    html = '<h2>Strategic Meal Plan (5 balanced meals)</h2>'
+    
+    # Find individual meals
+    meals = re.findall(r'Meal \d+:.*?(?=Meal \d+:|Notes to prevent|$)', content, re.DOTALL)
+    
+    for meal in meals:
+        lines = meal.strip().split('\n')
+        if lines:
+            title = lines[0].replace('Meal ', 'Meal ')
+            
+            using_line = ""
+            status_line = ""
+            
+            for line in lines[1:]:
+                if line.startswith('Using:'):
+                    using_line = line
+                elif line.startswith('Status:'):
+                    status_line = line
+            
+            html += f'''
+            <div class="meal-item">
+                <strong>{title}</strong><br>
+                {f'<em>{using_line}</em><br>' if using_line else ''}
+                {f'<span class="status-complete">{status_line}</span>' if status_line else ''}
+            </div>
+            '''
+    
+    # Add notes if present
+    if 'Notes to prevent waste' in content:
+        notes_section = content.split('Notes to prevent waste:')[1] if 'Notes to prevent waste:' in content else ""
+        if notes_section:
+            html += '<h3>Notes to prevent waste:</h3>'
+            html += format_generic_content(notes_section.split('###')[0])  # Only until next section
+    
+    return html
+
+def format_proteins_section(content: str) -> str:
+    """Format protein recommendations with pricing"""
+    html = '<h2>Recommended Protein Additions to Cart</h2>'
+    html += '<p><strong>Healthy protein options (no beef):</strong></p><ul>'
+    
+    lines = content.strip().split('\n')
+    for line in lines:
+        line = line.strip()
+        if line.startswith('- '):
+            item = line[2:].strip()
+            # Better formatting: separate protein name from pricing
+            # Match patterns like ($16.99, 8 oz) or just ($8.99)
+            if '($' in item:
+                # Split at the pricing part
+                parts = re.split(r'(\([^)]*\$[^)]*\))', item)
+                if len(parts) >= 2:
+                    protein_name = parts[0].strip()
+                    pricing_part = parts[1] if len(parts) > 1 else ""
+                    description = parts[2].strip() if len(parts) > 2 else ""
+                    
+                    # Format with better styling
+                    formatted_item = protein_name
+                    if pricing_part:
+                        formatted_item += f' <span class="pricing">{pricing_part}</span>'
+                    if description:
+                        formatted_item += f' {description}'
+                    
+                    html += f'<li>{formatted_item}</li>'
+                else:
+                    html += f'<li>{item}</li>'
+            else:
+                html += f'<li>{item}</li>'
+        elif line and not line.startswith(('Healthy protein', '#', '*')):
+            # Sometimes items are listed without dashes
+            item = line.strip()
+            if item and ('$' in item or 'salmon' in item.lower() or 'chicken' in item.lower() or 'turkey' in item.lower()):
+                if '($' in item:
+                    parts = re.split(r'(\([^)]*\$[^)]*\))', item)
+                    if len(parts) >= 2:
+                        protein_name = parts[0].strip()
+                        pricing_part = parts[1] if len(parts) > 1 else ""
+                        description = parts[2].strip() if len(parts) > 2 else ""
+                        
+                        formatted_item = protein_name
+                        if pricing_part:
+                            formatted_item += f' <span class="pricing">{pricing_part}</span>'
+                        if description:
+                            formatted_item += f' {description}'
+                        
+                        html += f'<li>{formatted_item}</li>'
+                    else:
+                        html += f'<li>{item}</li>'
+                else:
+                    html += f'<li>{item}</li>'
+    
+    html += '</ul>'
+    return html
+
+def format_shopping_section(title: str, content: str) -> str:
+    """Format shopping lists with pricing highlights"""
+    html = f'<h2>{title}</h2><ul>'
+    
+    lines = content.strip().split('\n')
+    for line in lines:
+        line = line.strip()
+        if line.startswith('- '):
+            item = line[2:].strip()
+            # Highlight pricing - match various formats
+            item = re.sub(r'\((\$[0-9,.]+(?: [^)]+)?)\)', r'<span class="pricing">(\1)</span>', item)
+            html += f'<li>{item}</li>'
+        elif line and not line.startswith('#') and not any(skip in line.lower() for skip in ['pantry', 'fresh', 'additional', 'needed']):
+            # Handle items without dashes
+            item = line.strip()
+            if item:
+                item = re.sub(r'\((\$[0-9,.]+(?: [^)]+)?)\)', r'<span class="pricing">(\1)</span>', item)
+                html += f'<li>{item}</li>'
+    
+    html += '</ul>'
+    return html
+
+def format_summary_section(content: str) -> str:
+    """Format summary section"""
+    html = '<h2>Summary</h2>'
+    html += format_generic_content(content)
+    return html
+
+def format_generic_content(content: str) -> str:
+    """Format generic content with basic styling"""
+    # Handle bold text
+    content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', content)
+    
+    # Handle bullet points
+    lines = content.strip().split('\n')
+    formatted_lines = []
+    in_list = False
+    
+    for line in lines:
+        line = line.strip()
+        if line.startswith('- '):
+            if not in_list:
+                formatted_lines.append('<ul>')
+                in_list = True
+            formatted_lines.append(f'<li>{line.replace("- ", "")}</li>')
+        else:
+            if in_list:
+                formatted_lines.append('</ul>')
+                in_list = False
+            if line:
+                formatted_lines.append(f'<p>{line}</p>')
+    
+    if in_list:
+        formatted_lines.append('</ul>')
+    
+    return '\n'.join(formatted_lines)
+
+@app.get("/meal-plan/{analysis_id}")
+async def serve_meal_plan_analysis(analysis_id: str):
+    """Serve full cart analysis by ID as formatted HTML"""
+    try:
+        # Import our file utilities
+        from file_utils import get_analysis_by_id
+        
+        # Get the analysis data
+        analysis_data = get_analysis_by_id(analysis_id)
+        if not analysis_data:
+            return HTMLResponse(
+                "<h1>Analysis Not Found</h1><p>This meal plan analysis could not be found or may have expired.</p>",
+                status_code=404
+            )
+        
+        # Get analysis data
+        content = analysis_data.get('content', '')
+        created_at = analysis_data.get('created_at', '')
+        char_count = analysis_data.get('character_count', 0)
+        
+        # Parse the content to extract structured information
+        # This is more sophisticated than simple markdown conversion
+        html_content = parse_analysis_to_html(content)
+        
+        # Create full HTML page
+        html_page = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Farm to People - Cart Analysis</title>
+            <style>
+                body {{ 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    line-height: 1.6;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background-color: #f8f9fa;
+                    color: #333;
+                }}
+                .container {{
+                    background: white;
+                    padding: 30px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                }}
+                h1 {{ 
+                    color: #2c5530; 
+                    text-align: center;
+                    margin-bottom: 30px;
+                    font-size: 2.2em;
+                }}
+                h2 {{ 
+                    color: #2c5530; 
+                    border-bottom: 2px solid #7bb77b;
+                    padding-bottom: 8px;
+                    margin-top: 30px;
+                }}
+                h3 {{ 
+                    color: #4a7c59;
+                    margin-top: 25px;
+                    margin-bottom: 15px;
+                }}
+                .header {{
+                    text-align: center; 
+                    margin-bottom: 30px;
+                    padding-bottom: 20px;
+                    border-bottom: 1px solid #eee;
+                }}
+                .header p {{
+                    color: #666; 
+                    margin: 5px 0;
+                }}
+                .meal-item {{
+                    background: #f8fdf8;
+                    padding: 15px;
+                    margin: 10px 0;
+                    border-left: 4px solid #7bb77b;
+                    border-radius: 4px;
+                }}
+                .swap-item {{
+                    background: #fff4e6;
+                    padding: 15px;
+                    margin: 10px 0;
+                    border-left: 4px solid #ff9500;
+                    border-radius: 4px;
+                }}
+                .pricing {{
+                    background: #e8f5e8;
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    color: #2c5530;
+                }}
+                .status-complete {{
+                    color: #28a745;
+                    font-weight: bold;
+                }}
+                .confirm-buttons {{
+                    background: #e8f5e8;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin-top: 30px;
+                    text-align: center;
+                }}
+                .confirm-buttons p {{
+                    margin: 5px 0;
+                    font-weight: bold;
+                }}
+                .footer {{
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid #eee;
+                    font-size: 0.9em;
+                    color: #666;
+                    text-align: center;
+                }}
+                p {{
+                    margin: 12px 0;
+                }}
+                ul {{
+                    padding-left: 20px;
+                }}
+                li {{
+                    margin: 8px 0;
+                }}
+                strong {{
+                    color: #2c5530;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🛒 Your Cart Analysis</h1>
+                    <p>Generated by Farm to People AI</p>
+                </div>
+                
+                {html_content}
+                
+                <div class="confirm-buttons">
+                    <p>📱 Ready to get detailed recipes?</p>
+                    <p>Reply to our SMS with <strong>CONFIRM</strong> to generate your complete meal plan PDF</p>
+                </div>
+                
+                <div class="footer">
+                    <p>Analysis ID: {analysis_id} | Generated: {created_at[:16]} | {char_count:,} characters</p>
+                    <p>🌱 <strong>Farm to People</strong> - Fresh ingredients, strategic meal planning</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return HTMLResponse(html_page)
+        
+    except Exception as e:
+        print(f"Error serving meal plan analysis: {e}")
+        import traceback
+        traceback.print_exc()
+        return HTMLResponse(
+            "<h1>Error</h1><p>Sorry, there was an error loading your meal plan analysis.</p>",
+            status_code=500
+        )
 
 # This is a new test endpoint
 @app.post("/test-full-flow")
