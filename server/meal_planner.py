@@ -154,22 +154,25 @@ def generate_meal_plan(
     diet_hard = diet_hard or []
     dislikes = dislikes or []
     
-    # Build prompt (simplified version of original)
-    prompt = f"""Create a meal plan using these ingredients:
+    # Build enhanced prompt with preferences
+    prompt = f"""Create a personalized meal plan using these ingredients:
 {', '.join(ingredients)}
 
 Available products from Farm to People:
 {', '.join(master_product_list[:50])}  # Limit to avoid token overload
 
+USER PREFERENCES (MUST FOLLOW):
 Dietary restrictions: {', '.join(diet_hard) if diet_hard else 'None'}
 Dislikes: {', '.join(dislikes) if dislikes else 'None'}
 Time preference: {time_mode}
 
-Generate 3-5 meals that:
+REQUIREMENTS:
 1. Use the available ingredients efficiently
-2. Minimize waste
-3. Are balanced and nutritious
-4. Respect dietary preferences
+2. Respect ALL dietary restrictions and preferences
+3. If "high-protein" is specified, ensure 30g+ protein per meal
+4. If "quick meals" is specified, keep total time under 30 minutes
+5. Create balanced, nutritious meals
+6. Give each meal a descriptive, appetizing title
 
 Format as JSON with:
 - meals: array of meal objects with name, ingredients, servings
@@ -179,7 +182,7 @@ Format as JSON with:
     
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-5",  # Using GPT-5 as requested
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"}
         )
@@ -242,7 +245,7 @@ Return corrected JSON with same structure."""
     
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-5",  # Using GPT-5
             messages=[{"role": "user", "content": repair_prompt}],
             response_format={"type": "json_object"}
         )
@@ -313,12 +316,25 @@ def run_main_planner(cart_data: dict = None, user_preferences: dict = None, gene
             all_ingredients = get_all_ingredients_from_cart(cart_data, FARM_BOX_DATA_DIR)
             generate_meal_plan._alternatives_context = []
     
-    # Generate meal plan
+    # Extract preferences for meal planning
+    if user_preferences:
+        diet_hard = user_preferences.get('dietary_restrictions', [])
+        dislikes = user_preferences.get('dislikes', [])
+        # Add protein requirements based on goals
+        if 'high-protein' in user_preferences.get('goals', []):
+            diet_hard.append('high-protein (30g+ per meal)')
+        if 'quick-dinners' in user_preferences.get('goals', []):
+            diet_hard.append('quick meals (under 30 minutes)')
+    else:
+        diet_hard = []
+        dislikes = []
+    
+    # Generate meal plan with preferences
     meal_plan = generate_meal_plan(
         all_ingredients, 
         master_product_list,
-        diet_hard=[],  # TODO: Get from user preferences
-        dislikes=[],   # TODO: Get from user preferences
+        diet_hard=diet_hard,
+        dislikes=dislikes,
         time_mode="standard"
     )
     
