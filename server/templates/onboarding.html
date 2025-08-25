@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm to People - Personalize Your Experience</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Progress bar - research shows this increases completion rates */
+        .progress-container {
+            background: #f8f9fa;
+            height: 6px;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            transition: width 0.3s ease;
+            width: 25%; /* Start at step 1 of 4 */
+        }
+
+        /* Header section */
+        .header {
+            padding: 24px 24px 16px;
+            text-align: center;
+            background: white;
+        }
+
+        .step-indicator {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        /* Content section */
+        .content {
+            padding: 0 24px 32px;
+            min-height: 400px;
+        }
+
+        /* Step-specific styles */
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        /* Household size buttons */
+        .size-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .size-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .size-option:hover {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .size-option.selected {
+            border-color: #28a745;
+            background: #d4edda;
+            transform: scale(1.02);
+        }
+
+        .size-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #28a745;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Question sections for combined screens */
+        .question-section {
+            margin-bottom: 32px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 16px;
+        }
+        
+        /* Meal timing options */
+        .meal-timing-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .timing-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            position: relative;
+            min-height: 60px;
+        }
+        
+        .timing-option:hover {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+        
+        .timing-option.selected {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .timing-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        
+        .timing-label {
+            font-weight: 500;
+            font-size: 16px;
+            flex: 1;
+        }
+        
+        .timing-check {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .timing-option.selected .timing-check {
+            opacity: 1;
+        }
+        
+        /* Meal tiles - optimized for 2x3 grid on mobile */
+        .meal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .meal-tile {
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            border: 3px solid transparent;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meal-tile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        /* Selection state with checkmark overlay - research shows this is clearest */
+        .meal-tile.selected {
+            border-color: #28a745;
+            transform: scale(1.05);
+        }
+
+        .meal-tile.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #28a745;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 10;
+        }
+
+        .meal-image {
+            width: 100%;
+            aspect-ratio: 1;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        /* Zoom in on specific images that need tighter crops */
+        .meal-tile[data-meal-id="lemon-herb-roast-chicken"] .meal-image {
+            background-size: 180%;
+            background-position: center center;
+        }
+        
+        .meal-tile[data-meal-id="turkey-meatballs-farro"] .meal-image {
+            background-size: 140%;
+            background-position: center center;
+        }
+
+        .meal-name {
+            padding: 12px 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            background: white;
+            min-height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.4;
+            color: #212529;
+        }
+
+        /* Dietary restrictions - checkbox style for multiple selections */
+        .restrictions-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .restriction-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .restriction-option:hover {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .restriction-option.selected {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .restriction-text {
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .restriction-check {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #28a745;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .restriction-option:not(.selected) .restriction-check {
+            border-color: #dee2e6;
+            color: transparent;
+        }
+
+        /* Navigation buttons */
+        .nav-section {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        /* Skip option - research shows this can increase completion */
+        .skip-option {
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .skip-link {
+            color: #6c757d;
+            font-size: 14px;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .skip-link:hover {
+            color: #495057;
+        }
+
+        /* Selection counter for multi-select screens */
+        .selection-counter {
+            background: #e3f2fd;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: #1976d2;
+            text-align: center;
+            margin-top: 16px;
+            font-weight: 500;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 380px) {
+            .meal-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .meal-name {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Progress bar shows completion status -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <!-- Header with step indicator and dynamic content -->
+        <div class="header">
+            <div class="step-indicator" id="stepIndicator">Step 1 of 4</div>
+            <h1 class="title" id="stepTitle">Tell us about your household</h1>
+            <p class="subtitle" id="stepSubtitle">This helps us recommend the right portion sizes for your farm box meals.</p>
+        </div>
+
+        <!-- Dynamic content area -->
+        <div class="content">
+            <!-- Step 1: Household Size + Meal Timing -->
+            <div class="step active" id="step1">
+                <!-- Household Size Section -->
+                <div class="question-section">
+                    <h3 class="section-title">How many people are in your household?</h3>
+                    <div class="size-options">
+                        <div class="size-option" data-size="1-2">
+                            <span class="size-number">1-2</span>
+                            <span>people</span>
+                        </div>
+                        <div class="size-option" data-size="3-4">
+                            <span class="size-number">3-4</span>
+                            <span>people</span>
+                        </div>
+                        <div class="size-option" data-size="5-6">
+                            <span class="size-number">5-6</span>
+                            <span>people</span>
+                        </div>
+                        <div class="size-option" data-size="7+">
+                            <span class="size-number">7+</span>
+                            <span>people</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Meal Timing Section -->
+                <div class="question-section">
+                    <h3 class="section-title">Which meals do you want help with?</h3>
+                    <div class="meal-timing-options">
+                        <div class="timing-option" data-meal="breakfast">
+                            <span class="timing-icon">🌅</span>
+                            <span class="timing-label">Breakfast</span>
+                            <div class="timing-check">✓</div>
+                        </div>
+                        <div class="timing-option" data-meal="lunch">
+                            <span class="timing-icon">☀️</span>
+                            <span class="timing-label">Lunch</span>
+                            <div class="timing-check">✓</div>
+                        </div>
+                        <div class="timing-option" data-meal="dinner">
+                            <span class="timing-icon">🌙</span>
+                            <span class="timing-label">Dinner</span>
+                            <div class="timing-check">✓</div>
+                        </div>
+                        <div class="timing-option" data-meal="snacks">
+                            <span class="timing-icon">🍎</span>
+                            <span class="timing-label">Snacks</span>
+                            <div class="timing-check">✓</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <button class="btn btn-primary" id="step1Next" disabled>Continue</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Meal Preferences (Screen 1) -->
+            <div class="step" id="step2">
+                <div class="meal-grid" id="mealGrid1">
+                    <!-- Farm box meal tiles will be populated by JavaScript -->
+                </div>
+                
+                <div class="selection-counter" id="selectionCounter1">
+                    Pick at least 3 meals that sound delicious
+                </div>
+                
+                <div class="nav-section">
+                    <button class="btn btn-secondary" id="step2Back">Back</button>
+                    <button class="btn btn-primary" id="step2Next" disabled>Continue</button>
+                </div>
+                
+                <div class="skip-option">
+                    <span class="skip-link" id="skipMeals1">Skip this step</span>
+                </div>
+            </div>
+
+            <!-- Step 3: More Meal Preferences (Screen 2) -->
+            <div class="step" id="step3">
+                <div class="meal-grid" id="mealGrid2">
+                    <!-- Additional meal tiles -->
+                </div>
+                
+                <div class="selection-counter" id="selectionCounter2">
+                    Select 2 or more cooking styles (optional)
+                </div>
+                
+                <div class="nav-section">
+                    <button class="btn btn-secondary" id="step3Back">Back</button>
+                    <button class="btn btn-primary" id="step3Next">Continue</button>
+                </div>
+                
+                <div class="skip-option">
+                    <span class="skip-link" id="skipMeals2">Skip — we'll learn your style from your meal choices!</span>
+                </div>
+            </div>
+
+            <!-- Step 4: Dietary Restrictions -->
+            <div class="step" id="step4">
+                <div class="restrictions-grid">
+                    <div class="restriction-option" data-restriction="high-protein">
+                        <span class="restriction-text">🥩 High Protein</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option" data-restriction="vegetarian">
+                        <span class="restriction-text">🥬 Vegetarian</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option" data-restriction="vegan">
+                        <span class="restriction-text">🌱 Vegan</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option" data-restriction="gluten-free">
+                        <span class="restriction-text">🌾 Gluten-Free</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option" data-restriction="dairy-free">
+                        <span class="restriction-text">🥛 Dairy-Free</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option" data-restriction="low-carb">
+                        <span class="restriction-text">🍞 Low-Carb / Keto</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option" data-restriction="paleo">
+                        <span class="restriction-text">🦴 Paleo</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option" data-restriction="pescatarian">
+                        <span class="restriction-text">🐟 Pescatarian</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option" data-restriction="mediterranean">
+                        <span class="restriction-text">🫒 Mediterranean</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option" data-restriction="none">
+                        <span class="restriction-text">No specific dietary preferences</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <button class="btn btn-secondary" id="step4Back">Back</button>
+                    <button class="btn btn-primary" id="step4Next">Almost Done!</button>
+                </div>
+                
+                <div class="skip-option">
+                    <span class="skip-link" id="skipRestrictions">Skip this step</span>
+                </div>
+            </div>
+
+            <!-- Step 5: Goals -->
+            <div class="step" id="step5">
+                <div class="selection-hint" style="margin-bottom: 20px; color: #6c757d; font-size: 14px;">
+                    Select up to 2 goals that matter most to you
+                </div>
+                
+                <div class="restrictions-grid">
+                    <div class="restriction-option goal-option" data-goal="quick-dinners">
+                        <span class="restriction-text">⏱️ Quick Dinners</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option goal-option" data-goal="whole-food">
+                        <span class="restriction-text">🥬 Whole Food</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option goal-option" data-goal="new-recipes">
+                        <span class="restriction-text">🌍 New Recipes</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option goal-option" data-goal="reduce-waste">
+                        <span class="restriction-text">♻️ Reduce Waste</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                    <div class="restriction-option goal-option" data-goal="family-friendly">
+                        <span class="restriction-text">👨‍👩‍👧‍👦 Family Friendly</span>
+                        <div class="restriction-check">✓</div>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <button class="btn btn-secondary" id="step5Back">Back</button>
+                    <button class="btn btn-primary" id="step5Next">Continue</button>
+                </div>
+                
+                <div class="skip-option">
+                    <span class="skip-link" id="skipGoals">Skip this step</span>
+                </div>
+            </div>
+            
+            <!-- Step 6: FTP Account Setup -->
+            <div class="step" id="step6">
+                <div class="account-form" style="max-width: 400px; margin: 0 auto;">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="ftpEmail" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">
+                            Farm to People Email *
+                        </label>
+                        <input type="email" id="ftpEmail" class="form-control" placeholder="your@email.com" 
+                               style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 16px;">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="ftpPassword" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">
+                            Password *
+                        </label>
+                        <input type="password" id="ftpPassword" class="form-control" placeholder="••••••••" 
+                               style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 16px;">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label for="phoneNumber" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">
+                            Phone Number (optional - for SMS updates)
+                        </label>
+                        <input type="tel" id="phoneNumber" class="form-control" placeholder="+1 (555) 123-4567" 
+                               style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 16px;">
+                        <small style="color: #6c757d; font-size: 13px; margin-top: 4px; display: block;">
+                            Get text updates about your meal plans and cart analysis
+                        </small>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                        <p style="margin: 0; font-size: 14px; color: #495057;">
+                            🔒 Your credentials are encrypted and only used to access your cart for meal planning.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <button class="btn btn-secondary" id="step6Back">Back</button>
+                    <button class="btn btn-primary" id="completeOnboarding" disabled>Complete Setup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/onboarding.js"></script>
+</body>
+</html>

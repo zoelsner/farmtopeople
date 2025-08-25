@@ -1,123 +1,80 @@
 # 🤖 CLAUDE.md - Farm to People AI Assistant Development Guide
 
-## 🎯 SYSTEM OVERVIEW
+## 🎯 PROJECT OVERVIEW
 
-**Farm to People AI Assistant** is an SMS-based meal planning system that:
-1. Receives SMS messages via Vonage webhook (`18334391183`)
-2. Scrapes user's Farm to People cart contents using Playwright
-3. Generates sophisticated cart analysis with GPT-5 powered recommendations
-4. Provides two-stage confirmation flow (SMS summary → Web view → PDF recipes)
-5. Sends professional meal plans with progressive disclosure
+**Farm to People AI Assistant** transforms weekly produce boxes into personalized meal plans through intelligent SMS conversations. The system learns user preferences, analyzes cart contents, and delivers actionable cooking guidance.
 
-### Current Architecture (Refactored August 2025)
-```
-SMS → FastAPI Server → Background Task → Comprehensive Scraper → Cart Analyzer (GPT-5)
-  ↓                                              ↓                        ↓
-Supabase (user credentials)              Product Catalog        Web Endpoint (/meal-plan/{id})
-                                        (Post-processing)              ↓
-                                              ↓                  Professional HTML View
-                                        Real Pricing Added               ↓
-                                                                   CONFIRM → PDF Recipes
-```
-
-### 🚀 LATEST UPDATE: Professional Web Meal Plan Viewer
-- **Web Endpoint**: `/meal-plan/{analysis_id}` - Full cart analysis with professional formatting
-- **Modular Architecture**: Refactored into cart_analyzer.py, product_catalog.py, file_utils.py
-- **Clean Cart Display**: Dynamic product name standardization, proper quantities
-- **Progressive Disclosure**: SMS (2-3 segments) → Web (full analysis) → PDF (detailed recipes)
-- **Smart Pricing**: Only shows prices on suggested additions, not current cart items
+**Current Status:** Development Phase - Core functionality complete, preparing for production deployment  
+**Last Updated:** August 24, 2025  
+**Version:** 2.1.0  
+**Primary Contact:** SMS `18334391183` (Vonage)
 
 ---
 
-## 📊 TWO-STAGE CONFIRMATION SYSTEM
+## 🚀 QUICK START
 
-### **✅ PRODUCTION READY: Cart Analysis → Confirmation → Recipes**
-
-**Status**: Complete two-stage flow with web viewer and PDF generation (placeholder)
-
-### **📱 Progressive Disclosure Flow**
-```
-SMS "plan" → Cart Scraper → GPT-5 Analysis → SMS Summary (2-3 segments)
-     ↓                                               ↓
-Web Link Included                           "View full analysis: /meal-plan/{id}"
-     ↓                                               ↓
-User Reply "CONFIRM"                        Professional HTML View
-     ↓                                               ↓
-PDF Recipe Generation                        Cart Overview + Swaps + Meals
-```
-
-**SMS Summary**: ~400 chars with key swaps and meal count
-**Web View**: Full analysis with professional formatting
-**PDF Recipes**: Detailed cooking instructions after confirmation (pending implementation)
-
-### **✅ COMPLETED IMPROVEMENTS (August 2025)**
-
-**Cart Analysis System**:
-- ✅ GPT-5 powered sophisticated meal planning
-- ✅ Professional web viewer with HTML formatting
-- ✅ Clean product name standardization
-- ✅ Two-stage confirmation flow
-- ✅ Progressive disclosure for SMS optimization
-
-**Formatting Standards**:
-- ✅ Consistent product names with quantities
-- ✅ Pricing only on suggested additions
-- ✅ Professional swap recommendations with reasoning
-- ✅ Meal cards with ingredients and status
-
-### **🎯 PENDING FEATURES**
-
-1. **Cart Total Calculation**:
-   - Add total value of current cart
-   - Show savings with recommended swaps
-   - Calculate cost of suggested additions
-
-2. **Railway Deployment**:
-   - Deploy to production with Supabase
-   - Configure environment variables
-   - Set up proper SMS routing
-
-3. **PDF Recipe Enhancement**:
-   - Implement actual PDF generation (currently placeholder)
-   - Add detailed cooking instructions
-   - Include storage tips and techniques
-
----
-
-## 🚨 CRITICAL DEVELOPMENT RULES
-
-### **RULE #1: VIRTUAL ENVIRONMENT REQUIRED**
+### **Test the System**
 ```bash
-# ALWAYS activate venv before running:
+# 1. Activate virtual environment (REQUIRED)
 source venv/bin/activate
-cd scrapers
-python comprehensive_scraper.py
+
+# 2. Start the server
+python server/server.py
+
+# 3. Test onboarding flow
+open http://localhost:8000/onboard
+
+# 4. Test cart scraping
+cd scrapers && python comprehensive_scraper.py
+
+# 5. Simulate SMS flow
+curl -X POST http://localhost:8000/test-full-flow
 ```
 
-### **RULE #2: MODULAR ARCHITECTURE**
-- **cart_analyzer.py**: GPT-5 cart analysis generation
-- **product_catalog.py**: Product pricing and matching
-- **file_utils.py**: Analysis storage and retrieval
-- **meal_planner.py**: Main orchestrator (maintains backward compatibility)
+### **Critical Development Rules**
+- ✅ ALWAYS activate venv before running Python code
+- ✅ Test comprehensive_scraper.py before making changes
+- ✅ Restart server after code modifications
+- ✅ Check DEBUGGING_PROTOCOL.md before fixing scrapers
+- ✅ NEVER run scrapers without venv activated
+- ✅ NEVER assume server sees code changes without restart
 
-### **RULE #3: AUTHENTICATION IS CRITICAL**  
-- **Two-step login:** Email → LOG IN → Password → LOG IN
-- **Environment variables:** Check BOTH `EMAIL`/`PASSWORD` AND `FTP_EMAIL`/`FTP_PWD`
-- **Diagnostic:** Zipcode modal = authentication failed
+---
 
-### **RULE #4: SERVER RESTART REQUIRED**
-- **After code changes:** Kill server process and restart
-- **Check processes:** `ps aux | grep "python.*server.py"`
-- **Python caches modules:** Running servers don't see file changes
+## 📚 DOCUMENTATION INDEX
+
+### **Business & Product Docs**
+- [`docs/complete_business_flow.md`](docs/complete_business_flow.md) - End-to-end customer journey with confirmation flow
+- [`docs/updated_business_flow.md`](docs/updated_business_flow.md) - Latest requirements (high-protein, meal calendar)
+- [`docs/system_gap_analysis.md`](docs/system_gap_analysis.md) - Current gaps and improvement roadmap
+- [`docs/ONBOARDING_SYSTEM.md`](docs/ONBOARDING_SYSTEM.md) - Preference collection implementation
+
+### **Technical Documentation**
+- [`docs/refactoring_opportunities.md`](docs/refactoring_opportunities.md) - Architecture improvements & conversation state management
+- [`docs/conversational_ai_architecture.md`](docs/conversational_ai_architecture.md) - AI system design patterns
+- [`DEBUGGING_PROTOCOL.md`](DEBUGGING_PROTOCOL.md) - Scraper troubleshooting guide
+- [`CRITICAL_SCRAPING_LESSONS_LEARNED.md`](CRITICAL_SCRAPING_LESSONS_LEARNED.md) - Historical failures & solutions
+
+---
+
+## 🏗️ SYSTEM ARCHITECTURE
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   ONBOARDING │────▶│   SMS FLOW   │────▶│   DELIVERY   │
+│   (6 steps)  │     │  (Vonage)    │     │   (PDF/Web)  │
+└──────────────┘     └──────────────┘     └──────────────┘
+        │                    │                     │
+        ▼                    ▼                     ▼
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   SUPABASE   │◀────│   SCRAPER    │────▶│   GPT-4/5    │
+│ (Preferences)│     │ (Playwright) │     │   (Meals)    │
+└──────────────┘     └──────────────┘     └──────────────┘
+```
 
 ---
 
 ## 📱 CURRENT SMS FLOW
-
-### **Vonage Configuration**
-- **Phone Number:** `18334391183`
-- **Webhook Endpoint:** `/sms/incoming` (GET/POST)
-- **Two-Stage Flow:** SMS Summary → Web Link → CONFIRM → PDF
 
 ### **Message Routing (server.py:215-239)**
 ```python
@@ -125,13 +82,14 @@ if "hello" in user_message:
     reply = "Hi there! I'm your Farm to People meal planning assistant."
 
 elif "plan" in user_message:
-    # Generates cart analysis with web link
     reply = "We are preparing your personalized meal plan now..."
     background_tasks.add_task(run_full_meal_plan_flow, user_phone_number)
 
-elif "confirm" in user_message and user_state == 'awaiting_confirmation':
-    # User confirmed - generate detailed PDF recipes
-    background_tasks.add_task(generate_confirmed_meal_plan, phone_number)
+elif "new" in user_message:
+    # User registration with secure login link
+
+elif "login" in user_message or "email" in user_message:
+    # Secure credential collection link
 ```
 
 ### **Progress SMS Updates**
@@ -140,11 +98,8 @@ elif "confirm" in user_message and user_state == 'awaiting_confirmation':
 1. "🔍 Looking up your account..."
 2. "🔐 Found your account! Logging into Farm to People..."  
 3. "📦 Analyzing your current cart and customizable boxes..."
-4. "📋 Analyzing your cart and creating strategic meal plan..."
-5. [Cart Analysis Summary with Web Link]
-
-# After user views web analysis and replies CONFIRM:
-6. "🍽️ Your personalized meal plan is ready! [PDF Link]"
+4. "🤖 Generating personalized meal plans with your ingredients..."
+5. [Final meal plan SMS]
 ```
 
 ---
@@ -163,11 +118,19 @@ elif "confirm" in user_message and user_state == 'awaiting_confirmation':
 {
   "individual_items": [
     {
-      "name": "Organic & Fair Trade Hass Avocados",
+      "name": "Organic Hass Avocados",
       "quantity": 5,
       "unit": "1 piece", 
       "price": "$12.50",
       "type": "individual"
+    }
+  ],
+  "non_customizable_boxes": [
+    {
+      "box_name": "Seasonal Fruit Medley",
+      "selected_items": [...],
+      "selected_count": 3,
+      "customizable": false
     }
   ],
   "customizable_boxes": [
@@ -184,24 +147,79 @@ elif "confirm" in user_message and user_state == 'awaiting_confirmation':
 
 ---
 
-## 🎯 FILE STRUCTURE & STATUS
+## 📊 CURRENT IMPLEMENTATION STATUS
 
+### ✅ **COMPLETED FEATURES**
+- **Onboarding System** - 6-step preference collection with FTP integration
+- **Cart Scraping** - Comprehensive capture of all cart types
+- **SMS Integration** - Vonage webhook with progress updates
+- **Preference Analysis** - 20-30 signal extraction system
+- **Database Schema** - Supabase user/preference storage
+- **Personalized Analysis** - Preference-driven meal recommendations
+- **Ingredient Storage Guide** - Proper storage instructions
+
+### 🚧 **IN PROGRESS**
+- **Conversation State Management** - Multi-turn SMS conversations
+- **Confirmation Flow** - User approval before recipe generation
+- **Cart Total Calculation** - Pricing transparency
+- **Live Cart Integration** - Connect scraper to meal planner
+
+### 📝 **PLANNED FEATURES**
+- **Recipe PDF Generation** - Full cooking instructions
+- **Weekly Feedback Loop** - Recipe rating system
+- **Seasonal Intelligence** - Produce availability awareness
+- **Railway Deployment** - Production hosting
+- **Preference Evolution** - Learning from user behavior
+
+---
+
+## 🚨 CRITICAL GAPS & HANDOFF ISSUES
+
+### **Gap 1: Preferences → Meal Planning**
+**Issue**: Collected preferences not utilized in GPT prompts  
+**Impact**: Missing personalization opportunity despite data collection  
+**Solution**:
+```python
+# In server.py run_full_meal_plan_flow():
+user_record = db.get_user_by_phone(phone_number)
+preferences = user_record.get('preferences', {})
+
+# Pass to meal_planner:
+plan = meal_planner.run_main_planner(preferences)  # ADD THIS
 ```
-farmtopeople/
-├── venv/                      # Virtual environment (MUST ACTIVATE)
-├── server/
-│   ├── server.py              # FastAPI webhook + web endpoints
-│   ├── cart_analyzer.py       # ✅ GPT-5 cart analysis generation
-│   ├── product_catalog.py     # ✅ Product pricing post-processor
-│   ├── file_utils.py          # ✅ Analysis storage/retrieval
-│   ├── meal_planner.py        # ✅ Main orchestrator (refactored)
-│   └── supabase_client.py     # Database operations  
-├── scrapers/
-│   ├── comprehensive_scraper.py # ✅ PRIMARY PRODUCTION SCRAPER
-│   └── complete_cart_scraper.py # ✅ WORKING BACKUP SCRAPER
-├── analyses/                  # JSON analysis storage
-├── farm_box_data/             # JSON outputs (customize_results_*.json)
-└── CLAUDE.md                  # THIS FILE - Primary documentation
+
+### **Gap 2: Live Cart → Real Analysis**
+**Issue**: Scraper works but test data still used  
+**Impact**: Recommendations don't reflect actual purchased ingredients  
+**Solution**: Ensure meal_planner uses actual scraped JSON data
+
+### **Gap 3: Goals → Ranking Logic**
+**Issue**: Goal weights defined but not implemented  
+**Impact**: "Quick dinners" goal doesn't prioritize fast recipes  
+**Solution**: Implement ranking adjustments based on goals
+
+---
+
+## 💻 KEY CODE COMPONENTS
+
+### **Core Files**
+```
+server/
+├── server.py                 # FastAPI webhook & orchestration
+├── meal_planner.py          # OpenAI GPT integration (needs preference integration)
+├── onboarding.py            # Preference analysis engine ✅
+└── supabase_client.py       # Database operations ✅
+
+scrapers/
+├── comprehensive_scraper.py  # PRIMARY: Full cart extraction ✅
+└── complete_cart_scraper.py # BACKUP: Alternative implementation ✅
+
+templates/
+├── onboarding.html          # 6-step UI flow ✅
+└── index.html               # Marketing landing page
+
+static/
+└── onboarding.js            # Frontend controller ✅
 ```
 
 ---
@@ -217,62 +235,145 @@ source venv/bin/activate
 cd scrapers
 python comprehensive_scraper.py
 
-# Test web endpoint:
-curl http://localhost:8000/meal-plan/c95d0afd
+# Check latest output:
+ls -lt ../farm_box_data/customize_results_*.json | head -1
 
+# Verify JSON structure:
+head -20 ../farm_box_data/customize_results_20250822_093323.json
+```
+
+### **Server Operations**
+```bash
 # Start server:
 python server/server.py
+
+# Check running processes:
+ps aux | grep "python.*server.py"
+
+# Kill server (use actual PID):
+kill [PID]
+
+# Test SMS flow:
+curl -X POST http://localhost:8000/test-full-flow
 ```
 
-### **Environment Variables**
+---
+
+## 🚨 CRITICAL ENVIRONMENT VARIABLES
+
 ```bash
-# Required .env variables:
-EMAIL=your@email.com           # OR FTP_EMAIL  
-PASSWORD=yourpassword          # OR FTP_PWD
-VONAGE_API_KEY=xxx
-VONAGE_API_SECRET=xxx  
-VONAGE_PHONE_NUMBER=18334391183
-OPENAI_API_KEY=xxx
-SUPABASE_URL=xxx
-SUPABASE_KEY=xxx
+# Required in .env file
+EMAIL=your@email.com              # Farm to People login (or FTP_EMAIL)
+PASSWORD=yourpassword             # Farm to People password (or FTP_PWD)
+VONAGE_API_KEY=xxx               # SMS service
+VONAGE_API_SECRET=xxx            
+VONAGE_PHONE_NUMBER=18334391183  # System phone number
+YOUR_PHONE_NUMBER=+1234567890    # Test recipient
+OPENAI_API_KEY=xxx               # GPT-4 access
+SUPABASE_URL=xxx                 # Database URL
+SUPABASE_KEY=xxx                 # Database key
 ```
 
 ---
 
-## 🚨 DEBUGGING PROTOCOL
+## 📈 KEY METRICS & TARGETS
 
-### **Before Making ANY Changes:**
-1. **Activate venv:** `source venv/bin/activate`
-2. **Test current functionality:** `python comprehensive_scraper.py`
-3. **Check server:** `ps aux | grep "python.*server.py"`
-4. **Verify web endpoint:** `curl http://localhost:8000/meal-plan/{id}`
+### **User Experience**
+- Onboarding Completion: >85% target
+- Cart Analysis Speed: <30 seconds
+- Confirmation Rate: >80% target
+- Recipe Execution: >70% cook 2+ meals/week
 
-### **Common Issues:**
-- ❌ `command not found: python` → venv not activated
-- ❌ Zipcode modal appears → auth failure  
-- ❌ Empty cart overview → parsing issue with GPT output
-- ❌ Server doesn't see changes → restart required
+### **Technical Performance**
+- Scraper Success Rate: >95%
+- SMS Delivery Rate: >99%
+- AI Response Quality: >8/10 satisfaction
+- System Uptime: >99.5%
 
----
-
-## 🎯 CURRENT SYSTEM STATUS
-
-### **✅ WORKING COMPONENTS:**
-- **Scraper:** comprehensive_scraper.py (all cart types)
-- **Analysis:** GPT-5 powered cart analysis
-- **Web Viewer:** Professional HTML formatting
-- **SMS Flow:** Two-stage confirmation system
-- **Modular Architecture:** Clean separation of concerns
-
-### **🔧 PENDING IMPLEMENTATION:**
-- **PDF Generation:** Currently returns placeholder
-- **Cart Totals:** Need to calculate current cart value
-- **Production Deploy:** Railway + Supabase configuration
+### **Protein Requirements (NEW)**
+- Women: 30g minimum per meal
+- Men: 35-40g minimum per meal
+- All meals must show protein content
 
 ---
 
-**Last Updated:** August 23, 2025  
-**Primary Maintainer:** Farm to People AI Team
-**Status:** ✅ Production Ready (pending PDF implementation)
+## 🎯 NEXT SPRINT GOALS (Priority Order)
 
-*This is the primary documentation. All other .md files are archived or redundant.*
+### **Sprint 1: Core Integration (Week 1)**
+1. Connect live cart data to meal planner
+2. Integrate user preferences into GPT prompts
+3. Implement conversation state management
+4. Add confirmation flow with modifications
+
+### **Sprint 2: User Experience (Week 2)**
+1. Generate recipe PDFs with full instructions
+2. Add cart total calculations
+3. Implement meal calendar visualization
+4. Build weekly feedback collection
+
+### **Sprint 3: Production Ready (Week 3)**
+1. Deploy to Railway with monitoring
+2. Add error recovery and retries
+3. Implement caching strategy
+4. Set up analytics tracking
+
+---
+
+## 🆘 TROUBLESHOOTING
+
+### **Common Issues**
+```bash
+# Virtual environment not activated
+command not found: python
+# Fix: source venv/bin/activate
+
+# Server not restarting
+Changes not reflected
+# Fix: ps aux | grep server.py && kill [PID]
+
+# Scraper authentication fails
+Zipcode modal appears
+# Fix: Check EMAIL/PASSWORD in .env
+
+# Cart data not updating
+Using old test data
+# Fix: Check meal_planner.py uses latest JSON
+
+# Terminal shows no comprehensive output
+Missing individual items or boxes
+# Fix: venv not activated OR authentication failed
+```
+
+---
+
+## 📞 SUPPORT & RESOURCES
+
+- **GitHub Issues:** Report bugs at project repository
+- **Documentation:** See `/docs` folder for detailed guides
+- **Test Data:** Sample JSONs in `/farm_box_data`
+- **Logs:** Check terminal output and `server.log`
+- **Debug Protocol:** ALWAYS check DEBUGGING_PROTOCOL.md first
+
+---
+
+## 🚀 DEPLOYMENT CHECKLIST
+
+- [ ] All tests passing
+- [ ] Environment variables configured
+- [ ] Database migrations complete
+- [ ] Vonage webhook configured
+- [ ] SSL certificates ready
+- [ ] Monitoring enabled (Sentry/DataDog)
+- [ ] Error tracking setup
+- [ ] Documentation updated
+- [ ] Conversation state management tested
+- [ ] Rate limiting configured
+
+---
+
+**Last Updated:** August 24, 2025  
+**Version:** 2.1.0  
+**Status:** Development - Core complete, integration gaps identified  
+**Next Sprint:** Week of August 26 - Core Integration Focus
+
+*This guide provides the essential information for developing and maintaining the Farm to People AI Assistant. For detailed implementation specifics, refer to the documentation index above.*
