@@ -1,11 +1,15 @@
 import json
 import os
 import re
+import uuid
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote
 
 from fastapi import FastAPI, Form, Request, BackgroundTasks
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 import vonage
 from dotenv import load_dotenv
 # Add paths for imports
@@ -28,6 +32,12 @@ load_dotenv(dotenv_path=project_root / '.env')
 
 
 app = FastAPI()
+
+# Mount static files for serving CSS/JS assets
+app.mount("/static", StaticFiles(directory="server/static"), name="static")
+
+# Setup templates for serving HTML pages
+templates = Jinja2Templates(directory="server/templates")
 
 @app.get("/health")
 async def health_check():
@@ -209,18 +219,21 @@ def run_full_meal_plan_flow(phone_number: str):
     send_progress_sms(phone_number, "📦 Analyzing your current cart and customizable boxes...")
     
     try:
+        # Pass credentials directly to scraper (thread-safe!)
+        cart_data = None
         if user_data and user_data.get('ftp_email') and user_data.get('ftp_password'):
-            print("🔐 Credentials found. Setting environment variables for scraper.")
-            os.environ['EMAIL'] = user_data['ftp_email']
-            os.environ['PASSWORD'] = user_data['ftp_password']
+            print("🔐 Credentials found. Running personalized cart scrape...")
+            credentials = {
+                'email': user_data['ftp_email'],
+                'password': user_data['ftp_password']
+            }
+            # Get cart data directly from scraper
+            cart_data = run_cart_scraper(credentials=credentials, return_data=True)
+            print(f"✅ Cart scraping completed: {len(cart_data.get('individual_items', [])) if cart_data else 0} items")
         else:
-            print("⚠️ No credentials found for this user. Scraper will run without login.")
-            # Ensure env vars are not set from a previous run
-            if 'EMAIL' in os.environ: del os.environ['EMAIL']
-            if 'PASSWORD' in os.environ: del os.environ['PASSWORD']
-
-        run_cart_scraper()
-        print("✅ Cart scraping completed successfully")
+            print("⚠️ No credentials found for this user. Cannot scrape cart.")
+            send_progress_sms(phone_number, "❌ Please connect your Farm to People account first. Text 'new' to get started.")
+            return
         
         # ✅ NEW: Check if user has preferences, if not collect them
         user_preferences = check_and_collect_preferences(phone_number, user_data)
@@ -260,9 +273,14 @@ def run_full_meal_plan_flow(phone_number: str):
     if 'EMAIL' in os.environ: del os.environ['EMAIL']
     if 'PASSWORD' in os.environ: del os.environ['PASSWORD']
 
-    # Step 2: Run the meal planner with user preferences
+    # Step 2: Run the meal planner with REAL cart data and user preferences!
     skill_level = user_preferences.get('cooking_skill_level', 'intermediate')
-    plan = meal_planner.run_main_planner(generate_detailed_recipes=True, user_skill_level=skill_level)
+    plan = meal_planner.run_main_planner(
+        cart_data=cart_data,  # Pass the actual scraped cart!
+        user_preferences=user_preferences,  # Pass user preferences!
+        generate_detailed_recipes=True, 
+        user_skill_level=skill_level
+    )
     
     # Step 3: Generate PDF meal plan (now with professional recipes)
     pdf_path = None
@@ -1024,6 +1042,39 @@ async def test_full_flow(background_tasks: BackgroundTasks):
     print(f"--- TRIGGERING FULL FLOW FOR {test_phone_number} ---")
     background_tasks.add_task(run_full_meal_plan_flow, test_phone_number)
     return {"status": "ok", "message": f"Meal planning process started for {test_phone_number}. The result will be sent via SMS."}
+
+# ============================================================================
+# PREFERENCE ONBOARDING ENDPOINTS
+# Research-backed onboarding flow with farm box meal selection
+# ============================================================================
+
+@app.get("/onboard")
+async def serve_onboarding(request: Request, phone: str = None):
+    """
+    Serve the tile-based preference onboarding flow.
+    
+    This implements research-backed UX patterns:
+    - <2 minute completion time
+    - Progressive disclosure (70/30 familiar/adventurous meals)
+    - Clear selection states with visual feedback
+    - Skip options to reduce friction
+    - 4-step flow: Household → Meals → Restrictions → Goals
+    """
+    return templates.TemplateResponse("onboarding.html", {
+        "request": request,
+        "phone": phone
+    })
+
+@app.post("/api/onboarding")
+async def save_onboarding_preferences(request: Request):
+    """
+    Save user preferences from onboarding flow.
+    
+    This delegates to the onboarding module to keep server.py lean.
+    """
+    import onboarding
+    data = await request.json()
+    return await onboarding.save_preferences(data)
 
 if __name__ == "__main__":
     import uvicorn

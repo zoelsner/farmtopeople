@@ -254,7 +254,7 @@ Return corrected JSON with same structure."""
         return faulty_plan
 
 
-def run_main_planner(generate_detailed_recipes: bool = False, user_skill_level: str = "intermediate"):
+def run_main_planner(cart_data: dict = None, user_preferences: dict = None, generate_detailed_recipes: bool = False, user_skill_level: str = "intermediate"):
     """
     Main orchestration function called by server.py.
     Generates a complete meal plan with optional recipe enhancement.
@@ -272,32 +272,46 @@ def run_main_planner(generate_detailed_recipes: bool = False, user_skill_level: 
     # Get product list
     master_product_list = get_master_product_list()
     
-    # Try comprehensive format first
-    latest_file = get_latest_comprehensive_file(FARM_BOX_DATA_DIR)
-    
-    if latest_file:
-        comprehensive_data = load_cart_data(latest_file)
-        all_ingredients, analysis_data = get_comprehensive_ingredients_and_data(comprehensive_data)
+    # Use passed cart_data if available, otherwise read from file
+    if cart_data:
+        print("✅ Using passed cart data directly")
+        all_ingredients, analysis_data = get_comprehensive_ingredients_and_data(cart_data)
         
         # Set alternatives context for the AI
         alternatives = []
         for box in analysis_data.get("customizable_boxes", []):
             alternatives.extend(box.get("available_alternatives", []))
         
-        # Store alternatives for prompt context (hacky but maintains compatibility)
         generate_meal_plan._alternatives_context = [alt.get("name", "") for alt in alternatives]
         
     else:
-        # Fallback to legacy cart format
-        latest_cart_file = get_latest_cart_file(FARM_BOX_DATA_DIR)
-        if not latest_cart_file:
-            return {"error": "Could not find cart data."}
+        # Fallback to reading from file
+        print("⚠️ No cart data passed, reading from file")
+        latest_file = get_latest_comprehensive_file(FARM_BOX_DATA_DIR)
+    
+        if latest_file:
+            comprehensive_data = load_cart_data(latest_file)
+            all_ingredients, analysis_data = get_comprehensive_ingredients_and_data(comprehensive_data)
             
-        with open(latest_cart_file, 'r') as f:
-            cart_data = json.load(f)
-        
-        all_ingredients = get_all_ingredients_from_cart(cart_data, FARM_BOX_DATA_DIR)
-        generate_meal_plan._alternatives_context = []
+            # Set alternatives context for the AI
+            alternatives = []
+            for box in analysis_data.get("customizable_boxes", []):
+                alternatives.extend(box.get("available_alternatives", []))
+            
+            # Store alternatives for prompt context (hacky but maintains compatibility)
+            generate_meal_plan._alternatives_context = [alt.get("name", "") for alt in alternatives]
+            
+        else:
+            # Fallback to legacy cart format
+            latest_cart_file = get_latest_cart_file(FARM_BOX_DATA_DIR)
+            if not latest_cart_file:
+                return {"error": "Could not find cart data."}
+                
+            with open(latest_cart_file, 'r') as f:
+                cart_data = json.load(f)
+            
+            all_ingredients = get_all_ingredients_from_cart(cart_data, FARM_BOX_DATA_DIR)
+            generate_meal_plan._alternatives_context = []
     
     # Generate meal plan
     meal_plan = generate_meal_plan(

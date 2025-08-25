@@ -93,7 +93,18 @@ def scrape_customize_modal(page):
         "alternatives_count": len(available_alternatives)
     }
 
-def main():
+def main(credentials=None, return_data=False):
+    """
+    Main scraper function.
+    
+    Args:
+        credentials: Dict with 'email' and 'password' keys (optional)
+        return_data: If True, return the scraped data instead of just saving to file
+        
+    Returns:
+        If return_data=True: Dict with scraped cart data
+        Otherwise: None (saves to file)
+    """
     output_dir = Path("../farm_box_data")
     output_dir.mkdir(exist_ok=True)
     
@@ -120,9 +131,13 @@ def main():
         if "login" in current_url or login_form_visible or login_link_visible:
             print("🔐 Login page detected. Performing login...")
             
-            # Get credentials - try both variable names
-            email = os.getenv("EMAIL") or os.getenv("FTP_EMAIL")
-            password = os.getenv("PASSWORD") or os.getenv("FTP_PWD")
+            # Get credentials - use passed credentials first, then env vars
+            if credentials:
+                email = credentials.get('email')
+                password = credentials.get('password')
+            else:
+                email = os.getenv("EMAIL") or os.getenv("FTP_EMAIL")
+                password = os.getenv("PASSWORD") or os.getenv("FTP_PWD")
             
             if not email or not password:
                 print("❌ No credentials found in environment (EMAIL/PASSWORD)")
@@ -465,7 +480,7 @@ def main():
             "customizable_boxes": all_box_data
         }
         
-        # Save results
+        # Save results to file (always, for debugging)
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         output_file = output_dir / f"customize_results_{timestamp}.json"
         
@@ -473,6 +488,13 @@ def main():
             json.dump(complete_results, f, indent=2)
         
         print(f"\n🎉 COMPLETE! Results saved to: {output_file}")
+        
+        # Return data if requested
+        if return_data:
+            print("📤 Returning cart data to caller...")
+            context.close()
+            browser.close()
+            return complete_results
         print(f"\n📈 SUMMARY:")
         if individual_items:
             print(f"  Individual Items:")
