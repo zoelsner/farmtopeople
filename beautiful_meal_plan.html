@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Box Optimizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #ffffff;
+            color: #1a1a1a;
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .preview-badge {
+            display: inline-block;
+            background: #2c2c2c;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        
+        h1 {
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            margin-top: 40px;
+        }
+        
+        .section {
+            margin-bottom: 32px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .subsection-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            margin-top: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .item-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .item-icon {
+            width: 32px;
+            height: 32px;
+            background: #e8e8e8;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .item-details {
+            flex: 1;
+        }
+        
+        .item-name {
+            font-weight: 500;
+            line-height: 1.3;
+        }
+        
+        .item-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        .star {
+            color: #22c55e;
+            font-size: 16px;
+        }
+        
+        .recipe-card {
+            padding: 16px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .recipe-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        
+        .recipe-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            padding: 3px 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #666;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .tag.vegetarian { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
+        .tag.high-protein { background: #fce4ec; color: #c2185b; border-color: #f8bbd0; }
+        .tag.omega-3 { background: #e3f2fd; color: #1976d2; border-color: #bbdefb; }
+        .tag.seasonal { background: #fff3e0; color: #f57c00; border-color: #ffe0b2; }
+        .tag.comfort { background: #f3e5f5; color: #7b1fa2; border-color: #e1bee7; }
+        .tag.healthy { background: #e0f2f1; color: #00796b; border-color: #b2dfdb; }
+        .tag.quick { background: #fff9c4; color: #f9a825; border-color: #fff59d; }
+        .tag.vegan { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
+        .tag.one-pan { background: #efebe9; color: #5d4037; border-color: #d7ccc8; }
+        
+        .swap-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .swap-arrow {
+            color: #666;
+            margin: 0 8px;
+        }
+        
+        .swap-reason {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+        
+        .add-ons {
+            margin-top: 24px;
+        }
+        
+        .add-on-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .add-on-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .add-on-label {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .label-protein { background: #fce4ec; color: #c2185b; }
+        .label-produce { background: #e8f5e9; color: #2e7d32; }
+        .label-pantry { background: #fff3e0; color: #f57c00; }
+        .label-dairy { background: #e3f2fd; color: #1976d2; }
+        
+        .price {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        footer {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .footer-link {
+            color: #1976d2;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-badge">Preview</div>
+    
+    <header>
+        <h1>
+            <span>🧺</span>
+            <span>Farm Box Optimizer</span>
+        </h1>
+        <p class="subtitle">Curated selections from local farms • Seasonal • Sustainable</p>
+    </header>
+    
+    <div class="main-grid">
+        <!-- Left Column -->
+        <div>
+            <section class="section">
+                <h2 class="section-title">
+                    <span>⭐</span>
+                    <span>This Week's Selections</span>
+                </h2>
+                
+                <div class="subsection-title">
+                    <span>🥬</span>
+                    <span>Fresh Produce</span>
+                </div>
+                <div class="item-grid">
+                    <div class="item">
+                        <div class="item-icon">🌈</div>
+                        <div class="item-details">
+                            <div class="item-name">Heritage Rainbow Carrots</div>
+                        </div>
+                        <span class="star">★</span>
+                    </div>
+                    <div class="item">
+                        <div class="item-icon">🍎</div>
+                        <div class="item-details">
+                            <div class="item-name">Crisp Honeycrisp Apples</div>
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-icon">👶</div>
+                        <div class="item-details">
+                            <div class="item-name">Baby Spinach Medley</div>
+                        </div>
+                        <span class="star">★</span>
+                    </div>
+                    <div class="item">
+                        <div class="item-icon">🥬</div>
+                        <div class="item-details">
+                            <div class="item-name">Organic Kale</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="subsection-title">
+                    <span>🐟</span>
+                    <span>Proteins</span>
+                </div>
+                <div class="item-grid">
+                    <div class="item">
+                        <div class="item-icon">🐟</div>
+                        <div class="item-details">
+                            <div class="item-name">Wild-Caught Salmon</div>
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-icon">🥩</div>
+                        <div class="item-details">
+                            <div class="item-name">Grass-Fed Ground Beef</div>
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-icon">🥚</div>
+                        <div class="item-details">
+                            <div class="item-name">Farm-Fresh Eggs</div>
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-icon">🧵</div>
+                        <div class="item-details">
+                            <div class="item-name">Artisan Sourdough</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">
+                    <span>🍳</span>
+                    <span>Suggested Recipes</span>
+                </h2>
+                
+                <div class="recipe-card">
+                    <div class="recipe-title">Rainbow Carrot & Spinach Risotto</div>
+                    <div class="recipe-tags">
+                        <span class="tag vegetarian">Vegetarian</span>
+                        <span class="tag seasonal">Seasonal</span>
+                        <span class="tag comfort">Comfort</span>
+                    </div>
+                </div>
+                
+                <div class="recipe-card">
+                    <div class="recipe-title">Grilled Salmon with Vegetables</div>
+                    <div class="recipe-tags">
+                        <span class="tag high-protein">High-Protein</span>
+                        <span class="tag omega-3">Omega-3</span>
+                        <span class="tag healthy">Healthy</span>
+                    </div>
+                </div>
+                
+                <div class="recipe-card">
+                    <div class="recipe-title">Farm Vegetable Bowl</div>
+                    <div class="recipe-tags">
+                        <span class="tag vegan">Vegan</span>
+                        <span class="tag fresh">Fresh</span>
+                        <span class="tag quick">Quick</span>
+                    </div>
+                </div>
+                
+                <div class="recipe-card">
+                    <div class="recipe-title">Grass-Fed Beef Skillet</div>
+                    <div class="recipe-tags">
+                        <span class="tag high-protein">High-Protein</span>
+                        <span class="tag comfort">Comfort</span>
+                        <span class="tag one-pan">One-Pan</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- Right Column -->
+        <div>
+            <section class="section">
+                <h2 class="section-title">
+                    <span>🔄</span>
+                    <span>Smart Swaps</span>
+                </h2>
+                
+                <div class="swap-item">
+                    <div>
+                        <div style="display: flex; align-items: center;">
+                            <span>Iceberg Lettuce</span>
+                            <span class="swap-arrow">→</span>
+                            <span><strong>Baby Spinach Medley</strong></span>
+                        </div>
+                        <div class="swap-reason">Higher nutritional value and better seasonal availability</div>
+                    </div>
+                </div>
+                
+                <div class="swap-item">
+                    <div>
+                        <div style="display: flex; align-items: center;">
+                            <span>Regular Carrots</span>
+                            <span class="swap-arrow">→</span>
+                            <span><strong>Heritage Rainbow Carrots</strong></span>
+                        </div>
+                        <div class="swap-reason">Peak season freshness and unique flavor profiles</div>
+                    </div>
+                </div>
+                
+                <div class="swap-item">
+                    <div>
+                        <div style="display: flex; align-items: center;">
+                            <span>Store Bread</span>
+                            <span class="swap-arrow">→</span>
+                            <span><strong>Artisan Sourdough</strong></span>
+                        </div>
+                        <div class="swap-reason">Locally made with superior ingredients</div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="add-ons">
+                <h2 class="section-title">
+                    <span>➕</span>
+                    <span>Premium Add-Ons</span>
+                </h2>
+                
+                <div class="add-on-item">
+                    <div class="add-on-left">
+                        <span class="add-on-label label-protein">protein</span>
+                        <span>Extra Grass-Fed Beef</span>
+                    </div>
+                    <span class="price">$12</span>
+                </div>
+                
+                <div class="add-on-item">
+                    <div class="add-on-left">
+                        <span class="add-on-label label-protein">protein</span>
+                        <span>Additional Salmon</span>
+                    </div>
+                    <span class="price">$18</span>
+                </div>
+                
+                <div class="add-on-item">
+                    <div class="add-on-left">
+                        <span class="add-on-label label-produce">produce</span>
+                        <span>Organic Avocados</span>
+                    </div>
+                    <span class="price">$5</span>
+                </div>
+                
+                <div class="add-on-item">
+                    <div class="add-on-left">
+                        <span class="add-on-label label-pantry">pantry</span>
+                        <span>Extra Virgin Olive Oil</span>
+                    </div>
+                    <span class="price">$8</span>
+                </div>
+                
+                <div class="add-on-item">
+                    <div class="add-on-left">
+                        <span class="add-on-label label-dairy">dairy</span>
+                        <span>Fresh Mozzarella</span>
+                    </div>
+                    <span class="price">$7</span>
+                </div>
+            </section>
+        </div>
+    </div>
+    
+    <footer>
+        <p>All items sourced from local farms within 50 miles • Organic when possible • Seasonal selections vary</p>
+        <p>Questions? Contact our farm liaison at <a href="#" class="footer-link">harvest@farmbox.com</a></p>
+    </footer>
+</body>
+</html>
