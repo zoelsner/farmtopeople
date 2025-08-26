@@ -108,6 +108,75 @@ async def handle_meal_plan_confirmation(phone_number: str, user_message: str, ba
         send_progress_sms(phone_number, error_reply)
         return PlainTextResponse("Error", status_code=500)
 
+def format_sms_with_help(message: str, state: str = None) -> str:
+    """
+    Add contextual help text to SMS messages based on conversation state.
+    
+    This function enhances user experience by providing relevant next-step guidance
+    in every SMS response, reducing user confusion and improving engagement.
+    
+    Args:
+        message (str): The main SMS message content
+        state (str, optional): Current conversation state to determine appropriate help text.
+                              If None or unknown, defaults to general help.
+    
+    Returns:
+        str: Original message + visual separator + contextual help text
+    
+    Available States:
+        - 'analyzing': Progress indicator during cart/meal analysis (shows timing expectation)
+        - 'plan_ready': Action options after meal plan is delivered (CONFIRM/SWAP/SKIP)
+        - 'greeting': Welcome state with basic navigation options
+        - 'onboarding': During user registration/setup process  
+        - 'login': After providing secure login link
+        - 'error': Recovery options when something goes wrong
+        - 'default': General help for unrecognized inputs or no state provided
+    
+    Example Usage:
+        >>> format_sms_with_help("📦 Analyzing your cart...", 'analyzing')
+        "📦 Analyzing your cart...\n━━━━━━━━━\n⏳ This takes 20-30 seconds..."
+        
+        >>> format_sms_with_help("Your meal plan is ready!", 'plan_ready')
+        "Your meal plan is ready!\n━━━━━━━━━\n💬 Reply: CONFIRM | SWAP item | SKIP day | help"
+    
+    Design Notes:
+        - Uses visual separator (━━━━━━━━━) to distinguish help from main message
+        - Keeps help text concise for SMS length limits (typically 65-200 total chars)
+        - Uses consistent emoji prefixes (⏳ for progress, 💬 for actions)
+        - Provides specific actionable commands rather than vague instructions
+    
+    Added: August 26, 2025 - Part of Tuesday PM milestone (Week 3 implementation)
+    """
+    
+    # Contextual help text mapped to conversation states
+    # Each help text follows pattern: visual separator + emoji + specific actions
+    help_text = {
+        # During processing states - set expectation of time required
+        'analyzing': "━━━━━━━━━\n⏳ This takes 20-30 seconds...",
+        
+        # After meal plan delivery - show available modification options
+        'plan_ready': "━━━━━━━━━\n💬 Reply: CONFIRM | SWAP item | SKIP day | help",
+        
+        # Initial greeting - show primary entry points
+        'greeting': "━━━━━━━━━\n💬 Text 'plan' to start | 'new' to register",
+        
+        # During user setup - encourage completion via web or SMS
+        'onboarding': "━━━━━━━━━\n💬 Reply with your cooking preferences or use the link",
+        
+        # After login link provided - guide to next step
+        'login': "━━━━━━━━━\n💬 After login, text 'plan' for your meal plan",
+        
+        # Error recovery - provide retry options and help
+        'error': "━━━━━━━━━\n💬 Text 'plan' to try again | 'help' for options",
+        
+        # Fallback for unknown inputs or states
+        'default': "━━━━━━━━━\n💬 Text 'plan' to start | 'new' to register | 'help' for options"
+    }
+    
+    # Return original message with contextual help appended
+    # Uses .get() with default fallback to handle unknown states gracefully
+    return f"{message}\n{help_text.get(state, help_text['default'])}"
+
 def generate_confirmed_meal_plan(phone_number: str):
     """Generate detailed PDF recipes after user confirmation"""
     try:
@@ -176,8 +245,8 @@ def run_full_meal_plan_flow(phone_number: str):
     print(f"🚀 BACKGROUND: Starting full meal plan flow for {phone_number}")
     print(f"🔧 DEBUG: Available env vars: VONAGE_API_KEY={bool(os.getenv('VONAGE_API_KEY'))}, VONAGE_PHONE_NUMBER={os.getenv('VONAGE_PHONE_NUMBER')}")
     
-    # Progress update 1: Starting process
-    send_progress_sms(phone_number, "🔍 Looking up your account...")
+    # Progress update 1: Starting process with timing expectation
+    send_progress_sms(phone_number, format_sms_with_help("🔍 Looking up your account...", 'analyzing'))
     
     # Step 0: Look up user credentials from Supabase
     print(f"🔍 Looking up user credentials for {phone_number}")
@@ -205,18 +274,20 @@ def run_full_meal_plan_flow(phone_number: str):
         send_progress_sms(phone_number, "❌ Having trouble accessing your account. Please try again in a moment.")
         return
     
-    # Progress update 2: Found account, starting login
+    # Progress update 2: Account status with appropriate help text
     if user_data.get('ftp_email'):
-        send_progress_sms(phone_number, "🔐 Found your account! Logging into Farm to People...")
+        # Account found - continue with processing indicator
+        send_progress_sms(phone_number, format_sms_with_help("🔐 Found your account! Logging into Farm to People...", 'analyzing'))
     else:
-        send_progress_sms(phone_number, "⚠️ No Farm to People account linked. Please text 'FEED ME' to connect your account.")
+        # Account setup needed - provide recovery options
+        send_progress_sms(phone_number, format_sms_with_help("⚠️ No Farm to People account linked.", 'error'))
         return
     
     # Step 1: Run the complete cart scraper
     print(f"🔍 Running complete cart scraper for user: {phone_number}")
     
-    # Progress update 3: Starting cart analysis
-    send_progress_sms(phone_number, "📦 Analyzing your current cart and customizable boxes...")
+    # Progress update 3: Cart analysis with processing time indicator
+    send_progress_sms(phone_number, format_sms_with_help("📦 Analyzing your current cart and customizable boxes...", 'analyzing'))
     
     try:
         # Pass credentials directly to scraper (thread-safe!)
@@ -232,7 +303,7 @@ def run_full_meal_plan_flow(phone_number: str):
             print(f"✅ Cart scraping completed: {len(cart_data.get('individual_items', [])) if cart_data else 0} items")
         else:
             print("⚠️ No credentials found for this user. Cannot scrape cart.")
-            send_progress_sms(phone_number, "❌ Please connect your Farm to People account first. Text 'new' to get started.")
+            send_progress_sms(phone_number, format_sms_with_help("❌ Please connect your Farm to People account first.", 'error'))
             return
         
         # ✅ NEW: Check if user has preferences, if not collect them
@@ -241,14 +312,14 @@ def run_full_meal_plan_flow(phone_number: str):
             # Preferences collection started, will continue in another message
             return
         
-        # ✅ NEW: Generate cart analysis summary for confirmation
-        send_progress_sms(phone_number, "📋 Analyzing your cart and creating strategic meal plan...")
+        # Progress update 4: Meal plan generation with processing indicator
+        send_progress_sms(phone_number, format_sms_with_help("📋 Analyzing your cart and creating strategic meal plan...", 'analyzing'))
         
         try:
             cart_analysis = meal_planner.generate_cart_analysis_summary()
             
-            # Send cart analysis for user confirmation
-            send_progress_sms(phone_number, cart_analysis)
+            # Send meal plan with action options (CONFIRM/SWAP/SKIP)
+            send_progress_sms(phone_number, format_sms_with_help(cart_analysis, 'plan_ready'))
             
             # Mark user as waiting for meal plan confirmation
             db.update_user_meal_plan_step(phone_number, 'awaiting_confirmation')
@@ -384,10 +455,17 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
         print(f"⚠️ Error checking meal plan step: {e}")
 
     if "hello" in user_message:
-        reply = "Hi there! I'm your Farm to People meal planning assistant. How can I help?"
+        # Welcome message with basic navigation help
+        reply = format_sms_with_help(
+            "Hi there! I'm your Farm to People meal planning assistant.", 
+            'greeting'
+        )
     elif "plan" in user_message:
-        # Acknowledge immediately
-        reply = "Thank you for your text! 📱 We are preparing your personalized meal plan now. Please wait a moment while we analyze your cart contents... 🛒✨"
+        # Immediate acknowledgment with progress indicator and timing expectation
+        reply = format_sms_with_help(
+            "📦 Analyzing your Farm to People cart...", 
+            'analyzing'
+        )
         # Add the scraping/planning job to the background
         print(f"🎯 Adding background task for meal plan flow: {user_phone_number}")
         try:
@@ -395,19 +473,31 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
             print(f"✅ Background task added successfully")
         except Exception as e:
             print(f"❌ Error adding background task: {e}")
-            reply = "Thank you for your text! 📱 We're experiencing a technical issue. Please try again in a moment."
+            # Technical error with recovery options
+            reply = format_sms_with_help(
+                "We're experiencing a technical issue. Please try again in a moment.", 
+                'error'
+            )
     elif "new" in user_message:
-        # Intake start. Also offer secure link to provide login.
+        # New user registration with secure web link for credential collection
         login_link = f"{base_url}/login?phone={quote(user_phone_number)}"
-        reply = (
-            "Welcome! Let's get you set up. What's your cooking style?\n\n"
-            f"To connect your Farm to People account securely, you can also use this link: {login_link}"
+        reply = format_sms_with_help(
+            f"Welcome! Let's get you set up.\n\nTo connect your Farm to People account securely: {login_link}",
+            'onboarding'
         )
     elif "login" in user_message or "email" in user_message:
+        # User requesting login help - provide secure credential collection link
         login_link = f"{base_url}/login?phone={quote(user_phone_number)}"
-        reply = f"To securely provide your FTP email & password, open: {login_link}"
+        reply = format_sms_with_help(
+            f"To securely provide your FTP credentials: {login_link}",
+            'login'
+        )
     else:
-        reply = "Sorry, I didn't understand that. Text 'plan' for meal ideas."
+        # Fallback for unrecognized input with general help options
+        reply = format_sms_with_help(
+            "Sorry, I didn't understand that.",
+            'default'
+        )
 
     # Send immediate reply via Vonage
     try:

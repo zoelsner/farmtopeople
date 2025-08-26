@@ -77,21 +77,46 @@ curl -X POST http://localhost:8000/test-full-flow
 
 ## 📱 CURRENT SMS FLOW
 
-### **Message Routing (server.py:215-239)**
+### **Message Routing (server.py:455-498)**
 ```python
 if "hello" in user_message:
-    reply = "Hi there! I'm your Farm to People meal planning assistant."
+    reply = format_sms_with_help(
+        "Hi there! I'm your Farm to People meal planning assistant.", 
+        'greeting'
+    )
 
 elif "plan" in user_message:
-    reply = "We are preparing your personalized meal plan now..."
+    reply = format_sms_with_help(
+        "📦 Analyzing your Farm to People cart...", 
+        'analyzing'
+    )
     background_tasks.add_task(run_full_meal_plan_flow, user_phone_number)
 
 elif "new" in user_message:
-    # User registration with secure login link
+    # User registration with secure login link + onboarding help
 
 elif "login" in user_message or "email" in user_message:
-    # Secure credential collection link
+    # Secure credential collection link + login help
 ```
+
+### **SMS Help Text System (NEW - Aug 26, 2025)**
+Every SMS now includes contextual help text to guide users:
+
+**Example Output:**
+```
+📦 Analyzing your cart...
+━━━━━━━━━
+⏳ This takes 20-30 seconds...
+```
+
+**Available States:**
+- `analyzing` - Progress indicator during processing  
+- `plan_ready` - Action options after meal plan delivery
+- `greeting` - Basic navigation for new users
+- `error` - Recovery options when issues occur
+- `default` - General help for unrecognized input
+
+**Implementation:** `format_sms_with_help(message, state)` in server.py:111-178
 
 ### **Progress SMS Updates**
 ```python
@@ -163,7 +188,7 @@ elif "login" in user_message or "email" in user_message:
 - **Ingredient Storage Guide** - Proper storage instructions
 
 ### 🚧 **THIS WEEK (8/26-8/30)**
-- **Tuesday PM:** Add help text to SMS responses
+- **✅ Tuesday PM:** Add help text to SMS responses (COMPLETED)
 - **Wednesday:** Redis conversation state management
 - **Thursday AM:** Instant acknowledgments
 - **Thursday PM:** Modification handlers (swap/skip/remove)

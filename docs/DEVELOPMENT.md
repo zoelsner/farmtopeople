@@ -233,6 +233,56 @@ print(f"Sending SMS to {to_number}: {message}")
 print(f"Response: {response}")
 ```
 
+## SMS Help Text System
+
+### Overview
+As of August 26, 2025, all SMS messages include contextual help text to guide users through the conversation flow. This reduces user confusion and improves engagement rates.
+
+### Implementation
+The `format_sms_with_help()` function in `server/server.py` automatically appends relevant help text based on conversation state:
+
+```python
+# Basic usage
+reply = format_sms_with_help("Your message here", 'analyzing')
+
+# Results in:
+# "Your message here
+# ━━━━━━━━━
+# ⏳ This takes 20-30 seconds..."
+```
+
+### Available States
+- **`analyzing`**: Shows "⏳ This takes 20-30 seconds..." during processing
+- **`plan_ready`**: Shows "💬 Reply: CONFIRM | SWAP item | SKIP day | help" after meal plan delivery
+- **`greeting`**: Shows "💬 Text 'plan' to start | 'new' to register" for welcome messages
+- **`onboarding`**: Shows "💬 Reply with your cooking preferences or use the link" during setup
+- **`login`**: Shows "💬 After login, text 'plan' for your meal plan" after providing secure link
+- **`error`**: Shows "💬 Text 'plan' to try again | 'help' for options" for error recovery
+- **`default`**: General fallback help for unrecognized inputs
+
+### Design Principles
+1. **Visual Separation**: Uses ━━━━━━━━━ to distinguish help from main message
+2. **Consistent Emojis**: ⏳ for progress, 💬 for actions
+3. **Specific Commands**: Provides exact text to send rather than vague instructions
+4. **Length Awareness**: Keeps total message under 200 characters for SMS compatibility
+5. **Contextual**: Different help for different conversation states
+
+### Testing Help Text
+```bash
+# Test different states
+source venv/bin/activate
+python -c "
+from server.server import format_sms_with_help
+print(format_sms_with_help('Test message', 'plan_ready'))
+"
+```
+
+### Maintenance
+- Add new states to `help_text` dictionary in `format_sms_with_help()`
+- Update help text when adding new SMS commands
+- Keep messages concise for SMS length limits
+- Use consistent emoji patterns (⏳ progress, 💬 actions)
+
 ## Deployment
 
 ### Railway Deployment
