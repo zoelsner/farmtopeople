@@ -5,8 +5,9 @@
 **Farm to People AI Assistant** transforms weekly produce boxes into personalized meal plans through intelligent SMS conversations. The system learns user preferences, analyzes cart contents, and delivers actionable cooking guidance.
 
 **Current Status:** Development Phase - Core functionality complete, preparing for production deployment  
-**Last Updated:** August 24, 2025  
-**Version:** 2.1.0  
+**Last Updated:** August 26, 2025  
+**Version:** 2.2.0  
+**Branch:** `feature/customer-automation`  
 **Primary Contact:** SMS `18334391183` (Vonage)
 
 ---
@@ -33,11 +34,11 @@ curl -X POST http://localhost:8000/test-full-flow
 
 ### **Critical Development Rules**
 - ✅ ALWAYS activate venv before running Python code
+- ✅ Use GPT-5 (model="gpt-5") - it works in production!
 - ✅ Test comprehensive_scraper.py before making changes
 - ✅ Restart server after code modifications
-- ✅ Check DEBUGGING_PROTOCOL.md before fixing scrapers
-- ✅ NEVER run scrapers without venv activated
-- ✅ NEVER assume server sees code changes without restart
+- ✅ Best PDF design: `generators/templates/meal_plan_minimal.html` (Penny-style)
+- ✅ NEVER use GPT-3.5 - use GPT-5 or gpt-4o-mini only
 
 ---
 
@@ -149,26 +150,30 @@ elif "login" in user_message or "email" in user_message:
 
 ## 📊 CURRENT IMPLEMENTATION STATUS
 
-### ✅ **COMPLETED FEATURES**
+### ✅ **COMPLETED FEATURES (as of 8/26)**
 - **Onboarding System** - 6-step preference collection with FTP integration
 - **Cart Scraping** - Comprehensive capture of all cart types
 - **SMS Integration** - Vonage webhook with progress updates
 - **Preference Analysis** - 20-30 signal extraction system
 - **Database Schema** - Supabase user/preference storage
-- **Personalized Analysis** - Preference-driven meal recommendations
+- **Live Cart → Meal Planner** - Direct data connection (no files) ✅
+- **Preference → GPT Integration** - Preferences shape meal generation ✅
+- **GPT-5 Implementation** - Using production GPT-5 (not GPT-4) ✅
+- **PDF Generation** - Penny-style minimal design (HTML→PDF) ✅
 - **Ingredient Storage Guide** - Proper storage instructions
 
-### 🚧 **IN PROGRESS**
-- **Conversation State Management** - Multi-turn SMS conversations
+### 🚧 **THIS WEEK (8/26-8/30)**
+- **Tuesday PM:** Add help text to SMS responses
+- **Wednesday:** Redis conversation state management
+- **Thursday AM:** Instant acknowledgments
+- **Thursday PM:** Modification handlers (swap/skip/remove)
+- **Friday:** Test with real data & deploy to production
+
+### 📝 **FUTURE FEATURES**
 - **Confirmation Flow** - User approval before recipe generation
 - **Cart Total Calculation** - Pricing transparency
-- **Live Cart Integration** - Connect scraper to meal planner
-
-### 📝 **PLANNED FEATURES**
-- **Recipe PDF Generation** - Full cooking instructions
 - **Weekly Feedback Loop** - Recipe rating system
 - **Seasonal Intelligence** - Produce availability awareness
-- **Railway Deployment** - Production hosting
 - **Preference Evolution** - Learning from user behavior
 
 ---
@@ -202,24 +207,30 @@ plan = meal_planner.run_main_planner(preferences)  # ADD THIS
 
 ## 💻 KEY CODE COMPONENTS
 
-### **Core Files**
+### **Core Files (Reorganized 8/26)**
 ```
 server/
-├── server.py                 # FastAPI webhook & orchestration
-├── meal_planner.py          # OpenAI GPT integration (needs preference integration)
+├── server.py                 # FastAPI webhook & orchestration ✅
+├── meal_planner.py          # GPT-5 integration ✅
 ├── onboarding.py            # Preference analysis engine ✅
-└── supabase_client.py       # Database operations ✅
+├── supabase_client.py       # Database operations ✅
+└── templates/               # HTML templates
+
+generators/                  # NEW: PDF/HTML generation
+├── pdf_minimal.py           # Penny-style PDF generator ✅
+├── html_meal_plan_generator.py # HTML meal plans ✅
+└── templates/
+    └── meal_plan_minimal.html # BEST DESIGN: Clean, no emojis ✅
 
 scrapers/
 ├── comprehensive_scraper.py  # PRIMARY: Full cart extraction ✅
-└── complete_cart_scraper.py # BACKUP: Alternative implementation ✅
+└── auth_helper.py           # Authentication handling ✅
 
-templates/
-├── onboarding.html          # 6-step UI flow ✅
-└── index.html               # Marketing landing page
-
-static/
-└── onboarding.js            # Frontend controller ✅
+tests/                       # NEW: All test files moved here
+docs/                        # Consolidated documentation
+├── ARCHITECTURE.md          # System design
+├── BUSINESS_FLOW.md         # User journey
+└── DEVELOPMENT.md           # Setup & deployment
 ```
 
 ---

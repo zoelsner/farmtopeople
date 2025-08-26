@@ -1,22 +1,86 @@
-Farm to People Meal Planner (Personal Project)
+# 📚 Documentation Index
 
-This repository contains a personal project that automates scraping Farm to People cart contents and uses AI to generate meal plans and suggested add‑ons. It also exposes a small FastAPI service for future SMS and mobile integrations.
+**Project:** Farm to People AI Assistant  
+**Updated:** August 26, 2025  
+**Status:** Core complete, shipping this week
 
-## SMS Opt‑In Policy
+## Primary Documents
 
-This service sends SMS messages only in direct response to a user’s request. There is no marketing or promotional messaging.
+### [📐 ARCHITECTURE.md](ARCHITECTURE.md)
+System design, technical architecture, component relationships, data flow, and technology choices.
 
-- Opt‑in method: Users opt in by initiating a conversation (e.g., texting "hello", "plan", or "new") to the project’s phone number, or by giving explicit verbal consent to the project owner to be contacted.
-- Message frequency: On‑demand/transactional. Messages are sent only when a user interacts (for example, requesting a plan or continuing a conversation). No recurring campaigns.
-- Opt‑out instructions: Text "STOP" to stop receiving messages at any time. You may text "START" to re‑enable messages.
-- Help instructions: Text "HELP" for assistance.
-- Carrier disclaimer: Message and data rates may apply.
-- Privacy: Phone numbers and message content are used solely to power the requested conversation (meal planning and customer support style responses). Data is not sold or shared with third parties.
-- Age: This service is intended for adults.
+**Key Sections:**
+- Core components (scraper, planner, SMS, database)
+- Data flow diagrams
+- Technical decisions (Playwright, GPT-5, Vonage, Supabase)
+- Performance optimizations
+- Security considerations
 
-If you have questions about this policy, reply "HELP" in the SMS thread.
+### [💼 BUSINESS_FLOW.md](BUSINESS_FLOW.md)
+User journey, business logic, value propositions, and success metrics.
 
-You can link directly to this section in the Twilio form by using the repository URL with the anchor `#sms-opt-in-policy` (example: `https://github.com/<your-username>/farmtopeople#sms-opt-in-policy`).
+**Key Sections:**
+- Complete user journey (onboarding → weekly planning → feedback)
+- Preference intelligence system
+- Customer segments
+- Business rules
+- Success metrics
 
+### [🛠️ DEVELOPMENT.md](DEVELOPMENT.md)
+Setup instructions, deployment guide, debugging tips, and common commands.
 
+**Key Sections:**
+- Local development setup
+- GPT-5 configuration (IT WORKS!)
+- Railway deployment
+- Troubleshooting guide
+- Performance optimization
 
+## Quick Reference
+
+### Most Important Files:
+- **Primary Scraper:** `scrapers/comprehensive_scraper.py`
+- **Meal Planner:** `server/meal_planner.py` (uses GPT-5)
+- **Best PDF Design:** `generators/templates/meal_plan_minimal.html` (Penny-style)
+- **Main Server:** `server/server.py`
+
+### Key Technical Decisions:
+- **GPT-5** is in production (model="gpt-5")
+- **No emojis** in PDFs - clean typography only
+- **Direct data passing** - no intermediate files
+- **HTML→PDF** better than ReportLab
+- **Penny aesthetic** wins over decorated designs
+
+### This Week's Milestones:
+- ✅ Monday AM: Connected scraper to meal planner
+- ✅ Monday PM: Added preferences to GPT prompts
+- ✅ Tuesday AM: Created Penny-style minimal PDF
+- ⏳ Tuesday PM: Add help text to SMS
+- ⏳ Wednesday: Redis state management
+- ⏳ Thursday: Instant acknowledgments & modifications
+- ⏳ Friday: Production deployment
+
+## Key Insights Preserved
+
+### From Development:
+1. **Less is more** - Single-page PDFs beat multi-page
+2. **GPT-5 works** - Despite documentation saying otherwise
+3. **Typography > Graphics** - No emojis, clean design
+4. **Direct > Files** - Pass data directly, skip file I/O
+5. **Explicit > Magic** - Show users their cart contents
+
+### From User Research:
+1. **Speed matters** - 30-second total response time max
+2. **SMS preferred** - No app downloads
+3. **Protein focus** - 30g+ per meal is critical
+4. **Swaps essential** - Flag preference conflicts
+
+### From Technical Implementation:
+1. **Playwright > Selenium** - Better modal handling
+2. **Vonage > Twilio** - Simpler webhooks
+3. **Supabase > Local DB** - Built-in features
+4. **HTML templates > ReportLab** - More control
+
+---
+
+*For AI assistants: Start with ARCHITECTURE.md for technical understanding, BUSINESS_FLOW.md for product context, and DEVELOPMENT.md for implementation details.*

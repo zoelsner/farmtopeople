@@ -1,141 +1,124 @@
-# 🍅 Farm to People AI Assistant
+# 🌱 Farm to People AI Assistant
 
-> **SMS-based meal planning system that scrapes your cart and generates personalized recipes**
+Transform weekly produce deliveries into personalized meal plans via SMS. Learn preferences, reduce waste, increase satisfaction.
 
-## 🎯 **What It Does**
+## What It Does
 
-Text "plan" to get AI-generated meal plans based on your current Farm to People cart contents:
+1. **Texts customers** after cart closes: "Your meal plan is ready!"
+2. **Analyzes their cart** using web scraping (Playwright)
+3. **Generates 5 meals** with GPT-5 based on preferences
+4. **Delivers recipes** as clean, single-page PDFs
 
-1. **📱 SMS Trigger** - Text "plan" to the system
-2. **🔐 Auto-Login** - Securely logs into your FTP account  
-3. **🛒 Cart Analysis** - Scrapes your cart + customizable box alternatives
-4. **🤖 AI Planning** - OpenAI generates personalized meal plans
-5. **📲 SMS Delivery** - Sends recipes back via text
+## Quick Start
 
-## ✅ **Current Status: Production Ready**
-
-- **✅ Multi-user support** via Supabase database
-- **✅ Cloud deployed** on Railway.app  
-- **✅ SMS integration** via Vonage
-- **✅ Robust authentication** with fresh sessions
-- **✅ Full cart scraping** including alternatives
-- **✅ AI meal planning** via OpenAI GPT-4
-
-## 🏗️ **Architecture**
-
-```
-SMS → Vonage → Railway Server → Supabase (credentials)
-                    ↓
-               Playwright Scraper → Farm to People
-                    ↓
-               OpenAI Meal Plans → SMS Response
-```
-
-## 🚀 **Quick Start**
-
-### For Users:
-1. **Get added to database** (contact admin)
-2. **Text "plan"** to the system number
-3. **Receive meal plan** via SMS
-
-### For Developers:
 ```bash
-# Clone and setup
-git clone <repo>
+# Setup
+git clone https://github.com/farmtopeople/ai-assistant.git
 cd farmtopeople
+git checkout feature/customer-automation
 python -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+source venv/bin/activate  # ALWAYS DO THIS FIRST!
 pip install -r requirements.txt
+playwright install chromium
 
-# Configure environment
+# Configure
 cp .env.example .env
-# Add your API keys and credentials
+# Edit .env with your API keys
 
-# Test locally
-python scrapers/customize_scraper.py
+# Run
 python server/server.py
 ```
 
-## 📁 **Key Files**
+## Key Features
 
-### Production Code:
-- **`server/server.py`** - FastAPI server handling SMS webhooks
-- **`scrapers/customize_scraper.py`** - Main production scraper
-- **`meal_planner.py`** - OpenAI meal plan generation
-- **`supabase_client.py`** - Database operations
+✅ **Smart Scraping** - Captures all cart types (individual items, boxes)  
+✅ **Preference Learning** - 6-step onboarding collects dietary needs  
+✅ **GPT-5 Powered** - Yes, GPT-5 works (model="gpt-5")  
+✅ **SMS Simple** - No app needed, just text messaging  
+✅ **Penny-Style PDFs** - Clean typography, no emojis  
 
-### Documentation:
-- **`CRITICAL_SCRAPING_LESSONS_LEARNED.md`** - ⚠️ READ BEFORE CHANGING CODE
-- **`DEBUGGING_PROTOCOL.md`** - Mandatory debugging checklist
-- **`ARCHITECTURE_OVERVIEW.md`** - Complete system architecture
-- **`RAILWAY_DEPLOYMENT_GUIDE.md`** - Deployment instructions
+## Architecture
 
-## 🔧 **Environment Variables**
+```
+SMS (Vonage) → Server (FastAPI) → Scraper (Playwright)
+                    ↓
+              GPT-5 Meal Plan
+                    ↓
+              HTML/PDF Output
+```
+
+## This Week's Schedule
+
+- ✅ **Monday**: Connected scraper→planner, added preferences to GPT
+- ✅ **Tuesday AM**: Created Penny-style PDF design
+- ⏳ **Tuesday PM**: Add help text to SMS
+- ⏳ **Wednesday**: Redis conversation state
+- ⏳ **Thursday**: Instant acknowledgments & modifications
+- ⏳ **Friday**: Production deployment
+
+## Project Structure
+
+```
+/server         # Backend (FastAPI, meal planner)
+/scrapers       # Web scraping (Playwright)
+/generators     # PDF/HTML generation
+/tests          # Test suite
+/docs           # Documentation
+    ├── ARCHITECTURE.md    # System design
+    ├── BUSINESS_FLOW.md   # User journey
+    └── DEVELOPMENT.md     # Setup guide
+```
+
+## Testing
 
 ```bash
-# Vonage SMS
-VONAGE_API_KEY=your_key
-VONAGE_API_SECRET=your_secret
-VONAGE_PHONE_NUMBER=your_number
+# Test scraper
+cd scrapers && python comprehensive_scraper.py
 
-# OpenAI
-OPENAI_API_KEY=sk-proj-...
+# Test full flow
+curl -X POST http://localhost:8000/test-full-flow
 
-# Supabase
-SUPABASE_URL=https://...
+# Run tests
+pytest tests/
+```
+
+## Key Technical Decisions
+
+- **Playwright > Selenium** - Better modal handling
+- **GPT-5 > GPT-4** - Works in production!
+- **Vonage > Twilio** - Simpler webhooks
+- **HTML→PDF > ReportLab** - More control
+- **No emojis** - Professional aesthetic
+
+## Environment Variables
+
+```bash
+OPENAI_API_KEY=sk-...      # Must have GPT-5 access
+SUPABASE_URL=...            # Database
 SUPABASE_KEY=...
-
-# Farm to People Credentials
-EMAIL=your@email.com
-PASSWORD=your_password
+VONAGE_API_KEY=...          # SMS service
+VONAGE_API_SECRET=...
+VONAGE_PHONE_NUMBER=18334391183
+FTP_EMAIL=...               # Test account
+FTP_PASSWORD=...
 ```
 
-## 🧪 **Testing**
+## Documentation
 
-```bash
-# Test scraper directly
-cd scrapers
-python customize_scraper.py
+- **[Architecture](docs/ARCHITECTURE.md)** - System design & technical details
+- **[Business Flow](docs/BUSINESS_FLOW.md)** - User journey & requirements  
+- **[Development](docs/DEVELOPMENT.md)** - Setup, deployment, debugging
+- **[Claude Guide](CLAUDE.md)** - AI assistant instructions
 
-# Test server locally
-python server/server.py
+## Support
 
-# Simulate SMS
-curl -X POST localhost:8000/sms/incoming \
-  -d "msisdn=4254955323&text=plan"
-```
-
-## 📊 **Features**
-
-- **🔐 Secure Authentication** - Fresh browser sessions per request
-- **🛒 Complete Cart Analysis** - Extracts selected items + alternatives
-- **🤖 Smart Meal Planning** - AI-generated recipes using your ingredients
-- **📱 SMS Interface** - Simple text commands
-- **☁️ Cloud Ready** - Deployed on Railway.app
-- **👥 Multi-User** - Secure credential management via Supabase
-
-## ⚠️ **Important Notes**
-
-1. **Always test working scripts first** - See `DEBUGGING_PROTOCOL.md`
-2. **Server restart required** after code changes (Python module caching)
-3. **Fresh browser sessions** prevent authentication issues
-4. **Two-step login** - Email → LOG IN → Password → LOG IN
-
-## 🚨 **SMS Opt-In Policy**
-
-This service sends SMS messages only in response to user requests:
-- **Opt-in**: Text "plan" or "new" to start
-- **Opt-out**: Text "STOP" to stop messages
-- **Help**: Text "HELP" for assistance
-- **No marketing**: Only transactional meal planning messages
-- **Privacy**: Data not shared with third parties
-
-## 📞 **Support**
-
-- **Issues**: Check `DEBUGGING_PROTOCOL.md` first
-- **Lessons**: See `CRITICAL_SCRAPING_LESSONS_LEARNED.md`
-- **Architecture**: Read `ARCHITECTURE_OVERVIEW.md`
+- **Issues**: GitHub issues
+- **Docs**: See `/docs` folder
+- **AI Assistant**: Read CLAUDE.md
 
 ---
 
-**Status**: ✅ Production Ready | **Last Updated**: August 17, 2025
+**Status**: Core complete, shipping Friday  
+**Version**: 2.2.0  
+**Branch**: `feature/customer-automation`  
+**Updated**: August 26, 2025
