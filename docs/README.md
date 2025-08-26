@@ -1,10 +1,10 @@
 # 📚 Documentation Index
 
 **Project:** Farm to People AI Assistant  
-**Updated:** August 26, 2025  
-**Status:** Core complete, shipping this week
+**Updated:** August 26, 2025 (Monday night)  
+**Status:** Core complete, shipping Friday
 
-## Primary Documents
+## 📍 CURRENT DOCUMENTATION (Use These!)
 
 ### [📐 ARCHITECTURE.md](ARCHITECTURE.md)
 System design, technical architecture, component relationships, data flow, and technology choices.
@@ -59,6 +59,30 @@ Setup instructions, deployment guide, debugging tips, and common commands.
 - ⏳ Wednesday: Redis state management
 - ⏳ Thursday: Instant acknowledgments & modifications
 - ⏳ Friday: Production deployment
+
+## 📂 Archive Structure
+
+```
+docs/
+├── README.md                    # This file
+├── ARCHITECTURE.md              # Current system design ✅
+├── BUSINESS_FLOW.md            # Current user journey ✅
+├── DEVELOPMENT.md              # Current setup guide ✅
+└── archive/
+    ├── project_history/        # Planning & analysis docs
+    │   └── README.md           # Explains timeline & context
+    ├── august_2025_refactor/   # Scraper debugging history
+    └── old_root_files/         # Cleaned from root directory
+```
+
+## ⚠️ Important Timeline Context
+
+We're in **Week 3** of development:
+- **Week 1** (Aug 18-19): Initial setup & research
+- **Week 2** (Aug 21-24): Design & planning
+- **Week 3** (Aug 25-30): Implementation week ← **WE ARE HERE**
+
+The "IMPLEMENTATION_PLAN_WEEK1.md" in archives was created TODAY (Monday Aug 25) as our accelerated ship plan, not in Week 1!
 
 ## Key Insights Preserved
 
