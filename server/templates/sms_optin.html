@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm to People - SMS Meal Planning</title>
+    <meta name="description" content="Get personalized meal plans from your Farm to People box via SMS">
+    <!-- Accessibility improvements -->
+    <meta name="keywords" content="farm to people, meal planning, SMS, text messaging, healthy eating">
+    <meta name="author" content="Farm to People AI Assistant">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #28a745;
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .sms-instruction {
+            background: #e3f2fd;
+            border: 2px solid #1976d2;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .phone-number {
+            font-size: 48px;
+            font-weight: 900;
+            color: #1976d2;
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+
+        .text-command {
+            font-size: 24px;
+            font-weight: 700;
+            color: #28a745;
+            background: #f8fff9;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #28a745;
+        }
+
+        .step-by-step {
+            margin: 30px 0;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .step:last-child {
+            border-bottom: none;
+        }
+
+        .step-number {
+            background: #28a745;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .step-text {
+            font-size: 18px;
+        }
+
+        .example {
+            background: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            padding: 20px;
+            margin: 20px 0;
+            font-style: italic;
+        }
+
+        .legal {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #666;
+            margin-top: 30px;
+        }
+
+        .legal h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .cta-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+
+        .cta-button:hover {
+            background: #218838;
+        }
+
+        @media (max-width: 600px) {
+            .phone-number {
+                font-size: 36px;
+            }
+            
+            .text-command {
+                font-size: 20px;
+            }
+            
+            .container {
+                margin: 10px;
+                border-radius: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥬 Farm to People</h1>
+            <p>AI Meal Planning via SMS</p>
+        </div>
+
+        <main class="content" role="main">
+            <section class="sms-instruction" aria-labelledby="sms-instructions-heading">
+                <h2 id="sms-instructions-heading" style="margin-bottom: 15px; color: #1976d2;">📱 Text-to-Join Instructions</h2>
+                <p style="font-size: 18px; margin-bottom: 10px;">Send a text message to:</p>
+                <div class="phone-number" aria-label="Phone number: 8 3 3 4 3 9 1 1 8 3">(833) 439-1183</div>
+                <p style="font-size: 18px; margin-bottom: 15px;">Text the word:</p>
+                <div class="text-command" aria-label="Text command: plan">"plan"</div>
+                <p style="font-size: 16px; color: #666;">to get your personalized meal plan from your Farm to People box</p>
+            </section>
+
+            <div class="step-by-step">
+                <h3 style="margin-bottom: 20px; font-size: 24px;">How It Works:</h3>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Complete your preferences (5 minutes)</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Text "plan" to (833) 439-1183</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Get 5 personalized dinner recipes in 30 seconds</div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-text">Click link for full meal plan PDF</div>
+                </div>
+            </div>
+
+            <div class="example">
+                <strong>Example conversation:</strong><br>
+                You: "plan"<br>
+                Bot: "📦 Analyzing your cart...<br>
+                ✅ Your meal plan:<br>
+                1. 15-Min Chicken Stir-Fry (35g protein)<br>
+                2. Salmon + Vegetables (38g protein)<br>
+                ...<br>
+                View full recipes: [link]"
+            </div>
+
+            <div class="cta-section">
+                <a href="/onboard" class="cta-button">Start Setup (5 min)</a>
+            </div>
+
+            <div class="legal">
+                <h3>SMS Terms & Privacy</h3>
+                <p><strong>Consent:</strong> By providing your phone number and texting our service, you consent to receive SMS messages from Farm to People AI Assistant.</p>
+                <p><strong>Frequency:</strong> You will receive messages only when you text "plan" to request meal plans. Typical usage: 1-2 messages per week.</p>
+                <p><strong>Charges:</strong> Message and data rates may apply according to your mobile carrier plan.</p>
+                <p><strong>Opt-out:</strong> Text "STOP" to (833) 439-1183 to unsubscribe at any time.</p>
+                <p><strong>Help:</strong> Text "HELP" to (833) 439-1183 for assistance.</p>
+                <p><strong>Privacy:</strong> Your phone number is only used for SMS meal planning. We never sell or share your information.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

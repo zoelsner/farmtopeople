@@ -38,6 +38,7 @@ curl -X POST http://localhost:8000/test-full-flow
 - ✅ Test comprehensive_scraper.py before making changes
 - ✅ Restart server after code modifications
 - ✅ Best PDF design: `generators/templates/meal_plan_minimal.html` (Penny-style)
+- ✅ **Protein in titles:** "38g protein" must be prominent under each meal name
 - ✅ NEVER use GPT-3.5 - use GPT-5 or gpt-4o-mini only
 
 ---

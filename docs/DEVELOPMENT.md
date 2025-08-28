@@ -78,7 +78,7 @@ farmtopeople/
 ├── generators/         # PDF/HTML generation
 │   ├── pdf_minimal.py
 │   └── templates/
-│       └── meal_plan_minimal.html  # BEST design (Penny-style)
+│       └── meal_plan_minimal.html  # BEST design (Penny-style + protein titles)
 │
 ├── tests/             # Test suite
 └── docs/              # Documentation
@@ -607,6 +607,24 @@ print(client.table('users').select('*').limit(1).execute())
 - CDN for static assets
 - Async generation
 
+### PDF Format Requirements
+⚠️ **CRITICAL FORMAT** - Protein content must be prominently displayed:
+```
+Salmon + Roasted Vegetables
+20 min    38g protein    serves 2
+
+Chicken Stir-Fry + Peppers  
+15 min    35g protein    serves 2
+```
+
+**Design Standards:**
+- Penny restaurant menu aesthetic (minimal, clean)
+- No emojis or decorative elements
+- Subtle blue accents (#4169E1)
+- "+" format for meal names
+- Protein, time, and servings as metadata under each meal
+- Template: `generators/templates/meal_plan_minimal.html`
+
 ## Critical Reminders
 
 ⚠️ **ALWAYS activate venv** - Most errors come from this!
@@ -617,7 +635,7 @@ print(client.table('users').select('*').limit(1).execute())
 
 ⚠️ **Vonage number is 18334391183** - Not random
 
-⚠️ **Best PDF is meal_plan_minimal.html** - Penny-style, no emojis
+⚠️ **Best PDF is meal_plan_minimal.html** - Penny-style, protein in titles
 
 ---
 

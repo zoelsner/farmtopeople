@@ -11,10 +11,25 @@ This is the clean, Penny-inspired design that hits the right aesthetic:
 - **Subtle blue links** (#4169E1) like Penny menu
 - **Compact, dense layout** - maximum info on one page  
 - **"+" format** for meal names (Salmon + Roasted Vegetables)
-- **Minimal gray tags** (20 min, 38g protein, serves 2)
+- **Protein in title format** - "38g protein" directly under meal name ✅ CRITICAL
+- **Minimal gray tags** (20 min, serves 2) - secondary info
 - **Clean sections** with light dividers
 - **Right-aligned quantities**
 - **Professional restaurant menu vibe**
+
+### ✅ CONFIRMED FORMAT (Aug 26, 2025):
+**Meal Title Structure:**
+```
+Salmon + Roasted Vegetables
+20 min    38g protein    serves 2
+
+Chicken Stir-Fry + Peppers  
+15 min    35g protein    serves 2
+
+Vegetable Frittata
+25 min    24g protein    serves 4
+```
+**Key:** Protein content MUST be prominently displayed in meal metadata for high-protein users
 
 ### File Locations:
 ```
@@ -40,6 +55,13 @@ server/html_meal_plan_generator.py       # Data processing logic
 
 ### Key Insight:
 Less is more. The Penny aesthetic (minimal, typographic, no decorations) is much more sophisticated than boxes and emojis. This version respects the user's intelligence and time.
+
+### ✅ PENNY MENU REFERENCE SAVED:
+**File:** `docs/H1EP7sq4TKedoWMdkys8_Penny Food 8.24.25.pdf`  
+**Documentation:** `docs/PENNY_MENU_DESIGN_REFERENCE.md`  
+**Date Preserved:** August 26, 2025
+
+The actual Penny restaurant menu that inspired our design is now preserved for future reference and design consistency.
 
 ---
 

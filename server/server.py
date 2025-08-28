@@ -1138,6 +1138,22 @@ async def test_full_flow(background_tasks: BackgroundTasks):
 # Research-backed onboarding flow with farm box meal selection
 # ============================================================================
 
+@app.get("/")
+async def home_page(request: Request):
+    """
+    Serve the main landing page with links to onboarding and SMS instructions.
+    """
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/sms")
+async def sms_optin_page(request: Request):
+    """
+    Serve the SMS opt-in instructions page for Vonage compliance.
+    
+    This page shows clear Text-to-Join instructions as required by Vonage.
+    """
+    return templates.TemplateResponse("sms_optin.html", {"request": request})
+
 @app.get("/onboard")
 async def serve_onboarding(request: Request, phone: str = None):
     """

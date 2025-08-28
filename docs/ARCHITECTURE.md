@@ -74,11 +74,17 @@ Farm to People AI Assistant transforms weekly produce boxes into personalized me
   - No emojis, subtle typography
   - Blue accent colors (#4169E1)
   - Compact information density
+  - **Protein-prominent format** - "38g protein" displayed under each meal title
 - **Sections:**
   - Current selections (what's in cart)
-  - Suggested meals (5 recipes with stats)
+  - Suggested meals (5 recipes with protein/time/servings)
   - Smart swaps (based on preferences)
   - Premium additions (upsell opportunities)
+- **Meal Title Format:**
+  ```
+  Salmon + Roasted Vegetables
+  20 min    38g protein    serves 2
+  ```
 
 ## Data Flow
 

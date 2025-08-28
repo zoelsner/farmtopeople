@@ -66,7 +66,7 @@ Need changes? Reply SWAP"
   - "Pork Chops → Chicken (you don't eat pork)"
   - "Add onions ($1.29) - needed for 4 meals"
 - **5 Dinner Recipes** - Name, time, protein, servings
-- **Premium Add-ons** - Upsell opportunities
+- **Premium Add-ons** - Upsell opportunities  
 - **Storage Guide** - Keep food fresh
 
 **Design Philosophy:**
@@ -74,6 +74,16 @@ Need changes? Reply SWAP"
 - No emojis or decorations
 - Subtle blue accents (#4169E1)
 - High information density
+- **Protein prominence** - "38g protein" clearly displayed under meal titles
+
+**Meal Format Example:**
+```
+Salmon + Roasted Vegetables
+20 min    38g protein    serves 2
+
+Chicken Stir-Fry + Peppers
+15 min    35g protein    serves 2
+```
 - Professional typography
 
 ### 4. **Modification Flow** (Planned)

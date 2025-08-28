@@ -42,6 +42,7 @@ Setup instructions, deployment guide, debugging tips, and common commands.
 - **Primary Scraper:** `scrapers/comprehensive_scraper.py`
 - **Meal Planner:** `server/meal_planner.py` (uses GPT-5)
 - **Best PDF Design:** `generators/templates/meal_plan_minimal.html` (Penny-style)
+- **Design Reference:** `docs/PENNY_MENU_DESIGN_REFERENCE.md` + actual menu PDF
 - **Main Server:** `server/server.py`
 
 ### Key Technical Decisions:
