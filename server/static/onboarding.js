@@ -143,7 +143,8 @@ const FARM_BOX_MEALS = {
 class OnboardingFlow {
     constructor() {
         this.currentStep = 1;
-        this.totalSteps = 6;
+        this.totalSteps = 7;
+        this.existingUser = false;
         this.data = {
             householdSize: null,
             mealTiming: [],  // New field for breakfast/lunch/dinner/snacks
@@ -204,33 +205,37 @@ class OnboardingFlow {
     }
 
     setupNavigationButtons() {
-        // Step 1
-        document.getElementById('step1Next').addEventListener('click', () => this.nextStep());
+        // Step 1 - Phone number
+        document.getElementById('step1Next').addEventListener('click', () => this.checkExistingUser());
         
-        // Step 2
+        // Step 2 - Household
         document.getElementById('step2Back').addEventListener('click', () => this.prevStep());
         document.getElementById('step2Next').addEventListener('click', () => this.nextStep());
         
-        // Step 3
+        // Step 3 - Meals 1
         document.getElementById('step3Back').addEventListener('click', () => this.prevStep());
         document.getElementById('step3Next').addEventListener('click', () => this.nextStep());
         
-        // Step 4
+        // Step 4 - Meals 2
         document.getElementById('step4Back').addEventListener('click', () => this.prevStep());
         document.getElementById('step4Next').addEventListener('click', () => this.nextStep());
         
-        // Step 5
+        // Step 5 - Dietary
         document.getElementById('step5Back').addEventListener('click', () => this.prevStep());
         document.getElementById('step5Next')?.addEventListener('click', () => this.nextStep());
         
-        // Step 6 - FTP Account
-        document.getElementById('step6Back')?.addEventListener('click', () => this.prevStep());
+        // Step 6 - Goals
+        document.getElementById('step6Back').addEventListener('click', () => this.prevStep());
+        document.getElementById('step6Next')?.addEventListener('click', () => this.nextStep());
+        
+        // Step 7 - FTP Account
+        document.getElementById('step7Back')?.addEventListener('click', () => this.prevStep());
         document.getElementById('completeOnboarding').addEventListener('click', () => this.completeOnboarding());
         
         // FTP account form validation
-        document.getElementById('ftpEmail')?.addEventListener('input', () => this.validateStep6());
-        document.getElementById('ftpPassword')?.addEventListener('input', () => this.validateStep6());
-        document.getElementById('phoneNumber')?.addEventListener('input', () => this.validateStep6());
+        document.getElementById('ftpEmail')?.addEventListener('input', () => this.validateStep7());
+        document.getElementById('ftpPassword')?.addEventListener('input', () => this.validateStep7());
+        document.getElementById('phoneNumber')?.addEventListener('input', () => this.validateStep7());
     }
 
     setupSkipLinks() {
@@ -336,7 +341,7 @@ class OnboardingFlow {
         const selectedCount = this.data.selectedMeals.length;
         
         // Update counter for step 2
-        if (this.currentStep === 2) {
+        if (this.currentStep === 3) {
             const counter = document.getElementById('selectionCounter1');
             const nextBtn = document.getElementById('step2Next');
             
@@ -352,10 +357,10 @@ class OnboardingFlow {
             }
         }
         
-        // Update counter for step 3 - cooking styles (optional)
-        if (this.currentStep === 3) {
+        // Update counter for step 4 - cooking styles (optional)
+        if (this.currentStep === 4) {
             const counter = document.getElementById('selectionCounter2');
-            const nextBtn = document.getElementById('step3Next');
+            const nextBtn = document.getElementById('step4Next');
             const styleCount = document.querySelectorAll('#mealGrid2 .meal-tile.selected').length;
             
             // Step 3 is optional - always allow proceeding
@@ -456,7 +461,7 @@ class OnboardingFlow {
         this.updateStepContent();
         
         // Reset meal selection UI if on meal steps
-        if (this.currentStep === 2 || this.currentStep === 3) {
+        if (this.currentStep === 3 || this.currentStep === 4) {
             this.updateMealSelectionUI();
         }
     }
@@ -469,21 +474,23 @@ class OnboardingFlow {
 
     updateStepContent() {
         const titles = {
-            1: 'Household & Meal Planning',
-            2: 'What meals excite you?',
-            3: 'How do you like to cook?',
-            4: 'Dietary preferences & needs',
-            5: 'What are your goals?',
-            6: 'Connect your Farm to People account'
+            1: 'Let\'s get started',
+            2: 'Household & Meal Planning', 
+            3: 'What meals excite you?',
+            4: 'How do you like to cook?',
+            5: 'Dietary preferences & needs',
+            6: 'What are your goals?',
+            7: 'Connect your Farm to People account'
         };
         
         const subtitles = {
-            1: 'Tell us about your household size and which meals you need help with.',
-            2: 'Pick at least 3 meals that sound delicious. We\'ll learn your preferences from these choices.',
-            3: 'Select 2 or more cooking styles (optional). This helps us understand how you like to cook.',
-            4: 'Select any dietary preferences or restrictions to help us personalize your meal plans.',
-            5: 'Tell us what you\'re hoping to achieve with your farm box meals.',
-            6: 'Enter your Farm to People login to analyze your cart and get personalized meal plans.'
+            1: 'Enter your phone number to check for existing preferences or start fresh.',
+            2: 'Tell us about your household size and which meals you need help with.',
+            3: 'Pick at least 3 meals that sound delicious. We\'ll learn your preferences from these choices.',
+            4: 'Select 2 or more cooking styles (optional). This helps us understand how you like to cook.',
+            5: 'Select any dietary preferences or restrictions to help us personalize your meal plans.',
+            6: 'Tell us what you\'re hoping to achieve with your farm box meals.',
+            7: 'Enter your Farm to People login to analyze your cart and get personalized meal plans.'
         };
         
         document.getElementById('stepTitle').textContent = titles[this.currentStep];
@@ -494,7 +501,7 @@ class OnboardingFlow {
      * Validate Step 6 - FTP Account credentials
      * Requires email and password to proceed
      */
-    validateStep6() {
+    validateStep7() {
         const email = document.getElementById('ftpEmail')?.value;
         const password = document.getElementById('ftpPassword')?.value;
         const isValid = email && email.includes('@') && password && password.length >= 1;
@@ -509,9 +516,9 @@ class OnboardingFlow {
         if (phone) this.data.phoneNumber = phone;
     }
     
-    async completeOnboarding() {
+    /**\n     * Check if user already exists in database with preferences\n     * If existing user found, skip preference collection steps\n     */\n    async checkExistingUser() {\n        const phoneInput = document.getElementById('phoneNumberStep1');\n        const phone = phoneInput.value.replace(/[^\\d]/g, '');\n        \n        // Validate phone number format\n        if (!phone || phone.length < 10) {\n            alert('Please enter a valid phone number');\n            return;\n        }\n        \n        try {\n            // Look up user by phone number\n            const response = await fetch(`/api/settings/${phone}`);\n            if (response.ok) {\n                const userData = await response.json();\n                \n                // Check if user has existing preferences\n                if (userData.preferences && Object.keys(userData.preferences).length > 0) {\n                    // Existing user - skip to FTP credentials step\n                    console.log('Existing user found, skipping preference collection');\n                    this.existingUser = true;\n                    this.data.phoneNumber = phone;\n                    this.showWelcomeBack(userData);\n                    this.showStep(7); // Jump directly to FTP account setup\n                    return;\n                }\n            }\n            \n            // New user or no preferences - continue with full onboarding\n            console.log('New user or no preferences, starting full onboarding');\n            this.data.phoneNumber = phone;\n            this.nextStep(); // Go to step 2 (household)\n            \n        } catch (error) {\n            // API error or user not found - treat as new user\n            console.log('User lookup failed, treating as new user:', error);\n            this.data.phoneNumber = phone;\n            this.nextStep();\n        }\n    }\n    \n    /**\n     * Show welcome back message for returning users\n     * Temporarily updates UI to indicate user recognition\n     */\n    showWelcomeBack(userData) {\n        const subtitle = document.getElementById('stepSubtitle');\n        const originalText = subtitle.textContent;\n        \n        // Show welcome message in green\n        subtitle.textContent = `Welcome back! We found your preferences. Just verify your Farm to People account.`;\n        subtitle.style.color = '#28a745';\n        \n        // Reset to original after 3 seconds\n        setTimeout(() => {\n            subtitle.textContent = originalText;\n            subtitle.style.color = '#6c757d';\n        }, 3000);\n    }\n\n    /**\n     * Complete the onboarding process and save user data\n     */\n    async completeOnboarding() {
         // Validate and capture final form data
-        this.validateStep6();
+        this.validateStep7();
         
         // Show loading state
         const btn = document.getElementById('completeOnboarding');

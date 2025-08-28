@@ -426,15 +426,39 @@
 
         <!-- Header with step indicator and dynamic content -->
         <div class="header">
-            <div class="step-indicator" id="stepIndicator">Step 1 of 4</div>
+            <div class="step-indicator" id="stepIndicator">Step 1 of 7</div>
             <h1 class="title" id="stepTitle">Tell us about your household</h1>
             <p class="subtitle" id="stepSubtitle">This helps us recommend the right portion sizes for your farm box meals.</p>
         </div>
 
         <!-- Dynamic content area -->
         <div class="content">
-            <!-- Step 1: Household Size + Meal Timing -->
+            <!-- Step 1: Phone Number Entry (NEW - Check for existing user) -->
             <div class="step active" id="step1">
+                <!-- Phone number form for existing user detection -->
+                <div class="phone-form" style="max-width: 350px; margin: 30px auto;">
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label for="phoneNumberStep1" style="display: block; margin-bottom: 12px; font-weight: 600; color: #333; font-size: 16px;">
+                            📱 Your Phone Number
+                        </label>
+                        <input type="tel" id="phoneNumberStep1" class="form-control" placeholder="+1 (555) 123-4567" 
+                               style="width: 100%; padding: 16px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 18px; text-align: center;">
+                        <small style="color: #6c757d; font-size: 14px; margin-top: 8px; display: block; text-align: center;">
+                            We'll check if you're already set up or help you get started fresh
+                        </small>
+                    </div>
+                </div>
+                
+                <!-- Action button -->
+                <div class="action-container" style="text-align: center; margin-top: 40px;">
+                    <button id="step1Next" class="next-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 16px 32px; border-radius: 25px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s;">
+                        Continue →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Household Size + Meal Timing (was Step 1) -->
+            <div class="step" id="step2">
                 <!-- Household Size Section -->
                 <div class="question-section">
                     <h3 class="section-title">How many people are in your household?</h3>
@@ -486,12 +510,13 @@
                 </div>
                 
                 <div class="nav-section">
-                    <button class="btn btn-primary" id="step1Next" disabled>Continue</button>
+                    <button class="btn btn-secondary" id="step2Back">Back</button>
+                    <button class="btn btn-primary" id="step2Next" disabled>Continue</button>
                 </div>
             </div>
 
-            <!-- Step 2: Meal Preferences (Screen 1) -->
-            <div class="step" id="step2">
+            <!-- Step 3: Meal Preferences (Screen 1) -->
+            <div class="step" id="step3">
                 <div class="meal-grid" id="mealGrid1">
                     <!-- Farm box meal tiles will be populated by JavaScript -->
                 </div>
@@ -501,8 +526,8 @@
                 </div>
                 
                 <div class="nav-section">
-                    <button class="btn btn-secondary" id="step2Back">Back</button>
-                    <button class="btn btn-primary" id="step2Next" disabled>Continue</button>
+                    <button class="btn btn-secondary" id="step3Back">Back</button>
+                    <button class="btn btn-primary" id="step3Next" disabled>Continue</button>
                 </div>
                 
                 <div class="skip-option">
@@ -510,8 +535,8 @@
                 </div>
             </div>
 
-            <!-- Step 3: More Meal Preferences (Screen 2) -->
-            <div class="step" id="step3">
+            <!-- Step 4: More Meal Preferences (Screen 2) -->
+            <div class="step" id="step4">
                 <div class="meal-grid" id="mealGrid2">
                     <!-- Additional meal tiles -->
                 </div>
@@ -521,8 +546,8 @@
                 </div>
                 
                 <div class="nav-section">
-                    <button class="btn btn-secondary" id="step3Back">Back</button>
-                    <button class="btn btn-primary" id="step3Next">Continue</button>
+                    <button class="btn btn-secondary" id="step4Back">Back</button>
+                    <button class="btn btn-primary" id="step4Next">Continue</button>
                 </div>
                 
                 <div class="skip-option">
@@ -530,8 +555,8 @@
                 </div>
             </div>
 
-            <!-- Step 4: Dietary Restrictions -->
-            <div class="step" id="step4">
+            <!-- Step 5: Dietary Restrictions -->
+            <div class="step" id="step5">
                 <div class="restrictions-grid">
                     <div class="restriction-option" data-restriction="high-protein">
                         <span class="restriction-text">🥩 High Protein</span>
@@ -576,8 +601,8 @@
                 </div>
                 
                 <div class="nav-section">
-                    <button class="btn btn-secondary" id="step4Back">Back</button>
-                    <button class="btn btn-primary" id="step4Next">Almost Done!</button>
+                    <button class="btn btn-secondary" id="step5Back">Back</button>
+                    <button class="btn btn-primary" id="step5Next">Almost Done!</button>
                 </div>
                 
                 <div class="skip-option">
@@ -585,8 +610,8 @@
                 </div>
             </div>
 
-            <!-- Step 5: Goals -->
-            <div class="step" id="step5">
+            <!-- Step 6: Goals -->
+            <div class="step" id="step6">
                 <div class="selection-hint" style="margin-bottom: 20px; color: #6c757d; font-size: 14px;">
                     Select up to 2 goals that matter most to you
                 </div>
@@ -615,8 +640,8 @@
                 </div>
                 
                 <div class="nav-section">
-                    <button class="btn btn-secondary" id="step5Back">Back</button>
-                    <button class="btn btn-primary" id="step5Next">Continue</button>
+                    <button class="btn btn-secondary" id="step6Back">Back</button>
+                    <button class="btn btn-primary" id="step6Next">Continue</button>
                 </div>
                 
                 <div class="skip-option">
@@ -624,8 +649,8 @@
                 </div>
             </div>
             
-            <!-- Step 6: FTP Account Setup -->
-            <div class="step" id="step6">
+            <!-- Step 7: FTP Account Setup -->
+            <div class="step" id="step7">
                 <div class="account-form" style="max-width: 400px; margin: 0 auto;">
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label for="ftpEmail" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">
@@ -674,7 +699,7 @@
                 </div>
                 
                 <div class="nav-section">
-                    <button class="btn btn-secondary" id="step6Back">Back</button>
+                    <button class="btn btn-secondary" id="step7Back">Back</button>
                     <button class="btn btn-primary" id="completeOnboarding" disabled>Complete Setup</button>
                 </div>
             </div>
