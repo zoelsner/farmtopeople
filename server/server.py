@@ -1154,6 +1154,48 @@ async def sms_optin_page(request: Request):
     """
     return templates.TemplateResponse("sms_optin.html", {"request": request})
 
+@app.get("/dashboard")
+async def dashboard_page(request: Request):
+    """
+    Serve the main dashboard after onboarding.
+    
+    This is where users start cart analysis and view meal plans.
+    """
+    return templates.TemplateResponse("dashboard.html", {"request": request})
+
+@app.post("/api/analyze-cart")
+async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
+    """
+    API endpoint for cart analysis from the dashboard.
+    
+    Applying Design of Everyday Things principles:
+    - Immediate feedback (returns quickly with status)
+    - Visibility of system status (can poll for updates)
+    - Error prevention (validates credentials first)
+    """
+    try:
+        data = await request.json()
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return {"success": False, "error": "Missing credentials"}
+        
+        # For now, return mock data immediately
+        # Later this will trigger background scraping
+        mock_meals = [
+            {"name": "Chicken Stir-Fry + Bell Peppers", "protein": 35, "time": 15, "servings": 2},
+            {"name": "Salmon + Roasted Vegetables", "protein": 38, "time": 20, "servings": 2},
+            {"name": "Mediterranean Bowl", "protein": 28, "time": 25, "servings": 2},
+            {"name": "Veggie Frittata", "protein": 24, "time": 30, "servings": 4},
+            {"name": "Beef + Sweet Potato Skillet", "protein": 32, "time": 20, "servings": 2}
+        ]
+        
+        return {"success": True, "meals": mock_meals}
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 @app.get("/onboard")
 async def serve_onboarding(request: Request, phone: str = None):
     """

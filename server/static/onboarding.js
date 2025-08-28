@@ -554,8 +554,14 @@ class OnboardingFlow {
     }
 
     showCompletionMessage(result = {}) {
+        // Save credentials to localStorage for dashboard
+        if (this.data.ftpEmail && this.data.ftpPassword) {
+            localStorage.setItem('ftpEmail', this.data.ftpEmail);
+            localStorage.setItem('ftpPassword', this.data.ftpPassword);
+        }
+        
         // Different messages based on account completeness
-        const phoneDisplay = this.data.phoneNumber || '1-833-439-1183';
+        const vonageNumber = '(833) 439-1183';  // Always show Vonage number for texting
         const isComplete = result.account_type === 'complete';
         
         const message = isComplete ? 
@@ -564,15 +570,14 @@ class OnboardingFlow {
                 and create personalized meal plans based on your preferences.
             </p>
             <p style="color: #28a745; margin-bottom: 32px; font-size: 16px; font-weight: 500;">
-                ✅ Text <strong>"PLAN"</strong> to <strong>${phoneDisplay}</strong> to get your first 
-                personalized meal plan!
+                ✅ Redirecting to your dashboard...
             </p>` :
             `<p style="color: #6c757d; margin-bottom: 24px; line-height: 1.5;">
                 Your preferences have been saved. We'll use this information to create 
                 personalized meal plans that match your tastes and dietary needs.
             </p>
             <p style="color: #6c757d; margin-bottom: 32px; font-size: 14px;">
-                Text <strong>"PLAN"</strong> to <strong>1-833-439-1183</strong> anytime to get a 
+                Text <strong>"PLAN"</strong> to <strong>(833) 439-1183</strong> anytime to get a 
                 personalized meal plan based on your current Farm to People cart.
             </p>`;
         
@@ -591,6 +596,13 @@ class OnboardingFlow {
         // Update progress to 100%
         document.getElementById('progressBar').style.width = '100%';
         document.getElementById('stepIndicator').textContent = 'Complete!';
+        
+        // Redirect to dashboard after 2 seconds if complete
+        if (isComplete) {
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 2000);
+        }
     }
 }
 

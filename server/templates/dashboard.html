@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Meal Plan - Farm to People</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            padding-bottom: 80px; /* Space for bottom tabs */
+        }
+
+        /* Top Header */
+        .header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #212529;
+            margin-bottom: 4px;
+        }
+
+        .header .subtitle {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        /* Main Content Area */
+        .content {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: calc(100vh - 200px);
+        }
+
+        /* Start Screen - Before Analysis */
+        .start-screen {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .start-icon {
+            font-size: 72px;
+            margin-bottom: 24px;
+        }
+
+        .start-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 12px;
+        }
+
+        .start-description {
+            font-size: 18px;
+            color: #6c757d;
+            margin-bottom: 32px;
+            line-height: 1.4;
+        }
+
+        .analyze-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+
+        .analyze-button:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .analyze-button:active {
+            transform: translateY(0);
+        }
+
+        /* Loading State */
+        .loading-screen {
+            text-align: center;
+            padding: 60px 20px;
+            display: none;
+        }
+
+        .loading-animation {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            border: 4px solid #e9ecef;
+            border-top: 4px solid #28a745;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 12px;
+        }
+
+        .loading-status {
+            font-size: 16px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+
+        .loading-tip {
+            background: #e3f2fd;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 32px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .loading-tip h3 {
+            font-size: 16px;
+            color: #1976d2;
+            margin-bottom: 12px;
+        }
+
+        .loading-tip p {
+            font-size: 14px;
+            color: #495057;
+            line-height: 1.4;
+            margin-bottom: 16px;
+        }
+
+        .home-screen-prompt {
+            background: white;
+            border: 2px solid #1976d2;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            color: #1976d2;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        /* Meal Plan Display */
+        .meal-plan {
+            display: none;
+        }
+
+        .meal-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .meal-number {
+            color: #6c757d;
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .meal-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 12px;
+        }
+
+        .meal-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .meal-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .meal-protein {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        /* Bottom Tab Navigation */
+        .bottom-tabs {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom)); /* iPhone safe area */
+            z-index: 1000;
+        }
+
+        .tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            text-decoration: none;
+            color: #6c757d;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            color: #28a745;
+        }
+
+        .tab-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .tab-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Hide sections by default */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 380px) {
+            .start-title {
+                font-size: 24px;
+            }
+            
+            .start-description {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Your Meal Plan</h1>
+        <p class="subtitle" id="headerSubtitle">Ready to analyze your cart</p>
+    </div>
+
+    <div class="content">
+        <!-- Start Screen - Shows First -->
+        <div class="start-screen section active" id="startSection">
+            <div class="start-icon">📦</div>
+            <h2 class="start-title">Your Cart is Ready!</h2>
+            <p class="start-description">
+                Let's turn your Farm to People box into personalized meal plans.
+            </p>
+            <button class="analyze-button" onclick="startAnalysis()">
+                Analyze My Cart
+            </button>
+        </div>
+
+        <!-- Loading Screen - Shows During Analysis -->
+        <div class="loading-screen section" id="loadingSection">
+            <div class="loading-animation"></div>
+            <h2 class="loading-title">Analyzing Your Cart</h2>
+            <p class="loading-status" id="loadingStatus">Logging into Farm to People...</p>
+            
+            <div class="loading-tip">
+                <h3>💡 While you wait (20-30 seconds)</h3>
+                <p>Add this page to your home screen for easy access:</p>
+                <button class="home-screen-prompt" onclick="showAddToHomeScreen()">
+                    📲 Add to Home Screen
+                </button>
+            </div>
+        </div>
+
+        <!-- Meal Plan Display - Shows After Analysis -->
+        <div class="meal-plan section" id="mealSection">
+            <div id="mealCards">
+                <!-- Meal cards will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Cart View - Hidden for now -->
+        <div class="cart-view section" id="cartSection">
+            <h2>Your Cart Contents</h2>
+            <p style="color: #6c757d; margin-top: 20px;">Cart analysis will appear here</p>
+        </div>
+
+        <!-- Settings - Hidden for now -->
+        <div class="settings-view section" id="settingsSection">
+            <h2>Settings</h2>
+            <p style="color: #6c757d; margin-top: 20px;">Preferences and account settings</p>
+        </div>
+    </div>
+
+    <!-- Bottom Tab Navigation -->
+    <nav class="bottom-tabs">
+        <a href="#home" class="tab active" onclick="switchTab('home', this)">
+            <span class="tab-icon">🏠</span>
+            <span class="tab-label">Home</span>
+        </a>
+        <a href="#cart" class="tab" onclick="switchTab('cart', this)">
+            <span class="tab-icon">📦</span>
+            <span class="tab-label">Cart</span>
+        </a>
+        <a href="#settings" class="tab" onclick="switchTab('settings', this)">
+            <span class="tab-icon">⚙️</span>
+            <span class="tab-label">Settings</span>
+        </a>
+    </nav>
+
+    <script>
+        let currentState = 'start'; // start, loading, complete
+        let mealPlanData = null;
+
+        // Check if we have saved credentials
+        const userEmail = localStorage.getItem('ftpEmail');
+        if (userEmail) {
+            document.querySelector('.subtitle').textContent = userEmail;
+        }
+
+        async function startAnalysis() {
+            // Switch to loading state
+            currentState = 'loading';
+            document.getElementById('startSection').classList.remove('active');
+            document.getElementById('loadingSection').classList.add('active');
+            document.getElementById('headerSubtitle').textContent = 'Analyzing...';
+
+            // Update loading status messages
+            const statuses = [
+                'Logging into Farm to People...',
+                'Found your account! Loading cart...',
+                'Analyzing your produce selections...',
+                'Creating personalized meal plans...',
+                'Almost done...'
+            ];
+
+            let statusIndex = 0;
+            const statusInterval = setInterval(() => {
+                if (statusIndex < statuses.length) {
+                    document.getElementById('loadingStatus').textContent = statuses[statusIndex];
+                    statusIndex++;
+                }
+            }, 3000);
+
+            try {
+                // Start the actual analysis
+                const response = await fetch('/api/analyze-cart', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        email: localStorage.getItem('ftpEmail'),
+                        password: localStorage.getItem('ftpPassword')
+                    })
+                });
+
+                const data = await response.json();
+                clearInterval(statusInterval);
+
+                if (data.success) {
+                    showMealPlan(data.meals);
+                } else {
+                    // For now, show mock data
+                    showMockMealPlan();
+                }
+            } catch (error) {
+                clearInterval(statusInterval);
+                // Show mock data for testing
+                showMockMealPlan();
+            }
+        }
+
+        function showMockMealPlan() {
+            const mockMeals = [
+                {name: "Chicken Stir-Fry + Bell Peppers", protein: 35, time: 15, servings: 2},
+                {name: "Salmon + Roasted Vegetables", protein: 38, time: 20, servings: 2},
+                {name: "Mediterranean Bowl", protein: 28, time: 25, servings: 2},
+                {name: "Veggie Frittata", protein: 24, time: 30, servings: 4},
+                {name: "Beef + Sweet Potato Skillet", protein: 32, time: 20, servings: 2}
+            ];
+            showMealPlan(mockMeals);
+        }
+
+        function showMealPlan(meals) {
+            currentState = 'complete';
+            document.getElementById('loadingSection').classList.remove('active');
+            document.getElementById('mealSection').classList.add('active');
+            document.getElementById('headerSubtitle').textContent = '5 meals ready';
+
+            // Generate meal cards
+            const mealCards = meals.map((meal, index) => `
+                <div class="meal-card">
+                    <div class="meal-number">Meal ${index + 1}</div>
+                    <div class="meal-name">${meal.name}</div>
+                    <div class="meal-stats">
+                        <span class="meal-stat">⏱️ ${meal.time} min</span>
+                        <span class="meal-stat meal-protein">💪 ${meal.protein}g protein</span>
+                        <span class="meal-stat">🍽️ Serves ${meal.servings}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('mealCards').innerHTML = mealCards;
+        }
+
+        function switchTab(tab, element) {
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+            // Show the right section based on state and tab
+            if (tab === 'home') {
+                if (currentState === 'complete') {
+                    document.getElementById('mealSection').classList.add('active');
+                } else if (currentState === 'loading') {
+                    document.getElementById('loadingSection').classList.add('active');
+                } else {
+                    document.getElementById('startSection').classList.add('active');
+                }
+            } else if (tab === 'cart') {
+                document.getElementById('cartSection').classList.add('active');
+            } else if (tab === 'settings') {
+                document.getElementById('settingsSection').classList.add('active');
+            }
+        }
+
+        function showAddToHomeScreen() {
+            // iOS Safari
+            if (navigator.userAgent.match(/iPhone|iPad|iPod/)) {
+                alert('Tap the Share button (↗️) at the bottom of Safari, then tap "Add to Home Screen"');
+            } 
+            // Android Chrome
+            else if (navigator.userAgent.match(/Android/)) {
+                alert('Tap the menu (⋮) in Chrome, then tap "Add to Home screen"');
+            } 
+            else {
+                alert('Use your browser\'s menu to add this page to your home screen');
+            }
+        }
+
+        // Save credentials when they complete onboarding (called from onboarding.js)
+        window.saveUserCredentials = function(email, password) {
+            localStorage.setItem('ftpEmail', email);
+            localStorage.setItem('ftpPassword', password);
+        }
+    </script>
+</body>
+</html>
