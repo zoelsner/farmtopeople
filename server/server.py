@@ -1181,17 +1181,45 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
         if not email or not password:
             return {"success": False, "error": "Missing credentials"}
         
-        # For now, return mock data immediately
-        # Later this will trigger background scraping
-        mock_meals = [
-            {"name": "Chicken Stir-Fry + Bell Peppers", "protein": 35, "time": 15, "servings": 2},
-            {"name": "Salmon + Roasted Vegetables", "protein": 38, "time": 20, "servings": 2},
-            {"name": "Mediterranean Bowl", "protein": 28, "time": 25, "servings": 2},
-            {"name": "Veggie Frittata", "protein": 24, "time": 30, "servings": 4},
-            {"name": "Beef + Sweet Potato Skillet", "protein": 32, "time": 20, "servings": 2}
-        ]
+        # For now, return mock cart data immediately
+        # Later this will trigger background scraping with comprehensive_scraper
+        mock_cart_data = {
+            "individual_items": [
+                {"name": "Organic Hass Avocados", "quantity": "5", "unit": "1 piece", "price": "$12.50", "type": "individual"},
+                {"name": "Pasture-Raised Eggs", "quantity": "1", "unit": "dozen", "price": "$8.99", "type": "individual"},
+                {"name": "Organic Bananas", "quantity": "2", "unit": "lbs", "price": "$3.98", "type": "individual"}
+            ],
+            "customizable_boxes": [
+                {
+                    "box_name": "Cook's Box - Paleo",
+                    "selected_items": [
+                        {"name": "Grass-Fed Ribeye Steak", "unit": "1 lb", "producer": "Local Ranch"},
+                        {"name": "Organic Sweet Potatoes", "unit": "2 lbs", "producer": "Farm Fresh"},
+                        {"name": "Free-Range Chicken Thighs", "unit": "1.5 lbs", "producer": "Happy Chickens"}
+                    ],
+                    "available_alternatives": [
+                        {"name": "Wild Salmon Fillet", "unit": "1 lb", "producer": "Pacific Catch"},
+                        {"name": "Grass-Fed Ground Beef", "unit": "1 lb", "producer": "Local Ranch"}
+                    ],
+                    "selected_count": 9,
+                    "alternatives_count": 10
+                }
+            ],
+            "non_customizable_boxes": [
+                {
+                    "box_name": "Seasonal Fruit Medley",
+                    "selected_items": [
+                        {"name": "Organic Apples", "unit": "3 pieces"},
+                        {"name": "Fresh Pears", "unit": "3 pieces"},
+                        {"name": "Seasonal Oranges", "unit": "4 pieces"}
+                    ],
+                    "selected_count": 3,
+                    "customizable": False
+                }
+            ]
+        }
         
-        return {"success": True, "meals": mock_meals}
+        return {"success": True, "cart_data": mock_cart_data}
         
     except Exception as e:
         return {"success": False, "error": str(e)}

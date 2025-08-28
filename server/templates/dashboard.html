@@ -52,25 +52,25 @@
         /* Start Screen - Before Analysis */
         .start-screen {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
         }
 
         .start-icon {
-            font-size: 72px;
-            margin-bottom: 24px;
+            font-size: 48px;
+            margin-bottom: 20px;
         }
 
         .start-title {
-            font-size: 28px;
-            font-weight: 700;
+            font-size: 24px;
+            font-weight: 600;
             color: #212529;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .start-description {
-            font-size: 18px;
+            font-size: 16px;
             color: #6c757d;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             line-height: 1.4;
         }
 
@@ -167,51 +167,106 @@
             display: inline-block;
         }
 
-        /* Meal Plan Display */
-        .meal-plan {
+        /* Cart Analysis Display */
+        .cart-analysis {
             display: none;
         }
 
-        .meal-card {
+        .cart-section {
             background: white;
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .meal-number {
-            color: #6c757d;
-            font-size: 12px;
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .meal-name {
-            font-size: 20px;
+        .section-header {
+            font-size: 18px;
             font-weight: 600;
             color: #212529;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e9ecef;
         }
 
-        .meal-stats {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 12px;
+        .item-grid {
+            display: grid;
+            gap: 12px;
         }
 
-        .meal-stat {
+        .cart-item {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 4px;
-            color: #6c757d;
-            font-size: 14px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
         }
 
-        .meal-protein {
-            color: #28a745;
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #212529;
+            margin-bottom: 4px;
+        }
+
+        .item-meta {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .item-price {
+            font-size: 14px;
             font-weight: 600;
+            color: #28a745;
+        }
+
+        .box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .box-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .box-status {
+            font-size: 12px;
+            color: #6c757d;
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .swap-suggestion {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
+
+        .swap-text {
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .addon-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #d4edda;
+            border-radius: 8px;
+            margin-bottom: 8px;
         }
 
         /* Bottom Tab Navigation */
@@ -277,7 +332,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>Your Meal Plan</h1>
+        <h1>Cart Analysis</h1>
         <p class="subtitle" id="headerSubtitle">Ready to analyze your cart</p>
     </div>
 
@@ -285,9 +340,9 @@
         <!-- Start Screen - Shows First -->
         <div class="start-screen section active" id="startSection">
             <div class="start-icon">📦</div>
-            <h2 class="start-title">Your Cart is Ready!</h2>
+            <h2 class="start-title">Cart Analysis</h2>
             <p class="start-description">
-                Let's turn your Farm to People box into personalized meal plans.
+                See what's in your Farm to People cart, suggested swaps, and add-ons.
             </p>
             <button class="analyze-button" onclick="startAnalysis()">
                 Analyze My Cart
@@ -301,18 +356,54 @@
             <p class="loading-status" id="loadingStatus">Logging into Farm to People...</p>
             
             <div class="loading-tip">
-                <h3>💡 While you wait (20-30 seconds)</h3>
+                <h3>While you wait (20-30 seconds)</h3>
                 <p>Add this page to your home screen for easy access:</p>
                 <button class="home-screen-prompt" onclick="showAddToHomeScreen()">
-                    📲 Add to Home Screen
+                    Add to Home Screen
                 </button>
             </div>
         </div>
 
-        <!-- Meal Plan Display - Shows After Analysis -->
-        <div class="meal-plan section" id="mealSection">
-            <div id="mealCards">
-                <!-- Meal cards will be inserted here -->
+        <!-- Cart Analysis Display - Shows After Analysis -->
+        <div class="cart-analysis section" id="cartAnalysisSection">
+            <!-- Individual Items -->
+            <div class="cart-section" id="individualItemsSection">
+                <h3 class="section-header">Individual Items</h3>
+                <div class="item-grid" id="individualItems">
+                    <!-- Individual items will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Customizable Boxes -->
+            <div class="cart-section" id="customizableBoxesSection">
+                <h3 class="section-header">Customizable Boxes</h3>
+                <div id="customizableBoxes">
+                    <!-- Customizable box data will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Non-Customizable Boxes -->
+            <div class="cart-section" id="nonCustomizableBoxesSection">
+                <h3 class="section-header">Fixed Boxes</h3>
+                <div id="nonCustomizableBoxes">
+                    <!-- Non-customizable box data will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Suggested Swaps -->
+            <div class="cart-section" id="swapsSection">
+                <h3 class="section-header">Suggested Swaps</h3>
+                <div id="suggestedSwaps">
+                    <!-- Swap suggestions will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Recommended Add-ons -->
+            <div class="cart-section" id="addonsSection">
+                <h3 class="section-header">Recommended Add-ons</h3>
+                <div id="recommendedAddons">
+                    <!-- Add-on recommendations will be inserted here -->
+                </div>
             </div>
         </div>
 
@@ -394,49 +485,158 @@
                 clearInterval(statusInterval);
 
                 if (data.success) {
-                    showMealPlan(data.meals);
+                    showCartAnalysis(data.cart_data);
                 } else {
                     // For now, show mock data
-                    showMockMealPlan();
+                    showMockCartAnalysis();
                 }
             } catch (error) {
                 clearInterval(statusInterval);
                 // Show mock data for testing
-                showMockMealPlan();
+                showMockCartAnalysis();
             }
         }
 
-        function showMockMealPlan() {
-            const mockMeals = [
-                {name: "Chicken Stir-Fry + Bell Peppers", protein: 35, time: 15, servings: 2},
-                {name: "Salmon + Roasted Vegetables", protein: 38, time: 20, servings: 2},
-                {name: "Mediterranean Bowl", protein: 28, time: 25, servings: 2},
-                {name: "Veggie Frittata", protein: 24, time: 30, servings: 4},
-                {name: "Beef + Sweet Potato Skillet", protein: 32, time: 20, servings: 2}
-            ];
-            showMealPlan(mockMeals);
+        function showMockCartAnalysis() {
+            const mockCartData = {
+                individual_items: [
+                    {name: "Organic Hass Avocados", quantity: "5", unit: "1 piece", price: "$12.50", type: "individual"},
+                    {name: "Pasture-Raised Eggs", quantity: "1", unit: "dozen", price: "$8.99", type: "individual"},
+                    {name: "Organic Bananas", quantity: "2", unit: "lbs", price: "$3.98", type: "individual"}
+                ],
+                customizable_boxes: [
+                    {
+                        box_name: "Cook's Box - Paleo",
+                        selected_items: [
+                            {name: "Grass-Fed Ribeye Steak", unit: "1 lb", producer: "Local Ranch"},
+                            {name: "Organic Sweet Potatoes", unit: "2 lbs", producer: "Farm Fresh"},
+                            {name: "Free-Range Chicken Thighs", unit: "1.5 lbs", producer: "Happy Chickens"}
+                        ],
+                        available_alternatives: [
+                            {name: "Wild Salmon Fillet", unit: "1 lb", producer: "Pacific Catch"},
+                            {name: "Grass-Fed Ground Beef", unit: "1 lb", producer: "Local Ranch"}
+                        ],
+                        selected_count: 9,
+                        alternatives_count: 10
+                    }
+                ],
+                non_customizable_boxes: [
+                    {
+                        box_name: "Seasonal Fruit Medley",
+                        selected_items: [
+                            {name: "Organic Apples", unit: "3 pieces"},
+                            {name: "Fresh Pears", unit: "3 pieces"},
+                            {name: "Seasonal Oranges", unit: "4 pieces"}
+                        ],
+                        selected_count: 3,
+                        customizable: false
+                    }
+                ]
+            };
+            showCartAnalysis(mockCartData);
         }
 
-        function showMealPlan(meals) {
+        function showCartAnalysis(cartData) {
             currentState = 'complete';
             document.getElementById('loadingSection').classList.remove('active');
-            document.getElementById('mealSection').classList.add('active');
-            document.getElementById('headerSubtitle').textContent = '5 meals ready';
+            document.getElementById('cartAnalysisSection').classList.add('active');
+            document.getElementById('headerSubtitle').textContent = 'Cart analysis complete';
 
-            // Generate meal cards
-            const mealCards = meals.map((meal, index) => `
-                <div class="meal-card">
-                    <div class="meal-number">Meal ${index + 1}</div>
-                    <div class="meal-name">${meal.name}</div>
-                    <div class="meal-stats">
-                        <span class="meal-stat">⏱️ ${meal.time} min</span>
-                        <span class="meal-stat meal-protein">💪 ${meal.protein}g protein</span>
-                        <span class="meal-stat">🍽️ Serves ${meal.servings}</span>
+            // Show individual items
+            if (cartData.individual_items && cartData.individual_items.length > 0) {
+                const individualHTML = cartData.individual_items.map(item => `
+                    <div class="cart-item">
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-meta">${item.quantity} ${item.unit}</div>
+                        </div>
+                        <div class="item-price">${item.price || 'N/A'}</div>
                     </div>
-                </div>
-            `).join('');
+                `).join('');
+                document.getElementById('individualItems').innerHTML = individualHTML;
+            } else {
+                document.getElementById('individualItemsSection').style.display = 'none';
+            }
 
-            document.getElementById('mealCards').innerHTML = mealCards;
+            // Show customizable boxes
+            if (cartData.customizable_boxes && cartData.customizable_boxes.length > 0) {
+                const customizableHTML = cartData.customizable_boxes.map(box => `
+                    <div style="margin-bottom: 20px;">
+                        <div class="box-header">
+                            <div class="box-name">${box.box_name}</div>
+                            <div class="box-status">${box.selected_count} selected, ${box.alternatives_count} available</div>
+                        </div>
+                        <div class="item-grid">
+                            ${box.selected_items.map(item => `
+                                <div class="cart-item">
+                                    <div class="item-details">
+                                        <div class="item-name">${item.name}</div>
+                                        <div class="item-meta">${item.unit} • ${item.producer || 'Farm Fresh'}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+                document.getElementById('customizableBoxes').innerHTML = customizableHTML;
+            } else {
+                document.getElementById('customizableBoxesSection').style.display = 'none';
+            }
+
+            // Show non-customizable boxes
+            if (cartData.non_customizable_boxes && cartData.non_customizable_boxes.length > 0) {
+                const nonCustomizableHTML = cartData.non_customizable_boxes.map(box => `
+                    <div style="margin-bottom: 20px;">
+                        <div class="box-header">
+                            <div class="box-name">${box.box_name}</div>
+                            <div class="box-status">Fixed selection</div>
+                        </div>
+                        <div class="item-grid">
+                            ${box.selected_items.map(item => `
+                                <div class="cart-item">
+                                    <div class="item-details">
+                                        <div class="item-name">${item.name}</div>
+                                        <div class="item-meta">${item.unit}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+                document.getElementById('nonCustomizableBoxes').innerHTML = nonCustomizableHTML;
+            } else {
+                document.getElementById('nonCustomizableBoxesSection').style.display = 'none';
+            }
+
+            // Show suggested swaps (mock for now)
+            const swapsHTML = `
+                <div class="swap-suggestion">
+                    <div class="swap-text">Consider swapping Ribeye Steak → Salmon Fillet for omega-3s</div>
+                </div>
+                <div class="swap-suggestion">
+                    <div class="swap-text">Add Organic Spinach (missing greens for balanced nutrition)</div>
+                </div>
+            `;
+            document.getElementById('suggestedSwaps').innerHTML = swapsHTML;
+
+            // Show recommended add-ons (mock for now)
+            const addonsHTML = `
+                <div class="addon-item">
+                    <div class="item-details">
+                        <div class="item-name">Organic Olive Oil</div>
+                        <div class="item-meta">Essential for cooking your proteins</div>
+                    </div>
+                    <div class="item-price">$12.99</div>
+                </div>
+                <div class="addon-item">
+                    <div class="item-details">
+                        <div class="item-name">Sea Salt</div>
+                        <div class="item-meta">Perfect for seasoning</div>
+                    </div>
+                    <div class="item-price">$6.50</div>
+                </div>
+            `;
+            document.getElementById('recommendedAddons').innerHTML = addonsHTML;
         }
 
         function switchTab(tab, element) {
@@ -450,7 +650,7 @@
             // Show the right section based on state and tab
             if (tab === 'home') {
                 if (currentState === 'complete') {
-                    document.getElementById('mealSection').classList.add('active');
+                    document.getElementById('cartAnalysisSection').classList.add('active');
                 } else if (currentState === 'loading') {
                     document.getElementById('loadingSection').classList.add('active');
                 } else {
