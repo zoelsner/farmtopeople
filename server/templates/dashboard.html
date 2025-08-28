@@ -275,8 +275,8 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: white;
-            border-top: 1px solid #e9ecef;
+            background: #4169E1; /* Penny blue background */
+            border-top: 1px solid #3557d1;
             display: flex;
             justify-content: space-around;
             padding: 8px 0;
@@ -291,22 +291,76 @@
             align-items: center;
             padding: 8px;
             text-decoration: none;
-            color: #6c757d;
+            color: rgba(255, 255, 255, 0.7); /* White text, semi-transparent */
             transition: all 0.2s ease;
         }
 
         .tab.active {
-            color: #28a745;
+            color: white; /* Pure white when active */
         }
 
         .tab-icon {
-            font-size: 24px;
+            width: 20px;
+            height: 20px;
             margin-bottom: 4px;
+            fill: currentColor;
         }
 
         .tab-label {
             font-size: 11px;
             font-weight: 500;
+        }
+
+        /* 2D SVG Icons */
+        .icon-home {
+            fill: currentColor;
+        }
+
+        .icon-cart {
+            fill: currentColor;
+        }
+
+        .icon-settings {
+            fill: currentColor;
+        }
+
+        /* Tighter layout */
+        .content {
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: calc(100vh - 180px);
+        }
+
+        .cart-section {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .section-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .item-grid {
+            display: grid;
+            gap: 8px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
         }
 
         /* Hide sections by default */
@@ -366,6 +420,14 @@
 
         <!-- Cart Analysis Display - Shows After Analysis -->
         <div class="cart-analysis section" id="cartAnalysisSection">
+            <!-- Suggested Meals - TOP PRIORITY -->
+            <div class="cart-section" id="suggestedMealsSection">
+                <h3 class="section-header">Suggested Meals</h3>
+                <div id="suggestedMeals">
+                    <!-- Suggested meals based on preferences will be inserted here -->
+                </div>
+            </div>
+
             <!-- Individual Items -->
             <div class="cart-section" id="individualItemsSection">
                 <h3 class="section-header">Individual Items</h3>
@@ -423,15 +485,21 @@
     <!-- Bottom Tab Navigation -->
     <nav class="bottom-tabs">
         <a href="#home" class="tab active" onclick="switchTab('home', this)">
-            <span class="tab-icon">🏠</span>
+            <svg class="tab-icon icon-home" viewBox="0 0 24 24">
+                <path d="M12 2L2 12h3v8h6v-6h2v6h6v-8h3L12 2z"/>
+            </svg>
             <span class="tab-label">Home</span>
         </a>
         <a href="#cart" class="tab" onclick="switchTab('cart', this)">
-            <span class="tab-icon">📦</span>
+            <svg class="tab-icon icon-cart" viewBox="0 0 24 24">
+                <path d="M7 4V2C7 1.45 7.45 1 8 1h8c.55 0 1 .45 1 1v2h4c.55 0 1 .45 1 1v16c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1V5c0-.55.45-1 1-1h4zm2-1v1h6V3H9zm-4 4v12h14V7H5z"/>
+            </svg>
             <span class="tab-label">Cart</span>
         </a>
         <a href="#settings" class="tab" onclick="switchTab('settings', this)">
-            <span class="tab-icon">⚙️</span>
+            <svg class="tab-icon icon-settings" viewBox="0 0 24 24">
+                <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+            </svg>
             <span class="tab-label">Settings</span>
         </a>
     </nav>
@@ -498,23 +566,33 @@
         }
 
         function showMockCartAnalysis() {
-            const mockCartData = {
+            // Real cart data from last week's scraping
+            const realCartData = {
                 individual_items: [
-                    {name: "Organic Hass Avocados", quantity: "5", unit: "1 piece", price: "$12.50", type: "individual"},
-                    {name: "Pasture-Raised Eggs", quantity: "1", unit: "dozen", price: "$8.99", type: "individual"},
-                    {name: "Organic Bananas", quantity: "2", unit: "lbs", price: "$3.98", type: "individual"}
+                    {name: "Pasture Raised Eggs", quantity: 1, unit: "1 dozen", price: "$7.49", type: "individual"},
+                    {name: "Organic & Fair Trade Hass Avocados", quantity: 5, unit: "1 piece", price: "$12.50", type: "individual"},
+                    {name: "Organic & Fair Trade Bananas (Ripe)", quantity: 1, unit: "1 bunch", price: "$2.49", type: "individual"}
                 ],
                 customizable_boxes: [
                     {
-                        box_name: "Cook's Box - Paleo",
+                        box_name: "The Cook's Box - Paleo",
                         selected_items: [
-                            {name: "Grass-Fed Ribeye Steak", unit: "1 lb", producer: "Local Ranch"},
-                            {name: "Organic Sweet Potatoes", unit: "2 lbs", producer: "Farm Fresh"},
-                            {name: "Free-Range Chicken Thighs", unit: "1.5 lbs", producer: "Happy Chickens"}
+                            {name: "Boneless, Skinless Chicken Breast", unit: ".7-1lb", producer: "Locust Point Farm"},
+                            {name: "Black Sea Bass", unit: "8.0 oz", producer: "Red's Best Seafood"},
+                            {name: "Local Yellow Peaches", unit: "2 pieces", producer: "Lancaster Farm Fresh Cooperative"},
+                            {name: "Organic Leaf Lettuce", unit: "1 head", producer: "Sun Sprout Farm"},
+                            {name: "Mixed Cherry Tomatoes", unit: "1 pint", producer: "Eagle Road Farm"},
+                            {name: "Lunchbox Peppers", unit: "12.0 oz", producer: "Sunny Harvest"},
+                            {name: "Organic Italian Eggplant", unit: "1 piece", producer: "Lancaster Farm Fresh Cooperative"},
+                            {name: "Unagi Cucumbers", unit: "2 pieces", producer: "Sunny Harvest"},
+                            {name: "Organic Green Zucchini", unit: "2 pieces", producer: "Sun Sprout Farm"}
                         ],
                         available_alternatives: [
-                            {name: "Wild Salmon Fillet", unit: "1 lb", producer: "Pacific Catch"},
-                            {name: "Grass-Fed Ground Beef", unit: "1 lb", producer: "Local Ranch"}
+                            {name: "White Ground Turkey", unit: "1.0 Lbs", producer: "Koch's Turkey Farm"},
+                            {name: "Pork Kielbasa", unit: "1 Lbs", producer: "Autumn's Harvest"},
+                            {name: "Yellow Nectarines", unit: "2 pieces", producer: "Weaver's Orchard"},
+                            {name: "Red Onions", unit: "2 Lbs", producer: "Dagele Brothers Produce"},
+                            {name: "Yellow Onions", unit: "2.0 Lbs", producer: "Dagele Brothers Produce"}
                         ],
                         selected_count: 9,
                         alternatives_count: 10
@@ -524,16 +602,16 @@
                     {
                         box_name: "Seasonal Fruit Medley",
                         selected_items: [
-                            {name: "Organic Apples", unit: "3 pieces"},
-                            {name: "Fresh Pears", unit: "3 pieces"},
-                            {name: "Seasonal Oranges", unit: "4 pieces"}
+                            {name: "Prune Plums", unit: "1 Lbs"},
+                            {name: "Honeycrisp Apples", unit: "2 pieces"},
+                            {name: "Local Yellow Peaches", unit: "2 pieces"}
                         ],
                         selected_count: 3,
                         customizable: false
                     }
                 ]
             };
-            showCartAnalysis(mockCartData);
+            showCartAnalysis(realCartData);
         }
 
         function showCartAnalysis(cartData) {
@@ -541,6 +619,19 @@
             document.getElementById('loadingSection').classList.remove('active');
             document.getElementById('cartAnalysisSection').classList.add('active');
             document.getElementById('headerSubtitle').textContent = 'Cart analysis complete';
+
+            // Generate suggested meals based on cart contents (prioritize dinner)
+            const suggestedMeals = generateMealSuggestions(cartData);
+            const mealsHTML = suggestedMeals.map((meal, index) => `
+                <div class="cart-item" style="background: #f0f8f0; border-left: 3px solid #4169E1;">
+                    <div class="item-details">
+                        <div class="item-name" style="color: #4169E1; font-weight: 600;">${meal.name}</div>
+                        <div class="item-meta">${meal.time} min • ${meal.protein}g protein • ${meal.type}</div>
+                    </div>
+                    <div style="font-size: 12px; color: #6c757d;">Serves ${meal.servings}</div>
+                </div>
+            `).join('');
+            document.getElementById('suggestedMeals').innerHTML = mealsHTML;
 
             // Show individual items
             if (cartData.individual_items && cartData.individual_items.length > 0) {
@@ -637,6 +728,73 @@
                 </div>
             `;
             document.getElementById('recommendedAddons').innerHTML = addonsHTML;
+        }
+
+        function generateMealSuggestions(cartData) {
+            // Analyze cart contents to suggest meals
+            const proteins = [];
+            const vegetables = [];
+            
+            // Extract proteins and vegetables from cart
+            cartData.customizable_boxes?.forEach(box => {
+                box.selected_items.forEach(item => {
+                    if (item.name.includes('Chicken') || item.name.includes('Bass') || item.name.includes('Turkey')) {
+                        proteins.push(item.name);
+                    }
+                    if (item.name.includes('Lettuce') || item.name.includes('Tomatoes') || 
+                        item.name.includes('Peppers') || item.name.includes('Zucchini') || 
+                        item.name.includes('Eggplant') || item.name.includes('Cucumbers')) {
+                        vegetables.push(item.name);
+                    }
+                });
+            });
+
+            // Generate meal suggestions prioritizing dinner, then other meals
+            const mealSuggestions = [
+                {
+                    name: "Pan-Seared Chicken + Cherry Tomato Salad",
+                    time: 20,
+                    protein: 35,
+                    type: "Dinner",
+                    servings: 2,
+                    priority: 1
+                },
+                {
+                    name: "Black Sea Bass + Grilled Vegetables",
+                    time: 25,
+                    protein: 28,
+                    type: "Dinner", 
+                    servings: 2,
+                    priority: 1
+                },
+                {
+                    name: "Stuffed Eggplant + Zucchini",
+                    time: 35,
+                    protein: 12,
+                    type: "Lunch",
+                    servings: 4,
+                    priority: 2
+                },
+                {
+                    name: "Avocado + Egg Breakfast Bowl",
+                    time: 10,
+                    protein: 18,
+                    type: "Breakfast",
+                    servings: 1,
+                    priority: 3
+                },
+                {
+                    name: "Cucumber + Pepper Fresh Salad",
+                    time: 5,
+                    protein: 6,
+                    type: "Side",
+                    servings: 2,
+                    priority: 4
+                }
+            ];
+
+            // Sort by priority (dinner first) and return top 4
+            return mealSuggestions.sort((a, b) => a.priority - b.priority).slice(0, 4);
         }
 
         function switchTab(tab, element) {

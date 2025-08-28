@@ -1181,25 +1181,33 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
         if not email or not password:
             return {"success": False, "error": "Missing credentials"}
         
-        # For now, return mock cart data immediately
-        # Later this will trigger background scraping with comprehensive_scraper
-        mock_cart_data = {
+        # Use real cart data from last week's scraping (8/22/2025)
+        real_cart_data = {
             "individual_items": [
-                {"name": "Organic Hass Avocados", "quantity": "5", "unit": "1 piece", "price": "$12.50", "type": "individual"},
-                {"name": "Pasture-Raised Eggs", "quantity": "1", "unit": "dozen", "price": "$8.99", "type": "individual"},
-                {"name": "Organic Bananas", "quantity": "2", "unit": "lbs", "price": "$3.98", "type": "individual"}
+                {"name": "Pasture Raised Eggs", "quantity": 1, "unit": "1 dozen", "price": "$7.49", "type": "individual"},
+                {"name": "Organic & Fair Trade Hass Avocados", "quantity": 5, "unit": "1 piece", "price": "$12.50", "type": "individual"},
+                {"name": "Organic & Fair Trade Bananas (Ripe)", "quantity": 1, "unit": "1 bunch", "price": "$2.49", "type": "individual"}
             ],
             "customizable_boxes": [
                 {
-                    "box_name": "Cook's Box - Paleo",
+                    "box_name": "The Cook's Box - Paleo",
                     "selected_items": [
-                        {"name": "Grass-Fed Ribeye Steak", "unit": "1 lb", "producer": "Local Ranch"},
-                        {"name": "Organic Sweet Potatoes", "unit": "2 lbs", "producer": "Farm Fresh"},
-                        {"name": "Free-Range Chicken Thighs", "unit": "1.5 lbs", "producer": "Happy Chickens"}
+                        {"name": "Boneless, Skinless Chicken Breast", "unit": ".7-1lb", "producer": "Locust Point Farm"},
+                        {"name": "Black Sea Bass", "unit": "8.0 oz", "producer": "Red's Best Seafood"},
+                        {"name": "Local Yellow Peaches", "unit": "2 pieces", "producer": "Lancaster Farm Fresh Cooperative"},
+                        {"name": "Organic Leaf Lettuce", "unit": "1 head", "producer": "Sun Sprout Farm"},
+                        {"name": "Mixed Cherry Tomatoes", "unit": "1 pint", "producer": "Eagle Road Farm"},
+                        {"name": "Lunchbox Peppers", "unit": "12.0 oz", "producer": "Sunny Harvest"},
+                        {"name": "Organic Italian Eggplant", "unit": "1 piece", "producer": "Lancaster Farm Fresh Cooperative"},
+                        {"name": "Unagi Cucumbers", "unit": "2 pieces", "producer": "Sunny Harvest"},
+                        {"name": "Organic Green Zucchini", "unit": "2 pieces", "producer": "Sun Sprout Farm"}
                     ],
                     "available_alternatives": [
-                        {"name": "Wild Salmon Fillet", "unit": "1 lb", "producer": "Pacific Catch"},
-                        {"name": "Grass-Fed Ground Beef", "unit": "1 lb", "producer": "Local Ranch"}
+                        {"name": "White Ground Turkey", "unit": "1.0 Lbs", "producer": "Koch's Turkey Farm"},
+                        {"name": "Pork Kielbasa", "unit": "1 Lbs", "producer": "Autumn's Harvest"},
+                        {"name": "Yellow Nectarines", "unit": "2 pieces", "producer": "Weaver's Orchard"},
+                        {"name": "Red Onions", "unit": "2 Lbs", "producer": "Dagele Brothers Produce"},
+                        {"name": "Yellow Onions", "unit": "2.0 Lbs", "producer": "Dagele Brothers Produce"}
                     ],
                     "selected_count": 9,
                     "alternatives_count": 10
@@ -1209,9 +1217,9 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                 {
                     "box_name": "Seasonal Fruit Medley",
                     "selected_items": [
-                        {"name": "Organic Apples", "unit": "3 pieces"},
-                        {"name": "Fresh Pears", "unit": "3 pieces"},
-                        {"name": "Seasonal Oranges", "unit": "4 pieces"}
+                        {"name": "Prune Plums", "unit": "1 Lbs"},
+                        {"name": "Honeycrisp Apples", "unit": "2 pieces"},
+                        {"name": "Local Yellow Peaches", "unit": "2 pieces"}
                     ],
                     "selected_count": 3,
                     "customizable": False
@@ -1219,7 +1227,7 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
             ]
         }
         
-        return {"success": True, "cart_data": mock_cart_data}
+        return {"success": True, "cart_data": real_cart_data}
         
     except Exception as e:
         return {"success": False, "error": str(e)}
