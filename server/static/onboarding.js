@@ -167,6 +167,7 @@ class OnboardingFlow {
         this.setupEventListeners();
         this.populateMealGrids();
         this.updateProgress();
+        this.updateStepContent(); // Ensure correct step 1 content is shown
     }
 
     setupEventListeners() {

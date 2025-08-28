@@ -4,11 +4,12 @@
 
 **Farm to People AI Assistant** transforms weekly produce boxes into personalized meal plans through intelligent SMS conversations. The system learns user preferences, analyzes cart contents, and delivers actionable cooking guidance.
 
-**Current Status:** Development Phase - Core functionality complete, preparing for production deployment  
-**Last Updated:** August 26, 2025  
-**Version:** 2.2.0  
+**Current Status:** Production Ready - Web app deployed with full onboarding and cart integration  
+**Last Updated:** August 28, 2025  
+**Version:** 2.3.0  
 **Branch:** `feature/customer-automation`  
-**Primary Contact:** SMS `18334391183` (Vonage)
+**Primary Contact:** SMS `18334391183` (Vonage)  
+**Live URL:** https://farmtopeople-production.up.railway.app
 
 ---
 
@@ -16,20 +17,19 @@
 
 ### **Test the System**
 ```bash
-# 1. Activate virtual environment (REQUIRED)
+# 1. Production Web App (LIVE)
+open https://farmtopeople-production.up.railway.app/onboard
+
+# 2. Local Development
 source venv/bin/activate
-
-# 2. Start the server
 python server/server.py
-
-# 3. Test onboarding flow
 open http://localhost:8000/onboard
 
-# 4. Test cart scraping
+# 3. Test cart scraping with real data
 cd scrapers && python comprehensive_scraper.py
 
-# 5. Simulate SMS flow
-curl -X POST http://localhost:8000/test-full-flow
+# 4. Dashboard testing (requires onboarding first)
+open http://localhost:8000/dashboard
 ```
 
 ### **Critical Development Rules**
@@ -63,20 +63,50 @@ curl -X POST http://localhost:8000/test-full-flow
 
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   ONBOARDING │────▶│   SMS FLOW   │────▶│   DELIVERY   │
-│   (6 steps)  │     │  (Vonage)    │     │   (PDF/Web)  │
+│   WEB APP    │────▶│   DASHBOARD  │────▶│   SETTINGS   │
+│ (7-step flow)│     │ (Live Cart)  │     │ (CRUD Prefs) │
 └──────────────┘     └──────────────┘     └──────────────┘
         │                    │                     │
         ▼                    ▼                     ▼
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   SUPABASE   │◀────│   SCRAPER    │────▶│   GPT-4/5    │
-│ (Preferences)│     │ (Playwright) │     │   (Meals)    │
+│   SUPABASE   │◀────│   SCRAPER    │────▶│   GPT-5      │
+│ (User+Prefs) │     │ (Real Cart)  │     │ (Meal Plans) │
 └──────────────┘     └──────────────┘     └──────────────┘
 ```
 
 ---
 
-## 📱 CURRENT SMS FLOW
+## 🌐 PRIMARY WEB APP FLOW
+
+### **7-Step Onboarding (Phone Number First)**
+```
+Step 1: Phone Number Entry
+  ├─ Existing User? → Skip to Step 7 (FTP)
+  └─ New User? → Continue to Step 2
+
+Step 2: Household Size + Meal Timing
+Step 3: Meal Preferences (pick 3+ dishes)
+Step 4: Cooking Styles (optional, 2+ methods)
+Step 5: Dietary Restrictions (multiple selection)
+Step 6: Health Goals (up to 2 outcomes)
+Step 7: FTP Account Credentials → Dashboard
+```
+
+### **Dashboard Navigation**
+- **Cart Tab:** Live cart analysis with delivery date
+- **Meals Tab:** AI-generated meal suggestions with refresh (3x limit)
+- **Settings Tab:** Update any preferences via modal editing
+
+### **Settings System (Full CRUD)**
+- **Household Size:** 1-7+ people grid selection
+- **Meal Preferences:** Familiar vs adventurous dishes
+- **Cooking Style:** Quick, comfort, international methods
+- **Dietary Restrictions:** Allergies, lifestyle choices
+- **Health Goals:** Quick dinners, family meals, etc.
+
+---
+
+## 📱 SMS FLOW (Secondary - Future Enhancement)
 
 ### **Message Routing (server.py:455-498)**
 ```python
@@ -176,24 +206,26 @@ Every SMS now includes contextual help text to guide users:
 
 ## 📊 CURRENT IMPLEMENTATION STATUS
 
-### ✅ **COMPLETED FEATURES (as of 8/26)**
-- **Onboarding System** - 6-step preference collection with FTP integration
-- **Cart Scraping** - Comprehensive capture of all cart types
-- **SMS Integration** - Vonage webhook with progress updates
-- **Preference Analysis** - 20-30 signal extraction system
-- **Database Schema** - Supabase user/preference storage
-- **Live Cart → Meal Planner** - Direct data connection (no files) ✅
-- **Preference → GPT Integration** - Preferences shape meal generation ✅
-- **GPT-5 Implementation** - Using production GPT-5 (not GPT-4) ✅
-- **PDF Generation** - Penny-style minimal design (HTML→PDF) ✅
-- **Ingredient Storage Guide** - Proper storage instructions
+### ✅ **COMPLETED FEATURES (as of 8/28)**
+- **✅ Web App Foundation** - Complete 7-step onboarding with smart user detection
+- **✅ Settings System** - Full CRUD operations for all user preferences
+- **✅ Dashboard Integration** - Live cart data with meal suggestions and refresh functionality
+- **✅ Cart Scraping** - Comprehensive capture including delivery date extraction
+- **✅ User Management** - Phone-first flow with existing user skip logic
+- **✅ Database Schema** - Supabase user/preference storage with encrypted credentials
+- **✅ Live Cart → Dashboard** - Real FTP data integration with fallback to mock data
+- **✅ Navigation System** - Clean tab structure (Cart/Meals/Settings) with proper routing
+- **✅ GPT-5 Implementation** - Production-ready meal plan generation
+- **✅ Deployment** - Live on Railway with environment variables configured
 
-### 🚧 **THIS WEEK (8/26-8/30)**
-- **✅ Tuesday PM:** Add help text to SMS responses (COMPLETED)
-- **Wednesday:** Redis conversation state management
-- **Thursday AM:** Instant acknowledgments
-- **Thursday PM:** Modification handlers (swap/skip/remove)
-- **Friday:** Test with real data & deploy to production
+### ✅ **COMPLETED THIS WEEK (8/26-8/28)**
+- **✅ Monday:** Settings page with 5 preference categories and modal editing
+- **✅ Tuesday:** Dashboard navigation refactor (Home→Cart, Cart→Meals)
+- **✅ Wednesday:** Live scraper integration with database credential lookup
+- **✅ Wednesday:** Delivery date extraction from cart pages
+- **✅ Wednesday:** Meal refresh functionality with 3x daily limit
+- **✅ Thursday:** Onboarding flow refactor - phone number first with user detection
+- **✅ Thursday:** Production deployment with full end-to-end testing
 
 ### 📝 **FUTURE FEATURES**
 - **Confirmation Flow** - User approval before recipe generation
@@ -315,17 +347,18 @@ SUPABASE_KEY=xxx                 # Database key
 
 ## 📈 KEY METRICS & TARGETS
 
-### **User Experience**
-- Onboarding Completion: >85% target
-- Cart Analysis Speed: <30 seconds
-- Confirmation Rate: >80% target
-- Recipe Execution: >70% cook 2+ meals/week
+### **Web App Performance**
+- Onboarding Completion: >85% target (7-step flow)
+- Existing User Recognition: >95% accuracy
+- Cart Scraping Speed: <30 seconds with real credentials
+- Dashboard Load Time: <3 seconds
+- Settings Update Success: >99%
 
 ### **Technical Performance**
-- Scraper Success Rate: >95%
-- SMS Delivery Rate: >99%
-- AI Response Quality: >8/10 satisfaction
-- System Uptime: >99.5%
+- Scraper Success Rate: >95% (✅ tested with real data)
+- Database Operations: >99% uptime (Supabase)
+- Railway Deployment: >99.5% availability
+- AI Response Quality: GPT-5 production ready
 
 ### **Protein Requirements (NEW)**
 - Women: 30g minimum per meal
@@ -336,23 +369,29 @@ SUPABASE_KEY=xxx                 # Database key
 
 ## 🎯 NEXT SPRINT GOALS (Priority Order)
 
-### **Sprint 1: Core Integration (Week 1)**
-1. Connect live cart data to meal planner
-2. Integrate user preferences into GPT prompts
-3. Implement conversation state management
-4. Add confirmation flow with modifications
+### **✅ Sprint 1: Web App Foundation (COMPLETED 8/28)**
+1. ✅ Complete 7-step onboarding with user detection
+2. ✅ Build settings system with full CRUD operations  
+3. ✅ Connect live cart data to dashboard
+4. ✅ Deploy to production on Railway
 
-### **Sprint 2: User Experience (Week 2)**
-1. Generate recipe PDFs with full instructions
-2. Add cart total calculations
-3. Implement meal calendar visualization
-4. Build weekly feedback collection
+### **🚧 Sprint 2: Meal Planning Integration (Week of 9/2)**
+1. Connect user preferences to GPT-5 meal generation
+2. Generate recipe PDFs with full cooking instructions
+3. Add cart total calculations with pricing transparency
+4. Implement confirmation flow before recipe generation
 
-### **Sprint 3: Production Ready (Week 3)**
-1. Deploy to Railway with monitoring
-2. Add error recovery and retries
-3. Implement caching strategy
-4. Set up analytics tracking
+### **📋 Sprint 3: User Experience Polish (Week of 9/9)**
+1. Add meal calendar visualization for weekly planning
+2. Build weekly feedback collection and rating system
+3. Implement error recovery and retry mechanisms
+4. Add analytics tracking for user behavior insights
+
+### **🔮 Sprint 4: Advanced Features (Week of 9/16)**
+1. SMS integration for notifications and updates
+2. Seasonal intelligence for produce availability
+3. Learning system that evolves with user preferences
+4. Advanced personalization based on cooking history
 
 ---
 
