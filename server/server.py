@@ -1175,17 +1175,57 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
     """
     try:
         data = await request.json()
-        email = data.get('email')
-        password = data.get('password')
         
-        if not email or not password:
-            return {"success": False, "error": "Missing credentials"}
+        # Check if we should use mock data or real scraping
+        use_mock = data.get('use_mock', False)
+        phone = data.get('phone')
         
-        # Use real cart data from last week's scraping (8/22/2025)
-        real_cart_data = {
+        cart_data = None
+        
+        if not use_mock and phone:
+            # Try to get real cart data using stored credentials
+            try:
+                print(f"🔍 Looking up credentials for {phone}")
+                
+                # Normalize phone number
+                if not phone.startswith('+'):
+                    phone = '+1' + phone.lstrip('+1')
+                
+                # Get user credentials from database
+                user_record = db.get_user_by_phone(phone)
+                if user_record and user_record.get('ftp_email'):
+                    email = user_record['ftp_email']
+                    # Decrypt password (it's base64 encoded)
+                    import base64
+                    encoded_pwd = user_record.get('ftp_password_encrypted', '')
+                    password = base64.b64decode(encoded_pwd).decode('utf-8') if encoded_pwd else None
+                    
+                    if email and password:
+                        print(f"🛒 Running live scraper for {email}")
+                        # Run the actual scraper
+                        credentials = {'email': email, 'password': password}
+                        cart_data = run_cart_scraper(credentials)
+                        
+                        if cart_data:
+                            print("✅ Successfully scraped live cart data!")
+                        else:
+                            print("⚠️ Scraper returned no data, falling back to mock")
+                    else:
+                        print("⚠️ Missing credentials, using mock data")
+                else:
+                    print("⚠️ User not found, using mock data")
+                    
+            except Exception as e:
+                print(f"❌ Error scraping cart: {str(e)}")
+                print("⚠️ Falling back to mock data")
+        
+        # If we don't have real data yet, use mock
+        if not cart_data:
+            print("🧪 Using mock cart data")
+            cart_data = {
             "individual_items": [
                 {"name": "Pasture Raised Eggs", "quantity": 1, "unit": "1 dozen", "price": "$7.49", "type": "individual"},
-                {"name": "Organic & Fair Trade Hass Avocados", "quantity": 5, "unit": "1 piece", "price": "$12.50", "type": "individual"},
+                {"name": "Organic & Fair Trade Hass Avocados", "quantity": 5, "unit": "1 piece", "price": "$8.00", "type": "individual"},
                 {"name": "Organic & Fair Trade Bananas (Ripe)", "quantity": 1, "unit": "1 bunch", "price": "$2.49", "type": "individual"}
             ],
             "customizable_boxes": [
@@ -1227,7 +1267,42 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
             ]
         }
         
-        return {"success": True, "cart_data": real_cart_data}
+        return {"success": True, "cart_data": cart_data}
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/refresh-meals")
+async def refresh_meal_suggestions(request: Request):
+    """
+    Generate new meal suggestions from the same cart data.
+    
+    This allows users to get different meal ideas without re-analyzing their cart.
+    Limited to prevent abuse (track refresh count on frontend).
+    """
+    try:
+        data = await request.json()
+        cart_data = data.get('cart_data')
+        phone = data.get('phone')
+        
+        if not cart_data:
+            return {"success": False, "error": "No cart data provided"}
+        
+        # TODO: Eventually use meal_planner.generate_from_cart(cart_data)
+        # For now, return mock meal suggestions
+        mock_meals = [
+            {"name": "Mediterranean Chicken Bowl", "time": "25 min", "protein": 35},
+            {"name": "Veggie Stir-Fry with Tofu", "time": "20 min", "protein": 18},
+            {"name": "Grilled Fish Tacos", "time": "30 min", "protein": 28},
+            {"name": "Egg & Vegetable Frittata", "time": "35 min", "protein": 24},
+            {"name": "Quinoa Power Bowl", "time": "25 min", "protein": 22}
+        ]
+        
+        # Shuffle to simulate different suggestions
+        import random
+        random.shuffle(mock_meals)
+        
+        return {"success": True, "meals": mock_meals[:4]}
         
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -1259,6 +1334,196 @@ async def save_onboarding_preferences(request: Request):
     import onboarding
     data = await request.json()
     return await onboarding.save_preferences(data)
+
+# Settings Page Routes
+@app.get("/settings")
+async def serve_settings_page(request: Request):
+    """
+    Serve the settings page for updating user preferences.
+    
+    Shows 5 clickable categories that allow users to update preferences
+    collected during onboarding: household size, meal timing, cooking style,
+    dietary restrictions, and health goals.
+    """
+    return templates.TemplateResponse("settings.html", {
+        "request": request
+    })
+
+
+@app.get("/api/settings/options")
+async def get_settings_options():
+    """
+    Get available options for all settings categories.
+    
+    Returns the same option lists used in onboarding to ensure consistency
+    in the settings modal forms. This includes household sizes, meal timings,
+    dietary restrictions, goals, and cooking methods.
+    
+    Returns:
+        JSON with all available options for each category
+    """
+    try:
+        # Import the preference options from onboarding models
+        # These should match exactly what's available in onboarding
+        options = {
+            "household_sizes": ["1-2", "3-4", "5-6", "7+"],
+            "meal_timings": [
+                {"id": "breakfast", "label": "Breakfast", "icon": "🌅"},
+                {"id": "lunch", "label": "Lunch", "icon": "☀️"},
+                {"id": "dinner", "label": "Dinner", "icon": "🌙"},
+                {"id": "snacks", "label": "Snacks", "icon": "🥨"}
+            ],
+            "dietary_restrictions": [
+                {"id": "high-protein", "label": "High Protein (30g+ per meal)"},
+                {"id": "vegetarian", "label": "Vegetarian (no meat or fish)"},
+                {"id": "no-pork", "label": "No Pork (halal/kosher friendly)"},
+                {"id": "dairy-free", "label": "Dairy-Free"},
+                {"id": "gluten-free", "label": "Gluten-Free"},
+                {"id": "low-carb", "label": "Low-Carb"},
+                {"id": "nut-free", "label": "Nut-Free"},
+                {"id": "no-shellfish", "label": "No Shellfish"}
+            ],
+            "goals": [
+                {"id": "quick-dinners", "label": "Quick Dinners (20 min or less)", "icon": "⚡"},
+                {"id": "whole-food", "label": "Whole Food Focus", "icon": "🥬"},
+                {"id": "new-recipes", "label": "Try New Recipes", "icon": "✨"},
+                {"id": "reduce-waste", "label": "Reduce Food Waste", "icon": "♻️"},
+                {"id": "family-friendly", "label": "Family-Friendly Meals", "icon": "👨‍👩‍👧‍👦"},
+                {"id": "meal-prep", "label": "Great for Meal Prep", "icon": "📦"}
+            ],
+            "cooking_methods": [
+                {"id": "roast", "label": "Roasting & Baking"},
+                {"id": "stir_fry", "label": "Stir-Fry & Sauté"},
+                {"id": "grill_pan", "label": "Grilling & Pan-Searing"},
+                {"id": "one_pot", "label": "One-Pot Meals"},
+                {"id": "raw_prep", "label": "Fresh & Raw (Salads, Bowls)"},
+                {"id": "slow_cook", "label": "Slow Cooking & Braising"}
+            ]
+        }
+        
+        return {"success": True, "options": options}
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/settings/{phone}")
+async def get_user_preferences(phone: str):
+    """
+    Fetch user preferences by phone number for settings display.
+    
+    Returns structured preference data to populate the settings preview cards
+    and modal forms. Phone number should be URL-encoded if it contains special characters.
+    
+    Args:
+        phone: User's phone number (with or without +1 prefix)
+    
+    Returns:
+        JSON with preference categories or error if user not found
+    """
+    try:
+        # Normalize phone number (add +1 if missing)
+        if not phone.startswith('+'):
+            phone = '+1' + phone.lstrip('+1')
+        
+        # Fetch user record from database
+        user_record = db.get_user_by_phone(phone)
+        if not user_record:
+            return {"success": False, "error": "User not found"}
+        
+        preferences = user_record.get('preferences', {})
+        
+        # Structure preferences for settings UI
+        settings_data = {
+            "household_size": preferences.get('household_size', '1-2'),
+            "meal_timing": preferences.get('meal_timing', []),
+            "dietary_restrictions": preferences.get('dietary_restrictions', []),
+            "goals": preferences.get('goals', []),
+            # Extract cooking style from derived preferences (try multiple keys)
+            "cooking_methods": preferences.get('preferred_cooking_methods', preferences.get('cooking_methods', [])),
+            "time_preferences": preferences.get('time_preferences', [])
+        }
+        
+        return {"success": True, "preferences": settings_data}
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/settings/{phone}/update")
+async def update_user_preferences(phone: str, request: Request):
+    """
+    Update specific preference categories for a user.
+    
+    Accepts partial updates to allow updating individual categories
+    without affecting others. This enables the modal-based editing flow
+    where each category can be updated independently.
+    
+    Args:
+        phone: User's phone number
+        request body: JSON with category updates, e.g.:
+            {
+                "category": "household",
+                "value": "3-4"
+            }
+            OR
+            {
+                "category": "dietary", 
+                "value": ["high-protein", "no-pork"]
+            }
+    
+    Returns:
+        Success/error status and updated preference summary
+    """
+    try:
+        # Normalize phone number
+        if not phone.startswith('+'):
+            phone = '+1' + phone.lstrip('+1')
+        
+        data = await request.json()
+        category = data.get('category')
+        value = data.get('value')
+        
+        if not category or value is None:
+            return {"success": False, "error": "Missing category or value"}
+        
+        # Fetch current user record
+        user_record = db.get_user_by_phone(phone)
+        if not user_record:
+            return {"success": False, "error": "User not found"}
+        
+        # Get current preferences
+        current_preferences = user_record.get('preferences', {})
+        
+        # Update the specific category
+        if category == "household":
+            current_preferences['household_size'] = value
+        elif category == "meals":
+            current_preferences['meal_timing'] = value
+        elif category == "dietary":
+            current_preferences['dietary_restrictions'] = value
+        elif category == "goals":
+            current_preferences['goals'] = value
+        elif category == "cooking":
+            # Handle cooking style updates (methods and time preferences)
+            if isinstance(value, dict):
+                current_preferences['preferred_cooking_methods'] = value.get('methods', [])
+                current_preferences['time_preferences'] = value.get('time', [])
+            else:
+                return {"success": False, "error": "Cooking preferences must be an object with 'methods' and 'time' arrays"}
+        else:
+            return {"success": False, "error": f"Unknown category: {category}"}
+        
+        # Update the database record
+        updated_record = db.upsert_user_credentials(
+            phone_number=phone,
+            ftp_email=user_record['ftp_email'],
+            ftp_password=user_record.get('ftp_password_encrypted', ''),  # Keep encrypted password as-is
+            preferences=current_preferences
+        )
+        
+        return {"success": True, "message": "Preferences updated successfully"}
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 if __name__ == "__main__":
     import uvicorn

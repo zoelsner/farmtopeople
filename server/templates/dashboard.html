@@ -209,8 +209,8 @@
 
         .item-name {
             font-size: 14px;
-            font-weight: 500;
-            color: #212529;
+            font-weight: 600;
+            color: #4169E1; /* Penny blue for item names */
             margin-bottom: 4px;
         }
 
@@ -469,10 +469,20 @@
             </div>
         </div>
 
-        <!-- Cart View - Hidden for now -->
-        <div class="cart-view section" id="cartSection">
-            <h2>Your Cart Contents</h2>
-            <p style="color: #6c757d; margin-top: 20px;">Cart analysis will appear here</p>
+        <!-- Meals View - Shows suggested meals based on cart -->
+        <div class="meals-view section" id="mealsSection">
+            <h2>🍽️ Suggested Meals</h2>
+            <p style="color: #6c757d; margin-top: 20px;">Based on your cart contents</p>
+            
+            <!-- Refresh button for new suggestions -->
+            <div style="text-align: center; margin: 20px 0;">
+                <button id="refreshMeals" class="analyze-button" style="background: #6c757d; padding: 12px 24px;">
+                    🔄 Try Different Meals (<span id="refreshCount">3</span> left)
+                </button>
+            </div>
+            
+            <!-- Meal suggestions will be dynamically added here -->
+            <div id="mealSuggestionsContainer"></div>
         </div>
 
         <!-- Settings - Hidden for now -->
@@ -484,19 +494,21 @@
 
     <!-- Bottom Tab Navigation -->
     <nav class="bottom-tabs">
-        <a href="#home" class="tab active" onclick="switchTab('home', this)">
-            <svg class="tab-icon icon-home" viewBox="0 0 24 24">
-                <path d="M12 2L2 12h3v8h6v-6h2v6h6v-8h3L12 2z"/>
-            </svg>
-            <span class="tab-label">Home</span>
-        </a>
-        <a href="#cart" class="tab" onclick="switchTab('cart', this)">
+        <a href="#cart" class="tab active" onclick="switchTab('cart', this)">
             <svg class="tab-icon icon-cart" viewBox="0 0 24 24">
-                <path d="M7 4V2C7 1.45 7.45 1 8 1h8c.55 0 1 .45 1 1v2h4c.55 0 1 .45 1 1v16c0 .55-.45 1-1 1H3c-.55 0-1-.45-1-1V5c0-.55.45-1 1-1h4zm2-1v1h6V3H9zm-4 4v12h14V7H5z"/>
+                <circle cx="8" cy="21" r="1"/>
+                <circle cx="19" cy="21" r="1"/>
+                <path d="m2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
             </svg>
             <span class="tab-label">Cart</span>
         </a>
-        <a href="#settings" class="tab" onclick="switchTab('settings', this)">
+        <a href="#meals" class="tab" onclick="switchTab('meals', this)">
+            <svg class="tab-icon icon-meals" viewBox="0 0 24 24">
+                <path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 11.73z"/>
+            </svg>
+            <span class="tab-label">Meals</span>
+        </a>
+        <a href="/settings" class="tab">
             <svg class="tab-icon icon-settings" viewBox="0 0 24 24">
                 <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
             </svg>
@@ -507,6 +519,7 @@
     <script>
         let currentState = 'start'; // start, loading, complete
         let mealPlanData = null;
+        let refreshesLeft = 3;  // Track refresh count
 
         // Check if we have saved credentials
         const userEmail = localStorage.getItem('ftpEmail');
@@ -539,13 +552,23 @@
             }, 3000);
 
             try {
+                // Get user phone (from localStorage or prompt)
+                let userPhone = localStorage.getItem('userPhone');
+                if (!userPhone) {
+                    userPhone = prompt('Enter your phone number to analyze your cart:');
+                    if (userPhone) {
+                        localStorage.setItem('userPhone', userPhone);
+                    }
+                }
+                
                 // Start the actual analysis
+                // Pass phone number to use stored credentials from database
                 const response = await fetch('/api/analyze-cart', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        email: localStorage.getItem('ftpEmail'),
-                        password: localStorage.getItem('ftpPassword')
+                        phone: userPhone,
+                        use_mock: false  // Set to true to use mock data for testing
                     })
                 });
 
@@ -655,7 +678,7 @@
                     <div style="margin-bottom: 20px;">
                         <div class="box-header">
                             <div class="box-name">${box.box_name}</div>
-                            <div class="box-status">${box.selected_count} selected, ${box.alternatives_count} available</div>
+                            <div class="box-status">${box.alternatives_count} available alternatives</div>
                         </div>
                         <div class="item-grid">
                             ${box.selected_items.map(item => `
@@ -797,6 +820,94 @@
             return mealSuggestions.sort((a, b) => a.priority - b.priority).slice(0, 4);
         }
 
+        // Refresh meals button handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const refreshButton = document.getElementById('refreshMeals');
+            if (refreshButton) {
+                refreshButton.addEventListener('click', async () => {
+                    if (refreshesLeft > 0) {
+                        // Disable button during refresh
+                        refreshButton.disabled = true;
+                        refreshButton.innerHTML = '⏳ Generating new meals...';
+                        
+                        try {
+                            // Call API to regenerate meals
+                            const response = await fetch('/api/refresh-meals', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({
+                                    cart_data: mealPlanData,
+                                    phone: localStorage.getItem('userPhone')
+                                })
+                            });
+                            
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                                // Update meal suggestions
+                                updateMealSuggestions(data.meals);
+                                
+                                // Decrement refresh count
+                                refreshesLeft--;
+                                localStorage.setItem('refreshesLeft', refreshesLeft);
+                                
+                                // Update button
+                                if (refreshesLeft > 0) {
+                                    refreshButton.disabled = false;
+                                    refreshButton.innerHTML = `🔄 Try Different Meals (${refreshesLeft} left)`;
+                                } else {
+                                    refreshButton.disabled = true;
+                                    refreshButton.innerHTML = '🔄 No refreshes left';
+                                    refreshButton.style.background = '#dee2e6';
+                                }
+                            } else {
+                                // Re-enable on error
+                                refreshButton.disabled = false;
+                                refreshButton.innerHTML = `🔄 Try Different Meals (${refreshesLeft} left)`;
+                                alert('Failed to generate new meals. Please try again.');
+                            }
+                        } catch (error) {
+                            console.error('Error refreshing meals:', error);
+                            refreshButton.disabled = false;
+                            refreshButton.innerHTML = `🔄 Try Different Meals (${refreshesLeft} left)`;
+                        }
+                    }
+                });
+            }
+            
+            // Load refresh count from localStorage
+            const savedRefreshes = localStorage.getItem('refreshesLeft');
+            if (savedRefreshes !== null) {
+                refreshesLeft = parseInt(savedRefreshes);
+                const refreshSpan = document.getElementById('refreshCount');
+                if (refreshSpan) {
+                    refreshSpan.textContent = refreshesLeft;
+                }
+            }
+        });
+
+        function updateMealSuggestions(meals) {
+            // Update the meal suggestions container with new meals
+            const container = document.getElementById('mealSuggestionsContainer');
+            if (container && meals) {
+                // Clear existing meals
+                container.innerHTML = '';
+                
+                // Add new meals
+                meals.forEach(meal => {
+                    const mealCard = document.createElement('div');
+                    mealCard.className = 'meal-card';
+                    mealCard.innerHTML = `
+                        <div class="meal-header">
+                            <span class="meal-name">${meal.name}</span>
+                            <span class="meal-meta">${meal.time} • ${meal.protein}g protein</span>
+                        </div>
+                    `;
+                    container.appendChild(mealCard);
+                });
+            }
+        }
+
         function switchTab(tab, element) {
             // Update active tab
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -806,7 +917,8 @@
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
 
             // Show the right section based on state and tab
-            if (tab === 'home') {
+            if (tab === 'cart') {
+                // Cart tab shows the current cart analysis
                 if (currentState === 'complete') {
                     document.getElementById('cartAnalysisSection').classList.add('active');
                 } else if (currentState === 'loading') {
@@ -814,9 +926,11 @@
                 } else {
                     document.getElementById('startSection').classList.add('active');
                 }
-            } else if (tab === 'cart') {
-                document.getElementById('cartSection').classList.add('active');
+            } else if (tab === 'meals') {
+                // Meals tab shows meal suggestions
+                document.getElementById('mealsSection').classList.add('active');
             } else if (tab === 'settings') {
+                // Settings redirects to separate page (handled by href)
                 document.getElementById('settingsSection').classList.add('active');
             }
         }

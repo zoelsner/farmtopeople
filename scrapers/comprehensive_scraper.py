@@ -473,12 +473,62 @@ def main(credentials=None, return_data=False):
                 print(f"❌ Error processing box {i+1}: {e}")
                 continue
         
+        # Extract delivery date (just the raw date, handle logic downstream)
+        delivery_info = {}
+        try:
+            print("🔍 Searching for delivery date...")
+            # Broader search for delivery date on cart page
+            elements = page.locator("h1, h2, h3, h4, p, span, div").all()[:50]  # Check more elements
+            
+            found_date = False
+            for elem in elements:
+                text = elem.text_content().strip()
+                # Skip empty or very long texts
+                if not text or len(text) > 200:
+                    continue
+                    
+                # Look for month names to find delivery date
+                if any(month in text for month in ['January', 'February', 'March', 'April', 'May', 'June', 
+                                                   'July', 'August', 'September', 'October', 'November', 'December',
+                                                   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']):
+                    delivery_info['delivery_text'] = text
+                    print(f"  📅 Found delivery info: {text}")
+                    found_date = True
+                    break  # Take first match
+                    
+                # Also check for "Deliver" keyword with dates
+                elif 'deliver' in text.lower() and any(char.isdigit() for char in text):
+                    delivery_info['delivery_text'] = text
+                    print(f"  📅 Found delivery mention: {text}")
+                    found_date = True
+                    break
+                    
+            if not found_date:
+                print("  ⚠️ No delivery date found on cart page")
+                # Try looking at page title or other specific locations
+                try:
+                    title = page.title()
+                    if any(month in title for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                                         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']):
+                        delivery_info['delivery_text'] = title
+                        print(f"  📅 Found in page title: {title}")
+                except:
+                    pass
+                    
+        except Exception as e:
+            print(f"⚠️ Could not extract delivery date: {e}")
+        
         # Combine all data for output
         complete_results = {
             "individual_items": individual_items,
             "non_customizable_boxes": non_customizable_boxes,
             "customizable_boxes": all_box_data
         }
+        
+        # Add delivery info if found
+        if delivery_info:
+            complete_results["delivery_info"] = delivery_info
         
         # Save results to file (always, for debugging)
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
