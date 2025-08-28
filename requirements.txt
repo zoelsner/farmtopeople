@@ -17,6 +17,7 @@ supabase
 fastapi
 uvicorn[standard]
 python-multipart
+jinja2
 
 # Vonage for SMS (replaced Twilio)
 vonage
