@@ -34,8 +34,8 @@ load_dotenv(dotenv_path=project_root / '.env')
 # === CONFIGURATION ===
 # IMPORTANT: Change this single variable to switch between models throughout the app
 # Updated 2025-08-29: Switched from hardcoded models to configurable variable
-# Updated 2025-08-29: Testing o4-mini for better reasoning on swaps and portions
-AI_MODEL = "o4-mini"  # Options: "o4-mini", "gpt-4o", "gpt-4o-mini", "gpt-4-turbo"
+# Updated 2025-08-29: Using gpt-4o for production
+AI_MODEL = "gpt-4o"  # Options: "gpt-4o", "gpt-4o-mini", "gpt-4-turbo"
 print(f"🤖 AI Model configured: {AI_MODEL}")
 
 app = FastAPI()
@@ -1224,63 +1224,46 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                         if cart_data:
                             print("✅ Successfully scraped live cart data!")
                         else:
-                            print("⚠️ Scraper returned no data, falling back to mock")
+                            # Return error instead of mock data
+                            return {
+                                "success": False,
+                                "error": "Scraper returned no data. Please check your Farm to People account.",
+                                "debug_info": "Scraper ran but returned None"
+                            }
                     else:
-                        print("⚠️ Missing credentials, using mock data")
+                        # Return error instead of mock data
+                        return {
+                            "success": False,
+                            "error": "Missing Farm to People credentials. Please log in first.",
+                            "debug_info": f"User found but no credentials stored for {email if 'email' in locals() else 'unknown'}"
+                        }
                 else:
-                    print("⚠️ User not found, using mock data")
+                    # Return error instead of mock data
+                    return {
+                        "success": False,
+                        "error": "User not found. Please complete onboarding first.",
+                        "debug_info": f"No user record found for phone: {phone}"
+                    }
                     
             except Exception as e:
+                # Return error instead of mock data
                 print(f"❌ Error scraping cart: {str(e)}")
-                print("⚠️ Falling back to mock data")
+                return {
+                    "success": False,
+                    "error": f"Failed to scrape cart: {str(e)}",
+                    "debug_info": {
+                        "error_type": type(e).__name__,
+                        "error_message": str(e)
+                    }
+                }
         
-        # If we don't have real data yet, use mock
+        # Remove all mock data - if we don't have real data, return error
         if not cart_data:
-            print("🧪 Using mock cart data")
-            cart_data = {
-            "individual_items": [
-                {"name": "Pasture Raised Eggs", "quantity": 1, "unit": "1 dozen", "price": "$7.49", "type": "individual"},
-                {"name": "Organic & Fair Trade Hass Avocados", "quantity": 5, "unit": "1 piece", "price": "$8.00", "type": "individual"},
-                {"name": "Organic & Fair Trade Bananas (Ripe)", "quantity": 1, "unit": "1 bunch", "price": "$2.49", "type": "individual"}
-            ],
-            "customizable_boxes": [
-                {
-                    "box_name": "The Cook's Box - Paleo",
-                    "selected_items": [
-                        {"name": "Boneless, Skinless Chicken Breast", "unit": ".7-1lb", "producer": "Locust Point Farm"},
-                        {"name": "Black Sea Bass", "unit": "8.0 oz", "producer": "Red's Best Seafood"},
-                        {"name": "Local Yellow Peaches", "unit": "2 pieces", "producer": "Lancaster Farm Fresh Cooperative"},
-                        {"name": "Organic Leaf Lettuce", "unit": "1 head", "producer": "Sun Sprout Farm"},
-                        {"name": "Mixed Cherry Tomatoes", "unit": "1 pint", "producer": "Eagle Road Farm"},
-                        {"name": "Lunchbox Peppers", "unit": "12.0 oz", "producer": "Sunny Harvest"},
-                        {"name": "Organic Italian Eggplant", "unit": "1 piece", "producer": "Lancaster Farm Fresh Cooperative"},
-                        {"name": "Unagi Cucumbers", "unit": "2 pieces", "producer": "Sunny Harvest"},
-                        {"name": "Organic Green Zucchini", "unit": "2 pieces", "producer": "Sun Sprout Farm"}
-                    ],
-                    "available_alternatives": [
-                        {"name": "White Ground Turkey", "unit": "1.0 Lbs", "producer": "Koch's Turkey Farm"},
-                        {"name": "Pork Kielbasa", "unit": "1 Lbs", "producer": "Autumn's Harvest"},
-                        {"name": "Yellow Nectarines", "unit": "2 pieces", "producer": "Weaver's Orchard"},
-                        {"name": "Red Onions", "unit": "2 Lbs", "producer": "Dagele Brothers Produce"},
-                        {"name": "Yellow Onions", "unit": "2.0 Lbs", "producer": "Dagele Brothers Produce"}
-                    ],
-                    "selected_count": 9,
-                    "alternatives_count": 10
-                }
-            ],
-            "non_customizable_boxes": [
-                {
-                    "box_name": "Seasonal Fruit Medley",
-                    "selected_items": [
-                        {"name": "Prune Plums", "unit": "1 Lbs"},
-                        {"name": "Honeycrisp Apples", "unit": "2 pieces"},
-                        {"name": "Local Yellow Peaches", "unit": "2 pieces"}
-                    ],
-                    "selected_count": 3,
-                    "customizable": False
-                }
-            ]
-        }
+            return {
+                "success": False,
+                "error": "No cart data available. Please provide credentials or try again.",
+                "debug_info": "Cart data is None after all attempts"
+            }
         
         # Generate AI-powered swaps and add-ons based on preferences (2025-08-29)
         swaps = []
