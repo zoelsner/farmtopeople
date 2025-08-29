@@ -559,12 +559,27 @@ class OnboardingFlow {
                 
                 // Check if user has existing preferences
                 if (userData.preferences && Object.keys(userData.preferences).length > 0) {
-                    // Existing user - skip to FTP credentials step
-                    console.log('Existing user found, skipping preference collection');
+                    console.log('Existing user found with preferences');
                     this.existingUser = true;
                     this.data.phoneNumber = phone;
-                    this.showWelcomeBack(userData);
-                    this.showStep(7); // Jump directly to FTP account setup
+                    
+                    // Store phone in localStorage for dashboard use
+                    localStorage.setItem('userPhone', phone);
+                    
+                    // Check if user also has FTP credentials
+                    if (userData.ftp_email && userData.ftp_password_encrypted) {
+                        // Complete user - go directly to dashboard
+                        console.log('Complete user found, redirecting to dashboard');
+                        this.showWelcomeBack(userData);
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 2000);
+                    } else {
+                        // User has preferences but needs FTP setup - go to step 7
+                        console.log('User has preferences but needs FTP setup');
+                        this.showWelcomeBack(userData);
+                        this.showStep(7); // Jump directly to FTP account setup
+                    }
                     return;
                 }
             }
@@ -694,6 +709,11 @@ class OnboardingFlow {
         
         // Redirect to dashboard after 2 seconds if complete
         if (isComplete) {
+            // Store phone number in localStorage for dashboard use
+            if (this.data.phoneNumber) {
+                localStorage.setItem('userPhone', this.data.phoneNumber);
+            }
+            
             setTimeout(() => {
                 window.location.href = '/dashboard';
             }, 2000);
