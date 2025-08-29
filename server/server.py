@@ -299,32 +299,8 @@ def run_full_meal_plan_flow(phone_number: str):
                 'email': user_data['ftp_email'],
                 'password': user_data['ftp_password']
             }
-            # Get cart data directly from scraper (run in new thread to avoid async conflict)
-            import threading
-            import queue
-            
-            # Create a queue to capture the result
-            result_queue = queue.Queue()
-            
-            def run_scraper_in_thread():
-                try:
-                    result = run_cart_scraper(credentials, return_data=True)
-                    result_queue.put(('success', result))
-                except Exception as e:
-                    result_queue.put(('error', str(e)))
-            
-            # Run in a separate thread
-            thread = threading.Thread(target=run_scraper_in_thread)
-            thread.start()
-            thread.join()
-            
-            # Get result from queue
-            status, result = result_queue.get()
-            if status == 'success':
-                cart_data = result
-            else:
-                print(f"❌ Scraper error: {result}")
-                cart_data = None
+            # Get cart data directly from async scraper (clean solution)
+            cart_data = await run_cart_scraper(credentials, return_data=True)
             print(f"✅ Cart scraping completed: {len(cart_data.get('individual_items', [])) if cart_data else 0} items")
         else:
             print("⚠️ No credentials found for this user. Cannot scrape cart.")
@@ -1233,9 +1209,11 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                     
                     if email and password:
                         print(f"🛒 Running live scraper for {email}")
-                        # Run the actual scraper with return_data=True (in thread pool to avoid async conflict)
+                        # Run the actual scraper with return_data=True (properly isolated from async context)
                         credentials = {'email': email, 'password': password}
-                        cart_data = await asyncio.to_thread(run_cart_scraper, credentials, return_data=True)
+                        
+                        # Use async scraper directly (clean solution)
+                        cart_data = await run_cart_scraper(credentials, return_data=True)
                         
                         if cart_data:
                             print("✅ Successfully scraped live cart data!")
