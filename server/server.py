@@ -34,8 +34,8 @@ load_dotenv(dotenv_path=project_root / '.env')
 # === CONFIGURATION ===
 # IMPORTANT: Change this single variable to switch between models throughout the app
 # Updated 2025-08-29: Switched from hardcoded models to configurable variable
-# Updated 2025-08-29: GPT-5 doesn't exist yet - using gpt-4o (most advanced available)
-AI_MODEL = "gpt-4o"  # Options: "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"
+# Updated 2025-08-29: Testing o4-mini for better reasoning on swaps and portions
+AI_MODEL = "o4-mini"  # Options: "o4-mini", "gpt-4o", "gpt-4o-mini", "gpt-4-turbo"
 print(f"🤖 AI Model configured: {AI_MODEL}")
 
 app = FastAPI()
