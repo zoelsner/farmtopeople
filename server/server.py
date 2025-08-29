@@ -1187,12 +1187,18 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
             try:
                 print(f"🔍 Looking up credentials for {phone}")
                 
-                # Normalize phone number
-                if not phone.startswith('+'):
-                    phone = '+1' + phone.lstrip('+1')
+                # Try multiple phone formats like other endpoints do
+                phone_formats = [phone, f"+{phone}", f"1{phone}" if not phone.startswith('1') else phone, f"+1{phone}"]
+                user_record = None
+                
+                for phone_format in phone_formats:
+                    print(f"  📞 Trying phone format: {phone_format}")
+                    user_record = db.get_user_by_phone(phone_format)
+                    if user_record:
+                        print(f"  ✅ Found user with format: {phone_format}")
+                        break
                 
                 # Get user credentials from database
-                user_record = db.get_user_by_phone(phone)
                 if user_record and user_record.get('ftp_email'):
                     email = user_record['ftp_email']
                     # Decrypt password (it's base64 encoded)
