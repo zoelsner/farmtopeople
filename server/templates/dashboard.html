@@ -422,7 +422,13 @@
         <div class="cart-analysis section" id="cartAnalysisSection">
             <!-- Suggested Meals - TOP PRIORITY -->
             <div class="cart-section" id="suggestedMealsSection">
-                <h3 class="section-header">Suggested Meals</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 class="section-header" style="margin: 0;">Suggested Meals</h3>
+                    <button id="refreshCartButton" onclick="refreshCartData()" 
+                            style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        🔄 Refresh Cart
+                    </button>
+                </div>
                 <div id="suggestedMeals">
                     <!-- Suggested meals based on preferences will be inserted here -->
                 </div>
@@ -905,6 +911,26 @@
                     `;
                     container.appendChild(mealCard);
                 });
+            }
+        }
+
+        async function refreshCartData() {
+            const button = document.getElementById('refreshCartButton');
+            const originalText = button.innerHTML;
+            
+            try {
+                button.disabled = true;
+                button.innerHTML = '⏳ Refreshing...';
+                
+                // Re-run cart analysis
+                await startAnalysis();
+                
+            } catch (error) {
+                console.error('Error refreshing cart:', error);
+                alert('Failed to refresh cart data. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = originalText;
             }
         }
 

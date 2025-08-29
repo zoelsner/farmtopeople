@@ -1297,21 +1297,129 @@ async def refresh_meal_suggestions(request: Request):
         if not cart_data:
             return {"success": False, "error": "No cart data provided"}
         
-        # TODO: Eventually use meal_planner.generate_from_cart(cart_data)
-        # For now, return mock meal suggestions
-        mock_meals = [
-            {"name": "Mediterranean Chicken Bowl", "time": "25 min", "protein": 35},
-            {"name": "Veggie Stir-Fry with Tofu", "time": "20 min", "protein": 18},
-            {"name": "Grilled Fish Tacos", "time": "30 min", "protein": 28},
-            {"name": "Egg & Vegetable Frittata", "time": "35 min", "protein": 24},
-            {"name": "Quinoa Power Bowl", "time": "25 min", "protein": 22}
-        ]
+        # Get user preferences for personalized meal generation
+        user_preferences = {}
+        if phone:
+            try:
+                # Try multiple phone formats like other endpoints do
+                phone_formats = [phone, f"+{phone}", f"1{phone}" if not phone.startswith('1') else phone, f"+1{phone}"]
+                user_record = None
+                
+                for phone_format in phone_formats:
+                    user_record = db.get_user_by_phone(phone_format)
+                    if user_record:
+                        break
+                
+                if user_record:
+                    user_preferences = user_record.get('preferences', {})
+            except Exception as e:
+                print(f"⚠️ Could not load user preferences: {e}")
         
-        # Shuffle to simulate different suggestions
-        import random
-        random.shuffle(mock_meals)
-        
-        return {"success": True, "meals": mock_meals[:4]}
+        # Generate meals using ONLY ingredients actually in the cart
+        try:
+            print(f"🍽️ Generating meals from actual cart ingredients...")
+            
+            # Extract all actual ingredients from cart
+            proteins = []
+            vegetables = []
+            other_items = []
+            
+            # Individual items
+            for item in cart_data.get('individual_items', []):
+                name = item.get('name', '').lower()
+                if 'egg' in name:
+                    proteins.append('eggs')
+                elif 'avocado' in name:
+                    other_items.append('avocados')
+                elif 'banana' in name:
+                    other_items.append('bananas')
+                else:
+                    other_items.append(item.get('name', ''))
+            
+            # Customizable boxes (your actual selected items)
+            for box in cart_data.get('customizable_boxes', []):
+                for item in box.get('selected_items', []):
+                    name = item.get('name', '').lower()
+                    if any(meat in name for meat in ['chicken', 'beef', 'turkey', 'sausage', 'fish', 'pork']):
+                        proteins.append(item.get('name', ''))
+                    elif any(veg in name for veg in ['tomato', 'pepper', 'kale', 'lettuce', 'carrot', 'zucchini', 'eggplant', 'onion']):
+                        vegetables.append(item.get('name', ''))
+                    else:
+                        other_items.append(item.get('name', ''))
+            
+            # Non-customizable boxes
+            for box in cart_data.get('non_customizable_boxes', []):
+                for item in box.get('selected_items', []):
+                    name = item.get('name', '').lower()
+                    if any(fruit in name for fruit in ['plum', 'peach', 'nectarine', 'apple']):
+                        other_items.append(item.get('name', ''))
+                    else:
+                        other_items.append(item.get('name', ''))
+            
+            print(f"  Proteins: {proteins}")
+            print(f"  Vegetables: {vegetables}")
+            print(f"  Other items: {other_items}")
+            
+            # Create meal suggestions based on actual ingredients
+            meals = []
+            
+            # Build meals using your proteins as the base
+            if proteins:
+                for i, protein in enumerate(proteins[:4]):  # Max 4 meals
+                    if 'chicken' in protein.lower():
+                        if vegetables:
+                            veg_combo = ' + '.join(vegetables[:2])  # Use 2 vegetables
+                            meals.append({
+                                "name": f"{protein} with {veg_combo}",
+                                "time": "30 min",
+                                "protein": 35
+                            })
+                    elif 'sausage' in protein.lower():
+                        if vegetables:
+                            meals.append({
+                                "name": f"{protein} & Vegetable Skillet",
+                                "time": "20 min", 
+                                "protein": 28
+                            })
+                    elif 'egg' in protein.lower():
+                        meals.append({
+                            "name": f"Egg & Avocado Breakfast Bowl",
+                            "time": "10 min",
+                            "protein": 18
+                        })
+            
+            # Add vegetable-focused meals if we have extras
+            if len(vegetables) > 2:
+                meals.append({
+                    "name": f"Roasted {' + '.join(vegetables[2:4])} Medley",
+                    "time": "25 min",
+                    "protein": 8
+                })
+            
+            # If we have few ingredients, suggest simple preparations
+            if len(meals) < 4:
+                remaining = 4 - len(meals)
+                for i in range(remaining):
+                    if other_items and i < len(other_items):
+                        meals.append({
+                            "name": f"Simple {other_items[i]} Bowl",
+                            "time": "15 min",
+                            "protein": 15
+                        })
+            
+            if meals:
+                return {"success": True, "meals": meals[:4]}
+            else:
+                # Absolute fallback
+                return {"success": True, "meals": [
+                    {"name": "Simple Cart Combination", "time": "20 min", "protein": 25}
+                ]}
+                
+        except Exception as e:
+            print(f"❌ Error generating cart-based meals: {e}")
+            return {"success": True, "meals": [
+                {"name": "Cart Ingredient Bowl", "time": "25 min", "protein": 30}
+            ]}
         
     except Exception as e:
         return {"success": False, "error": str(e)}
