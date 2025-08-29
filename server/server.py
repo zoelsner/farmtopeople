@@ -238,7 +238,7 @@ def handle_meal_plan_modification(phone_number: str, user_request: str):
         print(f"❌ Error handling meal plan modification: {e}")
         send_progress_sms(phone_number, "❌ Error modifying meal plan. Please try 'CONFIRM' to proceed with original plan.")
 
-def run_full_meal_plan_flow(phone_number: str):
+async def run_full_meal_plan_flow(phone_number: str):
     """
     This function runs in the background. It scrapes the user's cart,
     generates a meal plan, formats it, and sends it as an SMS.
