@@ -1360,60 +1360,102 @@ async def refresh_meal_suggestions(request: Request):
             print(f"  Vegetables: {vegetables}")
             print(f"  Other items: {other_items}")
             
-            # Create meal suggestions based on actual ingredients
+            # Use GPT-5 to create creative meal suggestions from actual ingredients
+            all_ingredients = proteins + vegetables + other_items
+            ingredients_text = ", ".join(all_ingredients)
+            
+            # Build focused prompt for GPT-5
+            prompt = f"""Create 4 creative meal suggestions using primarily these SPECIFIC ingredients from the user's cart:
+PROTEINS: {', '.join(proteins) if proteins else 'none'}
+VEGETABLES: {', '.join(vegetables) if vegetables else 'none'}  
+OTHER ITEMS: {', '.join(other_items) if other_items else 'none'}
+
+Requirements:
+- Use ONLY the ingredients listed above as the main components
+- Create actual dish names (not just ingredient lists)
+- Each meal should be 30g+ protein if possible
+- Include prep time estimates
+- If missing key ingredients for a complete meal, suggest ONE simple addition
+- Focus on what they CAN make with what they have
+
+Return as JSON array with format:
+[{{"name": "Meal Name", "time": "X min", "protein": X, "note": "optional note about additions"}}]
+
+Example good format:
+- "Mediterranean Chicken Thigh Skillet" (not "Chicken Thighs with vegetables")
+- "Italian Sausage & Kale Pasta" (suggest pasta as addition if needed)
+- "Breakfast Veggie Hash" (not "Eggs with peppers and zucchini")
+"""
+
+            try:
+                import openai
+                
+                # Check if we have OpenAI client
+                openai_key = os.getenv("OPENAI_API_KEY")
+                if not openai_key:
+                    raise Exception("No OpenAI API key")
+                
+                client = openai.OpenAI(api_key=openai_key)
+                
+                response = client.chat.completions.create(
+                    model="gpt-4o",  # Use GPT-4o for meal suggestions
+                    messages=[
+                        {"role": "system", "content": "You are a creative chef who specializes in making delicious meals from specific available ingredients. Always return valid JSON."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=800,
+                    temperature=0.7
+                )
+                
+                # Parse GPT response
+                gpt_response = response.choices[0].message.content.strip()
+                print(f"GPT Response: {gpt_response}")
+                
+                # Try to extract JSON from response
+                import json
+                import re
+                
+                # Look for JSON array in the response
+                json_match = re.search(r'\[.*\]', gpt_response, re.DOTALL)
+                if json_match:
+                    meals_json = json.loads(json_match.group())
+                    
+                    # Validate and format the meals
+                    meals = []
+                    for meal in meals_json[:4]:  # Limit to 4
+                        if isinstance(meal, dict) and 'name' in meal:
+                            meals.append({
+                                "name": meal.get('name', 'Unknown Meal'),
+                                "time": meal.get('time', '25 min'),
+                                "protein": meal.get('protein', 25),
+                                "note": meal.get('note', '')
+                            })
+                    
+                    if meals:
+                        return {"success": True, "meals": meals}
+                
+            except Exception as e:
+                print(f"❌ GPT meal generation failed: {e}")
+            
+            # Fallback to simple ingredient-based names if GPT fails
             meals = []
-            
-            # Build meals using your proteins as the base
             if proteins:
-                for i, protein in enumerate(proteins[:4]):  # Max 4 meals
-                    if 'chicken' in protein.lower():
-                        if vegetables:
-                            veg_combo = ' + '.join(vegetables[:2])  # Use 2 vegetables
-                            meals.append({
-                                "name": f"{protein} with {veg_combo}",
-                                "time": "30 min",
-                                "protein": 35
-                            })
-                    elif 'sausage' in protein.lower():
-                        if vegetables:
-                            meals.append({
-                                "name": f"{protein} & Vegetable Skillet",
-                                "time": "20 min", 
-                                "protein": 28
-                            })
+                for protein in proteins[:2]:
+                    if 'chicken' in protein.lower() and vegetables:
+                        meals.append({"name": "Mediterranean Chicken Skillet", "time": "30 min", "protein": 35})
+                    elif 'sausage' in protein.lower() and vegetables:
+                        meals.append({"name": "Italian Sausage & Veggie Pasta", "time": "25 min", "protein": 28})
                     elif 'egg' in protein.lower():
-                        meals.append({
-                            "name": f"Egg & Avocado Breakfast Bowl",
-                            "time": "10 min",
-                            "protein": 18
-                        })
+                        meals.append({"name": "Farm Fresh Breakfast Hash", "time": "15 min", "protein": 18})
             
-            # Add vegetable-focused meals if we have extras
-            if len(vegetables) > 2:
-                meals.append({
-                    "name": f"Roasted {' + '.join(vegetables[2:4])} Medley",
-                    "time": "25 min",
-                    "protein": 8
-                })
+            if len(meals) < 4 and vegetables:
+                meals.append({"name": "Roasted Seasonal Vegetables", "time": "25 min", "protein": 8})
             
-            # If we have few ingredients, suggest simple preparations
-            if len(meals) < 4:
-                remaining = 4 - len(meals)
-                for i in range(remaining):
-                    if other_items and i < len(other_items):
-                        meals.append({
-                            "name": f"Simple {other_items[i]} Bowl",
-                            "time": "15 min",
-                            "protein": 15
-                        })
+            # Pad with generic options if needed
+            while len(meals) < 4:
+                meals.append({"name": f"Cart Special #{len(meals)+1}", "time": "20 min", "protein": 22})
             
-            if meals:
-                return {"success": True, "meals": meals[:4]}
-            else:
-                # Absolute fallback
-                return {"success": True, "meals": [
-                    {"name": "Simple Cart Combination", "time": "20 min", "protein": 25}
-                ]}
+            return {"success": True, "meals": meals[:4]}
                 
         except Exception as e:
             print(f"❌ Error generating cart-based meals: {e}")
