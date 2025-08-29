@@ -1202,9 +1202,9 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                     
                     if email and password:
                         print(f"🛒 Running live scraper for {email}")
-                        # Run the actual scraper
+                        # Run the actual scraper with return_data=True
                         credentials = {'email': email, 'password': password}
-                        cart_data = run_cart_scraper(credentials)
+                        cart_data = run_cart_scraper(credentials, return_data=True)
                         
                         if cart_data:
                             print("✅ Successfully scraped live cart data!")
