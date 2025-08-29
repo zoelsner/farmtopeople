@@ -941,17 +941,37 @@
                 
                 const data = await response.json();
                 
-                if (data.success && data.meals) {
+                if (data.success && data.meals && data.meals.length > 0) {
                     console.log('✅ Got meal suggestions from GPT-5:', data.meals);
                     updateMealSuggestions(data.meals);
                 } else {
-                    console.log('❌ API call failed, using fallback');
-                    // Fallback to simple display
+                    console.error('❌ Meal generation failed:', data.error || 'Unknown error');
+                    
+                    // Show clear error message
                     document.getElementById('suggestedMeals').innerHTML = `
-                        <div style="text-align: center; padding: 20px; color: #666;">
-                            Unable to generate meal suggestions at this time.
+                        <div style="background: #fee; border: 1px solid #fcc; border-radius: 8px; padding: 16px; margin: 8px 0;">
+                            <div style="color: #d00; font-weight: 600; margin-bottom: 8px;">
+                                ⚠️ Meal Generation Error
+                            </div>
+                            <div style="color: #800; font-size: 14px;">
+                                ${data.error || 'Unable to generate meal suggestions'}
+                            </div>
+                            ${data.debug_info ? `
+                                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #fcc;">
+                                    <div style="font-size: 12px; color: #666;">Debug Info:</div>
+                                    <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                                        Proteins: ${data.debug_info.proteins_found?.length || 0} items<br>
+                                        Vegetables: ${data.debug_info.vegetables_found?.length || 0} items<br>
+                                        Error: ${data.debug_info.error_message || 'Unknown'}
+                                    </div>
+                                </div>
+                            ` : ''}
                         </div>
                     `;
+                    
+                    if (data.debug_info) {
+                        console.log('Debug information:', data.debug_info);
+                    }
                 }
             } catch (error) {
                 console.error('Error generating meal suggestions:', error);

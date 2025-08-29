@@ -31,6 +31,11 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 load_dotenv(dotenv_path=project_root / '.env')
 
+# === CONFIGURATION ===
+# IMPORTANT: Change this single variable to switch between models throughout the app
+# Updated 2025-08-29: Switched from hardcoded models to configurable variable
+AI_MODEL = "gpt-4o"  # Options: "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-5" (when available)
+print(f"🤖 AI Model configured: {AI_MODEL}")
 
 app = FastAPI()
 
@@ -1451,10 +1456,10 @@ Format as JSON:
                 
                 client = openai.OpenAI(api_key=openai_key)
                 print(f"  🔗 Connected to OpenAI API")
-                print(f"  🧠 Using GPT-5 model for meal creativity")
+                print(f"  🧠 Using {AI_MODEL} model for meal creativity")
                 
                 response = client.chat.completions.create(
-                    model="gpt-5",  # Use GPT-5 for meal suggestions
+                    model=AI_MODEL,  # Use configured model for meal suggestions
                     messages=[
                         {"role": "system", "content": "You are a creative chef who specializes in making delicious meals from specific available ingredients. Always return valid JSON."},
                         {"role": "user", "content": prompt}
@@ -1508,42 +1513,31 @@ Format as JSON:
                 
             except Exception as e:
                 print(f"❌ STEP 4 FAILED: GPT meal generation error: {e}")
-                print(f"🔄 FALLBACK: Using ingredient-based meal templates...")
+                print(f"🔍 Error type: {type(e).__name__}")
+                print(f"📝 Full error details: {str(e)}")
+                print(f"🔄 Meal generation failed - returning error status")
             
-            # Fallback to simple ingredient-based names if GPT fails
-            print(f"🛠️ FALLBACK MODE: Creating meals from cart ingredients without GPT...")
-            meals = []
-            
-            if proteins:
-                print(f"  📍 Building meals around {len(proteins)} available proteins")
-                for protein in proteins[:2]:
-                    if 'chicken' in protein.lower() and vegetables:
-                        meals.append({"name": "Mediterranean Chicken Skillet", "time": "30 min", "protein": 35})
-                        print(f"    ✅ Added: Mediterranean Chicken Skillet (using {protein})")
-                    elif 'sausage' in protein.lower() and vegetables:
-                        meals.append({"name": "Italian Sausage & Veggie Pasta", "time": "25 min", "protein": 28})
-                        print(f"    ✅ Added: Italian Sausage & Veggie Pasta (using {protein})")
-                    elif 'egg' in protein.lower():
-                        meals.append({"name": "Farm Fresh Breakfast Hash", "time": "15 min", "protein": 18})
-                        print(f"    ✅ Added: Farm Fresh Breakfast Hash (using eggs)")
-            
-            if len(meals) < 4 and vegetables:
-                meals.append({"name": "Roasted Seasonal Vegetables", "time": "25 min", "protein": 8})
-                print(f"    ✅ Added: Roasted Seasonal Vegetables (using available veggies)")
-            
-            # Pad with generic options if needed
-            while len(meals) < 4:
-                meals.append({"name": f"Cart Special #{len(meals)+1}", "time": "20 min", "protein": 22})
-                print(f"    ✅ Added: Cart Special #{len(meals)} (generic option)")
-            
-            print(f"🎯 FALLBACK COMPLETE: Generated {len(meals)} meal options from cart ingredients")
-            return {"success": True, "meals": meals[:4]}
+            # Updated 2025-08-29: Return error instead of fake fallback meals
+            # Previously returned hardcoded meals which was misleading - now shows clear error
+            return {
+                "success": False, 
+                "error": f"Unable to generate meal suggestions. {AI_MODEL} failed to respond.",
+                "meals": [],
+                "debug_info": {
+                    "proteins_found": proteins,
+                    "vegetables_found": vegetables,
+                    "other_items_found": other_items,
+                    "error_message": str(e) if 'e' in locals() else "Unknown error"
+                }
+            }
                 
         except Exception as e:
             print(f"❌ Error generating cart-based meals: {e}")
-            return {"success": True, "meals": [
-                {"name": "Cart Ingredient Bowl", "time": "25 min", "protein": 30}
-            ]}
+            return {
+                "success": False,
+                "error": f"Critical error in meal generation: {str(e)}",
+                "meals": []
+            }
         
     except Exception as e:
         return {"success": False, "error": str(e)}
