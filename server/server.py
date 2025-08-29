@@ -1719,7 +1719,10 @@ async def get_settings_options():
                 {"id": "gluten-free", "label": "Gluten-Free"},
                 {"id": "low-carb", "label": "Low-Carb"},
                 {"id": "nut-free", "label": "Nut-Free"},
-                {"id": "no-shellfish", "label": "No Shellfish"}
+                {"id": "no-shellfish", "label": "No Shellfish"},
+                {"id": "mediterranean", "label": "Mediterranean Diet"},
+                {"id": "keto", "label": "Keto Diet"},
+                {"id": "paleo", "label": "Paleo Diet"}
             ],
             "goals": [
                 {"id": "quick-dinners", "label": "Quick Dinners (20 min or less)", "icon": "⚡"},
@@ -1843,20 +1846,38 @@ async def update_user_preferences(phone: str, request: Request):
         Success/error status and updated preference summary
     """
     try:
-        # Normalize phone number
-        if not phone.startswith('+'):
-            phone = '+1' + phone.lstrip('+1')
-        
+        # Log incoming request for debugging
         data = await request.json()
+        print(f"📝 Settings update request for phone: {phone}")
+        print(f"   Category: {data.get('category')}")
+        print(f"   Value: {data.get('value')}")
+        
+        # Try multiple phone formats to find user
+        phone_formats = [phone]
+        if not phone.startswith('+'):
+            phone_formats.append('+1' + phone.lstrip('+1'))
+        if phone.startswith('+1'):
+            phone_formats.append(phone[2:])
+        if not phone.startswith('1') and not phone.startswith('+'):
+            phone_formats.append('1' + phone)
+        
         category = data.get('category')
         value = data.get('value')
         
         if not category or value is None:
             return {"success": False, "error": "Missing category or value"}
         
-        # Fetch current user record
-        user_record = db.get_user_by_phone(phone)
+        # Try each format to find user
+        user_record = None
+        for phone_format in phone_formats:
+            user_record = db.get_user_by_phone(phone_format)
+            if user_record:
+                phone = phone_format  # Use the format that worked
+                print(f"✅ Found user with phone format: {phone_format}")
+                break
+        
         if not user_record:
+            print(f"❌ User not found with any phone format: {phone_formats}")
             return {"success": False, "error": "User not found"}
         
         # Get current preferences
@@ -1882,12 +1903,27 @@ async def update_user_preferences(phone: str, request: Request):
             return {"success": False, "error": f"Unknown category: {category}"}
         
         # Update the database record
-        updated_record = db.upsert_user_credentials(
-            phone_number=phone,
-            ftp_email=user_record['ftp_email'],
-            ftp_password=user_record.get('ftp_password_encrypted', ''),  # Keep encrypted password as-is
-            preferences=current_preferences
-        )
+        # Note: We need to handle the password properly - it's already encrypted
+        try:
+            # If password is encrypted (base64), decode it for the upsert function
+            import base64
+            encrypted_pwd = user_record.get('ftp_password_encrypted', '')
+            if encrypted_pwd:
+                # The upsert function expects plain password and encrypts it
+                plain_password = base64.b64decode(encrypted_pwd).decode('utf-8')
+            else:
+                plain_password = ''
+            
+            updated_record = db.upsert_user_credentials(
+                phone_number=phone,
+                ftp_email=user_record.get('ftp_email', ''),
+                ftp_password=plain_password,  # Pass plain password - upsert will encrypt it
+                preferences=current_preferences
+            )
+            print(f"✅ Successfully updated preferences for {phone}")
+        except Exception as e:
+            print(f"❌ Database update error: {e}")
+            raise
         
         return {"success": True, "message": "Preferences updated successfully"}
         
