@@ -649,18 +649,8 @@
             document.getElementById('cartAnalysisSection').classList.add('active');
             document.getElementById('headerSubtitle').textContent = 'Cart analysis complete';
 
-            // Generate suggested meals based on cart contents (prioritize dinner)
-            const suggestedMeals = generateMealSuggestions(cartData);
-            const mealsHTML = suggestedMeals.map((meal, index) => `
-                <div class="cart-item" style="background: #f0f8f0; border-left: 3px solid #4169E1;">
-                    <div class="item-details">
-                        <div class="item-name" style="color: #4169E1; font-weight: 600;">${meal.name}</div>
-                        <div class="item-meta">${meal.time} min • ${meal.protein}g protein • ${meal.type}</div>
-                    </div>
-                    <div style="font-size: 12px; color: #6c757d;">Serves ${meal.servings}</div>
-                </div>
-            `).join('');
-            document.getElementById('suggestedMeals').innerHTML = mealsHTML;
+            // Generate suggested meals using GPT-5 API instead of hardcoded suggestions
+            generateMealSuggestionsFromAPI(cartData);
 
             // Show individual items
             if (cartData.individual_items && cartData.individual_items.length > 0) {
@@ -914,6 +904,51 @@
             }
         }
 
+        async function generateMealSuggestionsFromAPI(cartData) {
+            try {
+                console.log('🍽️ Calling GPT-5 API for meal suggestions...');
+                
+                // Show loading state
+                document.getElementById('suggestedMeals').innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #666;">
+                        🤖 GPT-5 is creating personalized meal suggestions...
+                    </div>
+                `;
+                
+                const response = await fetch('/api/refresh-meals', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        cart_data: cartData,
+                        phone: localStorage.getItem('userPhone')
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.meals) {
+                    console.log('✅ Got meal suggestions from GPT-5:', data.meals);
+                    updateMealSuggestions(data.meals);
+                } else {
+                    console.log('❌ API call failed, using fallback');
+                    // Fallback to simple display
+                    document.getElementById('suggestedMeals').innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: #666;">
+                            Unable to generate meal suggestions at this time.
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error generating meal suggestions:', error);
+                // Show error state
+                document.getElementById('suggestedMeals').innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #666;">
+                        Error generating meal suggestions. Please try refreshing.
+                    </div>
+                `;
+            }
+        }
+
         async function refreshCartData() {
             const button = document.getElementById('refreshCartButton');
             const originalText = button.innerHTML;
@@ -932,6 +967,19 @@
                 button.disabled = false;
                 button.innerHTML = originalText;
             }
+        }
+        
+        function updateMealSuggestions(meals) {
+            const mealsHTML = meals.map((meal, index) => `
+                <div class="cart-item" style="background: #f0f8f0; border-left: 3px solid #4169E1;">
+                    <div class="item-details">
+                        <div class="item-name" style="color: #4169E1; font-weight: 600;">${meal.name}</div>
+                        <div class="item-meta">${meal.time} • ${meal.protein}g protein • ${meal.type || 'Dinner'}</div>
+                    </div>
+                    <div style="font-size: 12px; color: #6c757d;">Serves ${meal.servings || 2}</div>
+                </div>
+            `).join('');
+            document.getElementById('suggestedMeals').innerHTML = mealsHTML;
         }
 
         function switchTab(tab, element) {
