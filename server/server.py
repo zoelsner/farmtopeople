@@ -1452,13 +1452,36 @@ async def get_user_preferences(phone: str):
         JSON with preference categories or error if user not found
     """
     try:
-        # Normalize phone number (add +1 if missing)
-        if not phone.startswith('+'):
-            phone = '+1' + phone.lstrip('+1')
+        # Try multiple phone number formats to find user
+        phone_formats = []
         
-        # Fetch user record from database
-        user_record = db.get_user_by_phone(phone)
+        # Add original format
+        phone_formats.append(phone)
+        
+        # Add normalized format (with +1)
+        if not phone.startswith('+'):
+            phone_formats.append('+1' + phone.lstrip('+1'))
+        
+        # Add without +1 prefix
+        if phone.startswith('+1'):
+            phone_formats.append(phone[2:])
+        
+        # Add with 1 prefix but no +
+        if not phone.startswith('1') and not phone.startswith('+'):
+            phone_formats.append('1' + phone)
+            
+        print(f"🔍 Looking up user preferences for phone formats: {phone_formats}")
+        
+        # Try each format until we find the user
+        user_record = None
+        for phone_format in phone_formats:
+            user_record = db.get_user_by_phone(phone_format)
+            if user_record:
+                print(f"  ✅ Found user with format: {phone_format}")
+                break
+        
         if not user_record:
+            print("  ❌ User not found with any phone format")
             return {"success": False, "error": "User not found"}
         
         preferences = user_record.get('preferences', {})
@@ -1474,7 +1497,15 @@ async def get_user_preferences(phone: str):
             "time_preferences": preferences.get('time_preferences', [])
         }
         
-        return {"success": True, "preferences": settings_data}
+        # Include FTP credentials for onboarding existing user detection
+        response_data = {
+            "success": True, 
+            "preferences": settings_data,
+            "ftp_email": user_record.get('ftp_email'),
+            "ftp_password_encrypted": user_record.get('ftp_password_encrypted')
+        }
+        
+        return response_data
         
     except Exception as e:
         return {"success": False, "error": str(e)}

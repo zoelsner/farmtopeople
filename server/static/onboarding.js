@@ -210,7 +210,9 @@ class OnboardingFlow {
         console.log('setupNavigationButtons called');
         // Step 1 - Phone number
         const step1Button = document.getElementById('step1Next');
+        const phoneInput = document.getElementById('phoneNumberStep1');
         console.log('Found step1Button:', step1Button);
+        
         if (step1Button) {
             step1Button.addEventListener('click', () => {
                 console.log('Step 1 button clicked - calling checkExistingUser');
@@ -218,6 +220,17 @@ class OnboardingFlow {
             });
         } else {
             console.error('Step1Next button not found!');
+        }
+        
+        // Add Enter key support for phone input
+        if (phoneInput) {
+            phoneInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    console.log('Enter key pressed - calling checkExistingUser');
+                    this.checkExistingUser();
+                }
+            });
         }
         
         // Step 2 - Household
@@ -552,7 +565,7 @@ class OnboardingFlow {
         }
         
         try {
-            // Look up user by phone number
+            // Look up user by phone number (backend will try multiple formats)
             const response = await fetch(`/api/settings/${phone}`);
             if (response.ok) {
                 const userData = await response.json();
