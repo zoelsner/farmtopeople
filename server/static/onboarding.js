@@ -164,13 +164,19 @@ class OnboardingFlow {
      * Sets up all event listeners and populates meal grids
      */
     init() {
+        console.log('OnboardingFlow init() called');
         this.setupEventListeners();
         this.populateMealGrids();
         this.updateProgress();
         this.updateStepContent(); // Ensure correct step 1 content is shown
+        console.log('OnboardingFlow init() completed');
     }
 
     setupEventListeners() {
+        console.log('setupEventListeners called');
+        this.setupNavigationButtons();
+        this.setupSkipLinks();
+        
         // Household size selection
         document.querySelectorAll('.size-option').forEach(option => {
             option.addEventListener('click', (e) => this.selectHouseholdSize(e));
@@ -198,16 +204,13 @@ class OnboardingFlow {
             option.addEventListener('click', (e) => this.toggleGoal(e));
         });
 
-        // Navigation buttons
-        this.setupNavigationButtons();
-
-        // Skip links
-        this.setupSkipLinks();
     }
 
     setupNavigationButtons() {
+        console.log('setupNavigationButtons called');
         // Step 1 - Phone number
         const step1Button = document.getElementById('step1Next');
+        console.log('Found step1Button:', step1Button);
         if (step1Button) {
             step1Button.addEventListener('click', () => {
                 console.log('Step 1 button clicked - calling checkExistingUser');
@@ -294,7 +297,7 @@ class OnboardingFlow {
         this.data.householdSize = event.currentTarget.dataset.size;
         
         // Check if both questions are answered
-        this.validateStep1();
+        this.validateStep2();
     }
     
     toggleMealTiming(event) {
@@ -312,16 +315,20 @@ class OnboardingFlow {
         }
         
         // Check if both questions are answered
-        this.validateStep1();
+        this.validateStep2();
     }
     
     /**
-     * Validate Step 1 requirements
+     * Validate Step 2 requirements (household size + meal timing)
      * Requires both household size AND at least one meal timing
      */
-    validateStep1() {
+    validateStep2() {
         const isValid = this.data.householdSize && this.data.mealTiming.length > 0;
-        document.getElementById('step1Next').disabled = !isValid;
+        const button = document.getElementById('step2Next');
+        if (button) {
+            button.disabled = !isValid;
+            console.log('Step 2 validation:', { isValid, householdSize: this.data.householdSize, mealTiming: this.data.mealTiming });
+        }
     }
 
     toggleMealSelection(tile) {
@@ -349,10 +356,10 @@ class OnboardingFlow {
     updateMealSelectionUI() {
         const selectedCount = this.data.selectedMeals.length;
         
-        // Update counter for step 2
+        // Update counter for step 3
         if (this.currentStep === 3) {
             const counter = document.getElementById('selectionCounter1');
-            const nextBtn = document.getElementById('step2Next');
+            const nextBtn = document.getElementById('step3Next');
             
             if (selectedCount === 0) {
                 counter.textContent = 'Pick at least 3 meals that sound delicious';
@@ -364,6 +371,7 @@ class OnboardingFlow {
                 counter.textContent = `${selectedCount} meals selected. Great choices!`;
                 nextBtn.disabled = false;
             }
+            console.log(`Step 3 validation: ${selectedCount} meals selected, button enabled: ${selectedCount >= 3}`);
         }
         
         // Update counter for step 4 - cooking styles (optional)
@@ -372,7 +380,7 @@ class OnboardingFlow {
             const nextBtn = document.getElementById('step4Next');
             const styleCount = document.querySelectorAll('#mealGrid2 .meal-tile.selected').length;
             
-            // Step 3 is optional - always allow proceeding
+            // Step 4 is optional - always allow proceeding
             nextBtn.disabled = false;
             
             if (styleCount === 0) {
@@ -382,6 +390,7 @@ class OnboardingFlow {
             } else {
                 counter.textContent = `${styleCount} cooking styles selected. Great!`;
             }
+            console.log(`Step 4 validation: ${styleCount} styles selected, button always enabled`);
         }
     }
 
@@ -525,7 +534,77 @@ class OnboardingFlow {
         if (phone) this.data.phoneNumber = phone;
     }
     
-    /**\n     * Check if user already exists in database with preferences\n     * If existing user found, skip preference collection steps\n     */\n    async checkExistingUser() {\n        console.log('checkExistingUser called!');\n        const phoneInput = document.getElementById('phoneNumberStep1');\n        console.log('Phone input element:', phoneInput);\n        const phone = phoneInput.value.replace(/[^\\d]/g, '');\n        console.log('Phone number:', phone);\n        \n        // Validate phone number format\n        if (!phone || phone.length < 10) {\n            alert('Please enter a valid phone number');\n            return;\n        }\n        \n        try {\n            // Look up user by phone number\n            const response = await fetch(`/api/settings/${phone}`);\n            if (response.ok) {\n                const userData = await response.json();\n                \n                // Check if user has existing preferences\n                if (userData.preferences && Object.keys(userData.preferences).length > 0) {\n                    // Existing user - skip to FTP credentials step\n                    console.log('Existing user found, skipping preference collection');\n                    this.existingUser = true;\n                    this.data.phoneNumber = phone;\n                    this.showWelcomeBack(userData);\n                    this.showStep(7); // Jump directly to FTP account setup\n                    return;\n                }\n            }\n            \n            // New user or no preferences - continue with full onboarding\n            console.log('New user or no preferences, starting full onboarding');\n            this.data.phoneNumber = phone;\n            this.nextStep(); // Go to step 2 (household)\n            \n        } catch (error) {\n            // API error or user not found - treat as new user\n            console.log('User lookup failed, treating as new user:', error);\n            this.data.phoneNumber = phone;\n            this.nextStep();\n        }\n    }\n    \n    /**\n     * Show welcome back message for returning users\n     * Temporarily updates UI to indicate user recognition\n     */\n    showWelcomeBack(userData) {\n        const subtitle = document.getElementById('stepSubtitle');\n        const originalText = subtitle.textContent;\n        \n        // Show welcome message in green\n        subtitle.textContent = `Welcome back! We found your preferences. Just verify your Farm to People account.`;\n        subtitle.style.color = '#28a745';\n        \n        // Reset to original after 3 seconds\n        setTimeout(() => {\n            subtitle.textContent = originalText;\n            subtitle.style.color = '#6c757d';\n        }, 3000);\n    }\n\n    /**\n     * Complete the onboarding process and save user data\n     */\n    async completeOnboarding() {
+    /**
+     * Check if user already exists in database with preferences
+     * If existing user found, skip preference collection steps
+     */
+    async checkExistingUser() {
+        console.log('checkExistingUser called!');
+        const phoneInput = document.getElementById('phoneNumberStep1');
+        console.log('Phone input element:', phoneInput);
+        const phone = phoneInput.value.replace(/[^\d]/g, '');
+        console.log('Phone number:', phone);
+        
+        // Validate phone number format
+        if (!phone || phone.length < 10) {
+            alert('Please enter a valid phone number');
+            return;
+        }
+        
+        try {
+            // Look up user by phone number
+            const response = await fetch(`/api/settings/${phone}`);
+            if (response.ok) {
+                const userData = await response.json();
+                
+                // Check if user has existing preferences
+                if (userData.preferences && Object.keys(userData.preferences).length > 0) {
+                    // Existing user - skip to FTP credentials step
+                    console.log('Existing user found, skipping preference collection');
+                    this.existingUser = true;
+                    this.data.phoneNumber = phone;
+                    this.showWelcomeBack(userData);
+                    this.showStep(7); // Jump directly to FTP account setup
+                    return;
+                }
+            }
+            
+            // New user or no preferences - continue with full onboarding
+            console.log('New user or no preferences, starting full onboarding');
+            this.data.phoneNumber = phone;
+            this.nextStep(); // Go to step 2 (household)
+            
+        } catch (error) {
+            // API error or user not found - treat as new user
+            console.log('User lookup failed, treating as new user:', error);
+            this.data.phoneNumber = phone;
+            this.nextStep();
+        }
+    }
+    
+    /**
+     * Show welcome back message for returning users
+     * Temporarily updates UI to indicate user recognition
+     */
+    showWelcomeBack(userData) {
+        const subtitle = document.getElementById('stepSubtitle');
+        const originalText = subtitle.textContent;
+        
+        // Show welcome message in green
+        subtitle.textContent = `Welcome back! We found your preferences. Just verify your Farm to People account.`;
+        subtitle.style.color = '#28a745';
+        
+        // Reset to original after 3 seconds
+        setTimeout(() => {
+            subtitle.textContent = originalText;
+            subtitle.style.color = '#6c757d';
+        }, 3000);
+    }
+
+    /**
+     * Complete the onboarding process and save user data
+     */
+    async completeOnboarding() {
         // Validate and capture final form data
         this.validateStep7();
         
