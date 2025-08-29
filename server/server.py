@@ -1317,7 +1317,7 @@ async def refresh_meal_suggestions(request: Request):
         
         # Generate meals using ONLY ingredients actually in the cart
         try:
-            print(f"🍽️ Generating meals from actual cart ingredients...")
+            print(f"🍽️ STEP 1: Analyzing cart contents for meal generation...")
             
             # Extract all actual ingredients from cart
             proteins = []
@@ -1356,13 +1356,19 @@ async def refresh_meal_suggestions(request: Request):
                     else:
                         other_items.append(item.get('name', ''))
             
-            print(f"  Proteins: {proteins}")
-            print(f"  Vegetables: {vegetables}")
-            print(f"  Other items: {other_items}")
+            # Report what was found in cart
+            total_ingredients = len(proteins) + len(vegetables) + len(other_items)
+            print(f"📊 STEP 2: Cart analysis complete!")
+            print(f"  ✅ Found {len(proteins)} proteins: {proteins}")
+            print(f"  ✅ Found {len(vegetables)} vegetables: {vegetables}")  
+            print(f"  ✅ Found {len(other_items)} other items: {other_items}")
+            print(f"  📈 Total ingredients available: {total_ingredients}")
             
             # Use GPT-5 to create creative meal suggestions from actual ingredients
             all_ingredients = proteins + vegetables + other_items
             ingredients_text = ", ".join(all_ingredients)
+            
+            print(f"🤖 STEP 3: Sending ingredient list to GPT-5 for creative meal ideas...")
             
             # Build focused prompt for GPT-5
             prompt = f"""Create 4 creative meal suggestions using primarily these SPECIFIC ingredients from the user's cart:
@@ -1396,9 +1402,11 @@ Example good format:
                     raise Exception("No OpenAI API key")
                 
                 client = openai.OpenAI(api_key=openai_key)
+                print(f"  🔗 Connected to OpenAI API")
+                print(f"  🧠 Using GPT-5 model for meal creativity")
                 
                 response = client.chat.completions.create(
-                    model="gpt-4o",  # Use GPT-4o for meal suggestions
+                    model="gpt-5",  # Use GPT-5 for meal suggestions
                     messages=[
                         {"role": "system", "content": "You are a creative chef who specializes in making delicious meals from specific available ingredients. Always return valid JSON."},
                         {"role": "user", "content": prompt}
@@ -1409,16 +1417,20 @@ Example good format:
                 
                 # Parse GPT response
                 gpt_response = response.choices[0].message.content.strip()
-                print(f"GPT Response: {gpt_response}")
+                print(f"✅ STEP 4: GPT-5 responded successfully!")
+                print(f"📝 GPT Response: {gpt_response[:200]}{'...' if len(gpt_response) > 200 else ''}")  # Truncate long responses
                 
                 # Try to extract JSON from response
                 import json
                 import re
                 
+                print(f"🔍 STEP 5: Parsing GPT response for meal suggestions...")
+                
                 # Look for JSON array in the response
                 json_match = re.search(r'\[.*\]', gpt_response, re.DOTALL)
                 if json_match:
                     meals_json = json.loads(json_match.group())
+                    print(f"  ✅ Successfully parsed JSON from GPT response")
                     
                     # Validate and format the meals
                     meals = []
@@ -1432,29 +1444,44 @@ Example good format:
                             })
                     
                     if meals:
+                        print(f"🎉 SUCCESS: Created {len(meals)} personalized meal suggestions!")
+                        for i, meal in enumerate(meals, 1):
+                            print(f"  {i}. {meal['name']} ({meal['time']}, {meal['protein']}g protein)")
                         return {"success": True, "meals": meals}
                 
+                print(f"⚠️ Could not extract valid JSON from GPT response")
+                
             except Exception as e:
-                print(f"❌ GPT meal generation failed: {e}")
+                print(f"❌ STEP 4 FAILED: GPT meal generation error: {e}")
+                print(f"🔄 FALLBACK: Using ingredient-based meal templates...")
             
             # Fallback to simple ingredient-based names if GPT fails
+            print(f"🛠️ FALLBACK MODE: Creating meals from cart ingredients without GPT...")
             meals = []
+            
             if proteins:
+                print(f"  📍 Building meals around {len(proteins)} available proteins")
                 for protein in proteins[:2]:
                     if 'chicken' in protein.lower() and vegetables:
                         meals.append({"name": "Mediterranean Chicken Skillet", "time": "30 min", "protein": 35})
+                        print(f"    ✅ Added: Mediterranean Chicken Skillet (using {protein})")
                     elif 'sausage' in protein.lower() and vegetables:
                         meals.append({"name": "Italian Sausage & Veggie Pasta", "time": "25 min", "protein": 28})
+                        print(f"    ✅ Added: Italian Sausage & Veggie Pasta (using {protein})")
                     elif 'egg' in protein.lower():
                         meals.append({"name": "Farm Fresh Breakfast Hash", "time": "15 min", "protein": 18})
+                        print(f"    ✅ Added: Farm Fresh Breakfast Hash (using eggs)")
             
             if len(meals) < 4 and vegetables:
                 meals.append({"name": "Roasted Seasonal Vegetables", "time": "25 min", "protein": 8})
+                print(f"    ✅ Added: Roasted Seasonal Vegetables (using available veggies)")
             
             # Pad with generic options if needed
             while len(meals) < 4:
                 meals.append({"name": f"Cart Special #{len(meals)+1}", "time": "20 min", "protein": 22})
+                print(f"    ✅ Added: Cart Special #{len(meals)} (generic option)")
             
+            print(f"🎯 FALLBACK COMPLETE: Generated {len(meals)} meal options from cart ingredients")
             return {"success": True, "meals": meals[:4]}
                 
         except Exception as e:
