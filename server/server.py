@@ -1345,7 +1345,11 @@ IMPORTANT CONTEXT FOR ANALYSIS:
 - 1lb sausage serves 3-4 people for one meal
 - Don't suggest swapping items that were already swapped
 - If making multiple meals, check if there's enough protein (may need to suggest adding more)
-- Consider consolidation opportunities (if they have similar items that could be combined)
+- CONSOLIDATION: Consider swapping variety for simplicity
+  Example: If they have zucchini and kale, suggest swapping kale for another zucchini
+  This gives them 2 units of zucchini instead of 1 each of different vegetables
+  Simplifies meal planning with fewer different ingredients
+  NOTE: Cannot double up on proteins (portions are fixed per package)
 
 TASK:
 1. SWAPS: Suggest 2-3 swaps where an alternative would work better based on:
