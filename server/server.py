@@ -1355,9 +1355,16 @@ Return JSON:
     {{"from": "current item", "to": "alternative item", "reason": "why this swap makes sense"}}
   ],
   "addons": [
-    {{"item": "Fresh Lemons", "price": "$3.99", "reason": "Perfect for your kale and fish dishes"}}
+    {{"item": "Fresh Lemons", "price": "$3.99", "reason": "Perfect for your kale and fish dishes", "category": "produce"}}
   ]
-}}"""
+}}
+
+IMPORTANT: Each addon MUST have a category field with one of these values:
+- "protein" (meats, fish, eggs)
+- "produce" (vegetables, fruits, herbs)
+- "dairy" (cheese, milk, yogurt)
+- "pantry" (oils, spices - but avoid these per instructions)
+"""
 
                     response = client.chat.completions.create(
                         model=AI_MODEL,

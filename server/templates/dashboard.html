@@ -468,7 +468,9 @@
 
             <!-- Recommended Add-ons -->
             <div class="cart-section" id="addonsSection">
-                <h3 class="section-header">Recommended Add-ons</h3>
+                <h3 class="section-header" style="display: flex; align-items: center;">
+                    <span style="font-size: 20px; margin-right: 8px;">+</span> Premium Add-Ons
+                </h3>
                 <div id="recommendedAddons">
                     <!-- Add-on recommendations will be inserted here -->
                 </div>
@@ -733,15 +735,39 @@
 
             // Show AI-generated fresh add-ons (2025-08-29: Fresh ingredients only, no pantry staples)
             if (addons && addons.length > 0) {
-                const addonsHTML = addons.map(addon => `
-                    <div class="addon-item">
-                        <div class="item-details">
-                            <div class="item-name">${addon.item}</div>
-                            <div class="item-meta">${addon.reason}</div>
+                const addonsHTML = addons.map(addon => {
+                    // Determine category and color
+                    const category = addon.category || 'produce';
+                    const categoryColors = {
+                        'protein': { bg: '#FFE5E5', text: '#CC0000' },
+                        'produce': { bg: '#E5F5E5', text: '#2C7A2C' },
+                        'dairy': { bg: '#E5F0FF', text: '#0066CC' },
+                        'pantry': { bg: '#FFF5E5', text: '#CC8800' },
+                        'fruit': { bg: '#FFE5F5', text: '#CC00CC' }
+                    };
+                    const colors = categoryColors[category] || categoryColors['produce'];
+                    
+                    return `
+                        <div class="addon-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
+                            <span class="category-tag" style="
+                                background: ${colors.bg};
+                                color: ${colors.text};
+                                padding: 4px 10px;
+                                border-radius: 12px;
+                                font-size: 12px;
+                                font-weight: 600;
+                                margin-right: 12px;
+                                min-width: 60px;
+                                text-align: center;
+                            ">${category}</span>
+                            <div class="item-details" style="flex: 1;">
+                                <div class="item-name" style="font-weight: 600;">${addon.item}</div>
+                                <div class="item-meta" style="color: #666; font-size: 14px; margin-top: 2px;">${addon.reason}</div>
+                            </div>
+                            <div class="item-price" style="font-weight: 600; color: #333;">${addon.price || '$3.99'}</div>
                         </div>
-                        <div class="item-price">${addon.price || '$3.99'}</div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
                 document.getElementById('recommendedAddons').innerHTML = addonsHTML;
             } else {
                 // No addons suggested
