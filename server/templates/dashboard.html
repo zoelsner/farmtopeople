@@ -889,15 +889,30 @@
                 // Clear existing meals
                 container.innerHTML = '';
                 
-                // Add new meals
-                meals.forEach(meal => {
+                // Add new meals with enhanced information
+                meals.forEach((meal, index) => {
                     const mealCard = document.createElement('div');
                     mealCard.className = 'meal-card';
+                    
+                    // Build ingredients list if available
+                    const ingredientsText = meal.ingredients_used && meal.ingredients_used.length > 0 
+                        ? `<div class="meal-ingredients">Uses: ${meal.ingredients_used.slice(0,3).join(', ')}</div>` 
+                        : '';
+                    
+                    // Add note if present
+                    const noteText = meal.note ? `<div class="meal-note">💡 ${meal.note}</div>` : '';
+                    
+                    // Show how many dinners this makes
+                    const servingsText = meal.makes_x_dinners || `Serves ${meal.servings || 2}`;
+                    
                     mealCard.innerHTML = `
                         <div class="meal-header">
                             <span class="meal-name">${meal.name}</span>
-                            <span class="meal-meta">${meal.time} • ${meal.protein}g protein</span>
+                            <span class="meal-meta">${meal.time} • ${meal.protein}g protein • ${meal.type || 'Dinner'}</span>
                         </div>
+                        <div class="meal-servings">${servingsText}</div>
+                        ${ingredientsText}
+                        ${noteText}
                     `;
                     container.appendChild(mealCard);
                 });

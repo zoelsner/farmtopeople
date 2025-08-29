@@ -1370,28 +1370,76 @@ async def refresh_meal_suggestions(request: Request):
             
             print(f"🤖 STEP 3: Sending ingredient list to GPT-5 for creative meal ideas...")
             
-            # Build focused prompt for GPT-5
-            prompt = f"""Create 4 creative meal suggestions using primarily these SPECIFIC ingredients from the user's cart:
-PROTEINS: {', '.join(proteins) if proteins else 'none'}
-VEGETABLES: {', '.join(vegetables) if vegetables else 'none'}  
-OTHER ITEMS: {', '.join(other_items) if other_items else 'none'}
+            # Extract ALL preferences for meal planning
+            household_size = user_preferences.get('household_size', '2 people')
+            meal_focus = user_preferences.get('meal_timing', ['dinner'])
+            dietary_restrictions = user_preferences.get('dietary_restrictions', [])
+            health_goals = user_preferences.get('goals', [])
+            cooking_time = 'quick (under 30 min)' if 'quick-dinners' in health_goals else 'standard'
+            high_protein = 'high-protein' in health_goals
+            
+            # Additional preferences we should be using
+            cooking_methods = user_preferences.get('cooking_methods', user_preferences.get('preferred_cooking_methods', []))
+            liked_meals = user_preferences.get('liked_meals', [])
+            dislikes = user_preferences.get('dislikes', [])
+            # Note: We don't capture skill level yet - default to intermediate
+            skill_level = 'intermediate'  # TODO: Add skill level to onboarding
+            
+            # Calculate servings needed based on household size
+            servings_per_meal = 2 if '1-2' in str(household_size) else 4 if '3-4' in str(household_size) else 6
+            
+            print(f"  👥 Household size: {household_size} ({servings_per_meal} servings per meal)")
+            print(f"  🍽️ Meal focus: {meal_focus}")
+            print(f"  🚫 Dietary restrictions: {dietary_restrictions}")
+            print(f"  ❌ Dislikes: {dislikes if dislikes else 'None'}")
+            print(f"  🎯 Health goals: {health_goals}")
+            print(f"  👨‍🍳 Cooking methods: {cooking_methods if cooking_methods else 'Any'}")
+            print(f"  ❤️ Liked meals: {liked_meals[:3] if liked_meals else 'Not specified'}")
+            
+            # Build focused prompt for GPT-5 WITH PREFERENCES
+            prompt = f"""Analyze this cart and create meal suggestions for a household of {household_size}.
 
-Requirements:
-- Use ONLY the ingredients listed above as the main components
-- Create actual dish names (not just ingredient lists)
-- Each meal should be 30g+ protein if possible
-- Include prep time estimates
-- If missing key ingredients for a complete meal, suggest ONE simple addition
-- Focus on what they CAN make with what they have
+CART CONTENTS:
+PROTEINS ({len(proteins)} items): {', '.join(proteins) if proteins else 'none'}
+VEGETABLES ({len(vegetables)} items): {', '.join(vegetables) if vegetables else 'none'}  
+OTHER ITEMS ({len(other_items)} items): {', '.join(other_items) if other_items else 'none'}
 
-Return as JSON array with format:
-[{{"name": "Meal Name", "time": "X min", "protein": X, "note": "optional note about additions"}}]
+USER PREFERENCES:
+- Household size: {household_size} (need {servings_per_meal} servings per meal)
+- Meal focus: Primarily {', '.join(meal_focus) if isinstance(meal_focus, list) else meal_focus}
+- Dietary restrictions: {', '.join(dietary_restrictions) if dietary_restrictions else 'None'}
+- Foods to avoid: {', '.join(dislikes) if dislikes else 'None'}
+- Cooking time preference: {cooking_time}
+- Protein requirement: {'HIGH (35-40g per serving)' if high_protein else 'Standard (25-30g per serving)'}
+- Preferred cooking methods: {', '.join(cooking_methods) if cooking_methods else 'Any'}
+- Meals they enjoy: {', '.join(liked_meals[:5]) if liked_meals else 'Not specified'}
 
-Example good format:
-- "Mediterranean Chicken Thigh Skillet" (not "Chicken Thighs with vegetables")
-- "Italian Sausage & Kale Pasta" (suggest pasta as addition if needed)
-- "Breakfast Veggie Hash" (not "Eggs with peppers and zucchini")
-"""
+CRITICAL ANALYSIS REQUIRED:
+1. Calculate how many complete {meal_focus[0] if isinstance(meal_focus, list) else 'dinner'}s this cart can make for {household_size}
+2. Consider protein portions: Each chicken thigh serves 1-2 people, sausage package serves 3-4
+3. Identify what's missing to complete more meals
+4. Create meal names that reflect the actual ingredients (not generic names)
+
+Return 4 meal suggestions focusing on {meal_focus[0] if isinstance(meal_focus, list) else 'dinner'} meals.
+
+STYLE YOUR SUGGESTIONS BASED ON PREFERENCES:
+{"- Match their preferred cooking methods: " + ', '.join(cooking_methods) if cooking_methods else ""}
+{"- Similar to meals they enjoy: " + ', '.join(liked_meals[:3]) if liked_meals else ""}
+{"- AVOID any ingredients containing: " + ', '.join(dislikes) if dislikes else ""}
+{"- IMPORTANT: Do NOT suggest breakfast items if user prefers dinner!" if 'dinner' in str(meal_focus) else ""}
+{"- All meals MUST be high-protein (35g+ per serving)" if high_protein else ""}
+{"- All meals MUST be quick (under 30 minutes total time)" if cooking_time == 'quick (under 30 min)' else ""}
+
+Format as JSON:
+[{{
+  "name": "Specific Meal Name Using Actual Ingredients",
+  "servings": {servings_per_meal},
+  "time": "X min",
+  "protein_per_serving": X,
+  "makes_x_dinners": "This recipe makes X dinners for your family",
+  "ingredients_used": ["list", "actual", "cart", "items", "used"],
+  "note": "optional note about what to add from store"
+}}]"""
 
             try:
                 import openai
@@ -1432,22 +1480,29 @@ Example good format:
                     meals_json = json.loads(json_match.group())
                     print(f"  ✅ Successfully parsed JSON from GPT response")
                     
-                    # Validate and format the meals
+                    # Validate and format the meals with enhanced preference data
                     meals = []
                     for meal in meals_json[:4]:  # Limit to 4
                         if isinstance(meal, dict) and 'name' in meal:
                             meals.append({
                                 "name": meal.get('name', 'Unknown Meal'),
                                 "time": meal.get('time', '25 min'),
-                                "protein": meal.get('protein', 25),
-                                "note": meal.get('note', '')
+                                "protein": meal.get('protein_per_serving', meal.get('protein', 25)),
+                                "servings": meal.get('servings', servings_per_meal),
+                                "makes_x_dinners": meal.get('makes_x_dinners', f"Makes 1 meal for {household_size}"),
+                                "ingredients_used": meal.get('ingredients_used', []),
+                                "note": meal.get('note', ''),
+                                "type": "dinner" if 'dinner' in str(meal_focus) else "lunch" if 'lunch' in str(meal_focus) else "breakfast"
                             })
                     
                     if meals:
                         print(f"🎉 SUCCESS: Created {len(meals)} personalized meal suggestions!")
                         for i, meal in enumerate(meals, 1):
                             print(f"  {i}. {meal['name']} ({meal['time']}, {meal['protein']}g protein)")
-                        return {"success": True, "meals": meals}
+                            print(f"     → {meal['makes_x_dinners']}")
+                            if meal.get('ingredients_used'):
+                                print(f"     → Uses: {', '.join(meal['ingredients_used'][:3])}")
+                        return {"success": True, "meals": meals, "household_size": household_size}
                 
                 print(f"⚠️ Could not extract valid JSON from GPT response")
                 
