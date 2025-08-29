@@ -1321,6 +1321,10 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                     dietary_restrictions = user_preferences.get('dietary_restrictions', [])
                     health_goals = user_preferences.get('goals', [])
                     
+                    # Get household size for portion calculations
+                    household_size = user_preferences.get('household_size', '1-2')
+                    servings_needed = 2 if '1-2' in str(household_size) else 4 if '3-4' in str(household_size) else 6
+                    
                     prompt = f"""Analyze this Farm to People cart and suggest smart swaps and fresh add-ons.
 
 CURRENT CART:
@@ -1330,10 +1334,18 @@ AVAILABLE ALTERNATIVES (can swap to these):
 {', '.join(available_alternatives)}
 
 USER PREFERENCES:
+- Household size: {household_size} (needs {servings_needed} servings per meal)
 - Liked meals: {', '.join(liked_meals[:5]) if liked_meals else 'Not specified'}
 - Cooking methods: {', '.join(cooking_methods) if cooking_methods else 'Any'}
 - Dietary restrictions: {', '.join(dietary_restrictions) if dietary_restrictions else 'None'}
 - Health goals: {', '.join(health_goals) if health_goals else 'None'}
+
+IMPORTANT CONTEXT FOR ANALYSIS:
+- Portion sizes: 0.6-1lb chicken thighs serves 2 people for ONE meal only
+- 1lb sausage serves 3-4 people for one meal
+- Don't suggest swapping items that were already swapped
+- If making multiple meals, check if there's enough protein (may need to suggest adding more)
+- Consider consolidation opportunities (if they have similar items that could be combined)
 
 TASK:
 1. SWAPS: Suggest 2-3 swaps where an alternative would work better based on:
@@ -1341,8 +1353,10 @@ TASK:
    - User's meal preferences (if they like chicken dishes but have pork, suggest swapping)
    - Health goals (if eating healthy, suggest leaner proteins)
    - Recipe compatibility
+   - Don't suggest swapping something they likely already chose intentionally
 
-2. ADD-ONS: Suggest 2-3 FRESH ingredients (NOT pantry staples) that would complete meals:
+2. ADD-ONS: Suggest 2-3 FRESH ingredients that would complete meals:
+   - Additional protein if there's not enough for multiple meals they want to make
    - Fresh herbs for proteins
    - Citrus for greens
    - Fresh items that expire (no salt, oil, vinegar)
@@ -1523,10 +1537,15 @@ USER PREFERENCES:
 - Meals they enjoy: {', '.join(liked_meals[:5]) if liked_meals else 'Not specified'}
 
 CRITICAL ANALYSIS REQUIRED:
-1. Calculate how many complete {meal_focus[0] if isinstance(meal_focus, list) else 'dinner'}s this cart can make for {household_size}
-2. Consider protein portions: Each chicken thigh serves 1-2 people, sausage package serves 3-4
-3. Identify what's missing to complete more meals
+1. Calculate REALISTICALLY how many complete {meal_focus[0] if isinstance(meal_focus, list) else 'dinner'}s this cart can make for {household_size}
+2. Protein portion reality check:
+   - 0.6-1lb chicken thighs = ONE meal for 2 people (not multiple meals)
+   - 1lb sausage = ONE meal for 3-4 people
+   - 1 dozen eggs = 2-3 breakfast/brunch meals for 2 people
+   - Don't overcount - be honest about portions
+3. If suggesting multiple meals with same protein, note that they'd need to buy more
 4. Create meal names that reflect the actual ingredients (not generic names)
+5. Be clear: "Makes 1 dinner" vs "Makes 2 dinners" based on actual portions
 
 Return 4 meal suggestions focusing on {meal_focus[0] if isinstance(meal_focus, list) else 'dinner'} meals.
 
