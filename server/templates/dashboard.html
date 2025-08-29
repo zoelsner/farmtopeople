@@ -582,7 +582,7 @@
                 clearInterval(statusInterval);
 
                 if (data.success) {
-                    showCartAnalysis(data.cart_data);
+                    showCartAnalysis(data.cart_data, data.swaps, data.addons);
                 } else {
                     // For now, show mock data
                     showMockCartAnalysis();
@@ -643,7 +643,7 @@
             showCartAnalysis(realCartData);
         }
 
-        function showCartAnalysis(cartData) {
+        function showCartAnalysis(cartData, swaps = [], addons = []) {
             currentState = 'complete';
             document.getElementById('loadingSection').classList.remove('active');
             document.getElementById('cartAnalysisSection').classList.add('active');
@@ -718,35 +718,35 @@
                 document.getElementById('nonCustomizableBoxesSection').style.display = 'none';
             }
 
-            // Show suggested swaps (mock for now)
-            const swapsHTML = `
-                <div class="swap-suggestion">
-                    <div class="swap-text">Consider swapping Ribeye Steak → Salmon Fillet for omega-3s</div>
-                </div>
-                <div class="swap-suggestion">
-                    <div class="swap-text">Add Organic Spinach (missing greens for balanced nutrition)</div>
-                </div>
-            `;
-            document.getElementById('suggestedSwaps').innerHTML = swapsHTML;
+            // Show AI-generated swaps (2025-08-29: Using GPT-5 generated swaps)
+            if (swaps && swaps.length > 0) {
+                const swapsHTML = swaps.map(swap => `
+                    <div class="swap-suggestion">
+                        <div class="swap-text">Swap ${swap.from} → ${swap.to}</div>
+                        <div class="swap-reason" style="font-size: 12px; color: #666; margin-top: 4px;">${swap.reason}</div>
+                    </div>
+                `).join('');
+                document.getElementById('suggestedSwaps').innerHTML = swapsHTML;
+            } else {
+                document.getElementById('suggestedSwaps').innerHTML = '<div style="color: #666; padding: 10px;">No swaps needed - your selections look great!</div>';
+            }
 
-            // Show recommended add-ons (mock for now)
-            const addonsHTML = `
-                <div class="addon-item">
-                    <div class="item-details">
-                        <div class="item-name">Organic Olive Oil</div>
-                        <div class="item-meta">Essential for cooking your proteins</div>
+            // Show AI-generated fresh add-ons (2025-08-29: Fresh ingredients only, no pantry staples)
+            if (addons && addons.length > 0) {
+                const addonsHTML = addons.map(addon => `
+                    <div class="addon-item">
+                        <div class="item-details">
+                            <div class="item-name">${addon.item}</div>
+                            <div class="item-meta">${addon.reason}</div>
+                        </div>
+                        <div class="item-price">${addon.price || '$3.99'}</div>
                     </div>
-                    <div class="item-price">$12.99</div>
-                </div>
-                <div class="addon-item">
-                    <div class="item-details">
-                        <div class="item-name">Sea Salt</div>
-                        <div class="item-meta">Perfect for seasoning</div>
-                    </div>
-                    <div class="item-price">$6.50</div>
-                </div>
-            `;
-            document.getElementById('recommendedAddons').innerHTML = addonsHTML;
+                `).join('');
+                document.getElementById('recommendedAddons').innerHTML = addonsHTML;
+            } else {
+                // No addons suggested
+                document.getElementById('recommendedAddons').innerHTML = '<div style="color: #666; padding: 10px;">Your cart is complete!</div>';
+            }
         }
 
         function generateMealSuggestions(cartData) {

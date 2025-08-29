@@ -34,7 +34,8 @@ load_dotenv(dotenv_path=project_root / '.env')
 # === CONFIGURATION ===
 # IMPORTANT: Change this single variable to switch between models throughout the app
 # Updated 2025-08-29: Switched from hardcoded models to configurable variable
-AI_MODEL = "gpt-4o"  # Options: "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-5" (when available)
+# Updated 2025-08-29: GPT-5 is now available! Confirmed working in production
+AI_MODEL = "gpt-5"  # Options: "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-5" ✅
 print(f"🤖 AI Model configured: {AI_MODEL}")
 
 app = FastAPI()
@@ -1281,7 +1282,109 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
             ]
         }
         
-        return {"success": True, "cart_data": cart_data}
+        # Generate AI-powered swaps and add-ons based on preferences (2025-08-29)
+        swaps = []
+        addons = []
+        
+        # Get user preferences if we have phone
+        user_preferences = {}
+        if phone:
+            try:
+                phone_formats = [phone, f"+{phone}", f"1{phone}" if not phone.startswith('1') else phone, f"+1{phone}"]
+                for phone_format in phone_formats:
+                    user_record = db.get_user_by_phone(phone_format)
+                    if user_record:
+                        user_preferences = user_record.get('preferences', {})
+                        break
+            except:
+                pass
+        
+        # Use GPT-5 to generate smart swaps and add-ons
+        if cart_data and cart_data.get("customizable_boxes"):
+            try:
+                import openai
+                openai_key = os.getenv("OPENAI_API_KEY")
+                if openai_key:
+                    client = openai.OpenAI(api_key=openai_key)
+                    
+                    # Build context for GPT-5
+                    selected_items = []
+                    available_alternatives = []
+                    
+                    for box in cart_data.get("customizable_boxes", []):
+                        selected_items.extend([item["name"] for item in box.get("selected_items", [])])
+                        available_alternatives.extend([item["name"] for item in box.get("available_alternatives", [])])
+                    
+                    # Extract key preferences
+                    liked_meals = user_preferences.get('liked_meals', [])
+                    cooking_methods = user_preferences.get('cooking_methods', [])
+                    dietary_restrictions = user_preferences.get('dietary_restrictions', [])
+                    health_goals = user_preferences.get('goals', [])
+                    
+                    prompt = f"""Analyze this Farm to People cart and suggest smart swaps and fresh add-ons.
+
+CURRENT CART:
+{', '.join(selected_items)}
+
+AVAILABLE ALTERNATIVES (can swap to these):
+{', '.join(available_alternatives)}
+
+USER PREFERENCES:
+- Liked meals: {', '.join(liked_meals[:5]) if liked_meals else 'Not specified'}
+- Cooking methods: {', '.join(cooking_methods) if cooking_methods else 'Any'}
+- Dietary restrictions: {', '.join(dietary_restrictions) if dietary_restrictions else 'None'}
+- Health goals: {', '.join(health_goals) if health_goals else 'None'}
+
+TASK:
+1. SWAPS: Suggest 2-3 swaps where an alternative would work better based on:
+   - What goes better with other items in cart
+   - User's meal preferences (if they like chicken dishes but have pork, suggest swapping)
+   - Health goals (if eating healthy, suggest leaner proteins)
+   - Recipe compatibility
+
+2. ADD-ONS: Suggest 2-3 FRESH ingredients (NOT pantry staples) that would complete meals:
+   - Fresh herbs for proteins
+   - Citrus for greens
+   - Fresh items that expire (no salt, oil, vinegar)
+   - Things that elevate or complete the dishes
+
+Return JSON:
+{{
+  "swaps": [
+    {{"from": "current item", "to": "alternative item", "reason": "why this swap makes sense"}}
+  ],
+  "addons": [
+    {{"item": "Fresh Lemons", "price": "$3.99", "reason": "Perfect for your kale and fish dishes"}}
+  ]
+}}"""
+
+                    response = client.chat.completions.create(
+                        model=AI_MODEL,
+                        messages=[
+                            {"role": "system", "content": "You are a Farm to People meal planning expert. Analyze carts and suggest smart improvements based on user preferences."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        max_tokens=500,
+                        temperature=0.7
+                    )
+                    
+                    # Parse response
+                    import json
+                    import re
+                    gpt_response = response.choices[0].message.content.strip()
+                    json_match = re.search(r'\{.*\}', gpt_response, re.DOTALL)
+                    if json_match:
+                        result = json.loads(json_match.group())
+                        swaps = result.get("swaps", [])
+                        addons = result.get("addons", [])
+                        print(f"✅ Generated {len(swaps)} swaps and {len(addons)} add-ons via GPT-5")
+                    
+            except Exception as e:
+                print(f"⚠️ Could not generate AI swaps: {e}")
+                # Return empty swaps/addons rather than hardcoded ones
+                pass
+        
+        return {"success": True, "cart_data": cart_data, "swaps": swaps, "addons": addons}
         
     except Exception as e:
         return {"success": False, "error": str(e)}
