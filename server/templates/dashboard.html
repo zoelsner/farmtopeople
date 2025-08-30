@@ -801,8 +801,15 @@
                 document.getElementById('individualItemsSection').style.display = 'none';
             }
 
-            // Show customizable boxes
+            // Show customizable boxes with category tags
             if (cartData.customizable_boxes && cartData.customizable_boxes.length > 0) {
+                // Update count
+                let totalItems = 0;
+                cartData.customizable_boxes.forEach(box => {
+                    totalItems += (box.selected_items ? box.selected_items.length : 0);
+                });
+                document.getElementById('customizableBoxesCount').textContent = `(${totalItems} items)`;
+                
                 const customizableHTML = cartData.customizable_boxes.map(box => `
                     <div style="margin-bottom: 20px;">
                         <div class="box-header">
@@ -810,14 +817,30 @@
                             <div class="box-status">${box.alternatives_count} available alternatives</div>
                         </div>
                         <div class="item-grid">
-                            ${box.selected_items.map(item => `
-                                <div class="cart-item">
-                                    <div class="item-details">
-                                        <div class="item-name">${item.name}</div>
-                                        <div class="item-meta">${item.unit} • ${item.producer || 'Farm Fresh'}</div>
+                            ${box.selected_items.map(item => {
+                                const category = getItemCategory(item.name);
+                                const colors = getCategoryColors(category);
+                                return `
+                                    <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
+                                        <div class="item-details" style="flex: 1;">
+                                            <div class="item-name">${item.name}</div>
+                                            <div class="item-meta" style="color: #666; font-size: 14px;">${item.unit} • ${item.producer || 'Farm Fresh'}</div>
+                                        </div>
+                                        <span class="category-tag" style="
+                                            background: white;
+                                            color: ${colors.text};
+                                            padding: 4px 12px;
+                                            border-radius: 16px;
+                                            font-size: 13px;
+                                            font-weight: 500;
+                                            min-width: 70px;
+                                            text-align: center;
+                                            border: 1.5px solid ${colors.border};
+                                            display: inline-block;
+                                        ">${category}</span>
                                     </div>
-                                </div>
-                            `).join('')}
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 `).join('');
@@ -826,8 +849,15 @@
                 document.getElementById('customizableBoxesSection').style.display = 'none';
             }
 
-            // Show non-customizable boxes
+            // Show non-customizable boxes with category tags
             if (cartData.non_customizable_boxes && cartData.non_customizable_boxes.length > 0) {
+                // Update count
+                let totalItems = 0;
+                cartData.non_customizable_boxes.forEach(box => {
+                    totalItems += (box.selected_items ? box.selected_items.length : 0);
+                });
+                document.getElementById('fixedBoxesCount').textContent = `(${totalItems} items)`;
+                
                 const nonCustomizableHTML = cartData.non_customizable_boxes.map(box => `
                     <div style="margin-bottom: 20px;">
                         <div class="box-header">
@@ -835,14 +865,30 @@
                             <div class="box-status">Fixed selection</div>
                         </div>
                         <div class="item-grid">
-                            ${box.selected_items.map(item => `
-                                <div class="cart-item">
-                                    <div class="item-details">
-                                        <div class="item-name">${item.name}</div>
-                                        <div class="item-meta">${item.unit}</div>
+                            ${box.selected_items.map(item => {
+                                const category = getItemCategory(item.name);
+                                const colors = getCategoryColors(category);
+                                return `
+                                    <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
+                                        <div class="item-details" style="flex: 1;">
+                                            <div class="item-name">${item.name}</div>
+                                            <div class="item-meta" style="color: #666; font-size: 14px;">${item.unit}</div>
+                                        </div>
+                                        <span class="category-tag" style="
+                                            background: white;
+                                            color: ${colors.text};
+                                            padding: 4px 12px;
+                                            border-radius: 16px;
+                                            font-size: 13px;
+                                            font-weight: 500;
+                                            min-width: 70px;
+                                            text-align: center;
+                                            border: 1.5px solid ${colors.border};
+                                            display: inline-block;
+                                        ">${category}</span>
                                     </div>
-                                </div>
-                            `).join('')}
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 `).join('');
