@@ -51,6 +51,13 @@ Setup instructions, deployment guide, debugging tips, and common commands.
 - **Direct data passing** - no intermediate files
 - **HTML→PDF** better than ReportLab
 - **Penny aesthetic** wins over decorated designs
+### API and Module Docs
+
+- See the new API reference in `docs/api/`:
+  - [HTTP Endpoints](api/http_endpoints.md)
+  - [Server Modules](api/server_modules.md)
+  - [Generators](api/generators.md)
+  - [Scrapers](api/scrapers.md)
 
 ### This Week's Milestones:
 - ✅ Monday AM: Connected scraper to meal planner
