@@ -495,6 +495,11 @@ class OnboardingFlow {
         if (this.currentStep === 3 || this.currentStep === 4) {
             this.updateMealSelectionUI();
         }
+        
+        // Scroll to top of page on step change (fixes mobile issue)
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0; // For Safari
+        document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
     }
 
     updateProgress() {

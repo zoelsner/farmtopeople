@@ -534,8 +534,36 @@
         if (userEmail) {
             document.querySelector('.subtitle').textContent = userEmail;
         }
+        
+        // Restore cart analysis state if available (fixes navigation issue)
+        const savedState = localStorage.getItem('cartAnalysisState');
+        const savedAnalysis = localStorage.getItem('cartAnalysisData');
+        if (savedState === 'complete' && savedAnalysis) {
+            try {
+                const { cartData, swaps, addons, timestamp } = JSON.parse(savedAnalysis);
+                // Only restore if data is less than 1 hour old
+                const oneHour = 60 * 60 * 1000;
+                if (Date.now() - timestamp < oneHour) {
+                    currentState = 'complete';
+                    // Restore the cart view after a short delay to ensure DOM is ready
+                    setTimeout(() => {
+                        showCartAnalysis(cartData, swaps, addons);
+                    }, 100);
+                } else {
+                    // Clear old data
+                    localStorage.removeItem('cartAnalysisData');
+                    localStorage.removeItem('cartAnalysisState');
+                }
+            } catch (e) {
+                console.error('Error restoring cart analysis:', e);
+            }
+        }
 
         async function startAnalysis() {
+            // Clear any previous analysis data
+            localStorage.removeItem('cartAnalysisData');
+            localStorage.removeItem('cartAnalysisState');
+            
             // Switch to loading state
             currentState = 'loading';
             document.getElementById('startSection').classList.remove('active');
@@ -647,6 +675,11 @@
 
         function showCartAnalysis(cartData, swaps = [], addons = []) {
             currentState = 'complete';
+            
+            // Store cart analysis data in localStorage for persistence
+            const analysisData = { cartData, swaps, addons, timestamp: Date.now() };
+            localStorage.setItem('cartAnalysisData', JSON.stringify(analysisData));
+            localStorage.setItem('cartAnalysisState', 'complete');
             document.getElementById('loadingSection').classList.remove('active');
             document.getElementById('cartAnalysisSection').classList.add('active');
             document.getElementById('headerSubtitle').textContent = 'Cart analysis complete';
@@ -1011,6 +1044,10 @@
         }
 
         async function refreshCartData() {
+            // Clear stored data to force fresh analysis
+            localStorage.removeItem('cartAnalysisData');
+            localStorage.removeItem('cartAnalysisState');
+            
             const button = document.getElementById('refreshCartButton');
             const originalText = button.innerHTML;
             
