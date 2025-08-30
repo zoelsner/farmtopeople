@@ -768,8 +768,21 @@
             document.getElementById('cartAnalysisSection').classList.add('active');
             document.getElementById('headerSubtitle').textContent = 'Cart analysis complete';
 
-            // Generate suggested meals using GPT-5 API instead of hardcoded suggestions
-            generateMealSuggestionsFromAPI(cartData);
+            // Check if we already have cached meal suggestions
+            const cachedMeals = localStorage.getItem('cachedMealSuggestions');
+            const cachedMealsTimestamp = localStorage.getItem('cachedMealSuggestionsTimestamp');
+            
+            // Use cached meals if they exist and are less than 1 hour old
+            const oneHour = 60 * 60 * 1000;
+            if (cachedMeals && cachedMealsTimestamp && (Date.now() - parseInt(cachedMealsTimestamp)) < oneHour) {
+                console.log('📦 Using cached meal suggestions');
+                const meals = JSON.parse(cachedMeals);
+                updateMealSuggestions(meals);
+            } else {
+                // Generate new meal suggestions using GPT-5 API
+                console.log('🍽️ Generating fresh meal suggestions');
+                generateMealSuggestionsFromAPI(cartData);
+            }
             
             // Calculate and display category counts
             const categoryCounts = { protein: 0, produce: 0, fruit: 0 };
@@ -833,23 +846,7 @@
                 `);
             }
             
-            if (categoryCounts.produce > 0) {
-                summaryItems.push(`
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <span style="font-size: 16px; color: #555;">${categoryCounts.produce}×</span>
-                        <span class="category-tag" style="
-                            background: white;
-                            color: ${getCategoryColors('produce').text};
-                            padding: 4px 12px;
-                            border-radius: 16px;
-                            font-size: 13px;
-                            font-weight: 500;
-                            text-align: center;
-                            border: 1.5px solid ${getCategoryColors('produce').border};
-                        ">produce</span>
-                    </div>
-                `);
-            }
+            // Remove produce from summary - user only wants protein and fruit counts
             
             if (categoryCounts.fruit > 0) {
                 summaryItems.push(`
@@ -941,16 +938,16 @@
                                 <div class="item-meta" style="color: #666; font-size: 14px;">${quantityText}</div>
                             </div>
                             <span class="category-tag" style="
-                                background: white;
+                                background: rgba(255, 255, 255, 0.5);
                                 color: ${colors.text};
-                                padding: 4px 12px;
-                                border-radius: 16px;
-                                font-size: 13px;
+                                padding: 2px 6px;
+                                border-radius: 8px;
+                                font-size: 10px;
                                 font-weight: 500;
-                                min-width: 70px;
                                 text-align: center;
-                                border: 1.5px solid ${colors.border};
+                                border: 1px solid rgba(0, 0, 0, 0.08);
                                 display: inline-block;
+                                opacity: 0.75;
                             ">${category}</span>
                         </div>
                     `;
@@ -1092,16 +1089,16 @@
                                 <div class="item-meta" style="color: #666; font-size: 14px; margin-top: 2px;">${addon.reason}</div>
                             </div>
                             <span class="category-tag" style="
-                                background: white;
+                                background: rgba(255, 255, 255, 0.5);
                                 color: ${colors.text};
-                                padding: 4px 12px;
-                                border-radius: 16px;
-                                font-size: 13px;
+                                padding: 2px 6px;
+                                border-radius: 8px;
+                                font-size: 10px;
                                 font-weight: 500;
-                                min-width: 70px;
                                 text-align: center;
-                                border: 1.5px solid ${colors.border};
+                                border: 1px solid rgba(0, 0, 0, 0.08);
                                 display: inline-block;
+                                opacity: 0.75;
                             ">${category}</span>
                         </div>
                     `;
@@ -1204,7 +1201,9 @@
                             const data = await response.json();
                             
                             if (data.success) {
-                                // Update meal suggestions
+                                // Update meal suggestions and cache them
+                                localStorage.setItem('cachedMealSuggestions', JSON.stringify(data.meals));
+                                localStorage.setItem('cachedMealSuggestionsTimestamp', Date.now().toString());
                                 updateMealSuggestions(data.meals);
                                 
                                 // Decrement refresh count
@@ -1307,6 +1306,11 @@
                 
                 if (data.success && data.meals && data.meals.length > 0) {
                     console.log('✅ Got meal suggestions from GPT-5:', data.meals);
+                    
+                    // Cache the meal suggestions
+                    localStorage.setItem('cachedMealSuggestions', JSON.stringify(data.meals));
+                    localStorage.setItem('cachedMealSuggestionsTimestamp', Date.now().toString());
+                    
                     updateMealSuggestions(data.meals);
                 } else {
                     console.error('❌ Meal generation failed:', data.error || 'Unknown error');
