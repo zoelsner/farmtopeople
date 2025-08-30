@@ -716,7 +716,7 @@
                 'protein': { bg: '#FFF0F0', text: '#D32F2F', border: '#FFCDD2' },
                 'produce': { bg: '#F1F8F4', text: '#2E7D32', border: '#C8E6C9' },
                 'dairy': { bg: '#E3F2FD', text: '#1976D2', border: '#BBDEFB' },
-                'fruit': { bg: '#FCE4EC', text: '#C2185B', border: '#F8BBD0' },
+                'fruit': { bg: '#FFF8E1', text: '#F57C00', border: '#FFE082' },  // Changed to orange like pantry
                 'pantry': { bg: '#FFF8E1', text: '#F57C00', border: '#FFE082' }
             };
             return colors[category] || colors['produce'];
@@ -774,6 +774,13 @@
                     
                     return `
                         <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
+                            <div class="item-details" style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="item-name">${item.name}</div>
+                                    <div class="item-price" style="color: #2e7d32; font-weight: 600;">${item.price || 'N/A'}</div>
+                                </div>
+                                <div class="item-meta" style="color: #666; font-size: 14px;">${quantityText}</div>
+                            </div>
                             <span class="category-tag" style="
                                 background: white;
                                 color: ${colors.text};
@@ -781,17 +788,11 @@
                                 border-radius: 16px;
                                 font-size: 13px;
                                 font-weight: 500;
-                                margin-right: 12px;
                                 min-width: 70px;
                                 text-align: center;
                                 border: 1.5px solid ${colors.border};
                                 display: inline-block;
                             ">${category}</span>
-                            <div class="item-details" style="flex: 1;">
-                                <div class="item-name">${item.name}</div>
-                                <div class="item-meta">${quantityText}</div>
-                            </div>
-                            <div class="item-price">${item.price || 'N/A'}</div>
                         </div>
                     `;
                 }).join('');
@@ -866,19 +867,19 @@
             // Show AI-generated fresh add-ons (2025-08-29: Fresh ingredients only, no pantry staples)
             if (addons && addons.length > 0) {
                 const addonsHTML = addons.map(addon => {
-                    // Determine category and color
+                    // Determine category and color using the same helper function
                     const category = addon.category || 'produce';
-                    const categoryColors = {
-                        'protein': { bg: '#FFE5E5', text: '#CC0000' },
-                        'produce': { bg: '#E5F5E5', text: '#2C7A2C' },
-                        'dairy': { bg: '#E5F0FF', text: '#0066CC' },
-                        'pantry': { bg: '#FFF5E5', text: '#CC8800' },
-                        'fruit': { bg: '#FFE5F5', text: '#CC00CC' }
-                    };
-                    const colors = categoryColors[category] || categoryColors['produce'];
+                    const colors = getCategoryColors(category);
                     
                     return `
                         <div class="addon-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
+                            <div class="item-details" style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="item-name" style="font-weight: 600;">${addon.item}</div>
+                                    <div class="item-price" style="color: #2e7d32; font-weight: 600;">${addon.price || '$3.99'}</div>
+                                </div>
+                                <div class="item-meta" style="color: #666; font-size: 14px; margin-top: 2px;">${addon.reason}</div>
+                            </div>
                             <span class="category-tag" style="
                                 background: white;
                                 color: ${colors.text};
@@ -886,17 +887,11 @@
                                 border-radius: 16px;
                                 font-size: 13px;
                                 font-weight: 500;
-                                margin-right: 12px;
                                 min-width: 70px;
                                 text-align: center;
                                 border: 1.5px solid ${colors.border};
                                 display: inline-block;
                             ">${category}</span>
-                            <div class="item-details" style="flex: 1;">
-                                <div class="item-name" style="font-weight: 600;">${addon.item}</div>
-                                <div class="item-meta" style="color: #666; font-size: 14px; margin-top: 2px;">${addon.reason}</div>
-                            </div>
-                            <div class="item-price" style="font-weight: 600; color: #333;">${addon.price || '$3.99'}</div>
                         </div>
                     `;
                 }).join('');
