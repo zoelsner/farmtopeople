@@ -1368,19 +1368,21 @@ TASK:
    - Don't suggest swapping something they likely already chose intentionally
 
 2. ADD-ONS: Suggest 2-3 FRESH ingredients that would complete meals:
+   - DO NOT suggest items already in the cart (check CURRENT CART above)
    - Additional protein if there's not enough for multiple meals they want to make
-   - Fresh herbs for proteins
-   - Citrus for greens
+   - Fresh herbs for proteins (basil, cilantro, parsley, etc.)
+   - Consider ginger, garlic, fresh peppers for Asian dishes
    - Fresh items that expire (no salt, oil, vinegar)
    - Things that elevate or complete the dishes
+   - Be creative - suggest variety, not just lemons every time
 
-Return JSON:
+Return JSON format (generate appropriate suggestions based on cart):
 {{
   "swaps": [
-    {{"from": "current item", "to": "alternative item", "reason": "why this swap makes sense"}}
+    {{"from": "item name", "to": "alternative name", "reason": "specific reason"}}
   ],
   "addons": [
-    {{"item": "Organic Lemons", "price": "$1.99", "reason": "Perfect for your kale and fish dishes", "category": "produce"}}
+    {{"item": "Fresh item name", "price": "$X.XX", "reason": "how it enhances their meals", "category": "produce/protein/dairy"}}
   ]
 }}
 
