@@ -689,15 +689,43 @@
 
             // Show individual items
             if (cartData.individual_items && cartData.individual_items.length > 0) {
-                const individualHTML = cartData.individual_items.map(item => `
-                    <div class="cart-item">
-                        <div class="item-details">
-                            <div class="item-name">${item.name}</div>
-                            <div class="item-meta">${item.quantity} ${item.unit}</div>
+                const individualHTML = cartData.individual_items.map(item => {
+                    // Format quantity properly
+                    let quantityText = '';
+                    if (item.unit.startsWith('1 ')) {
+                        // Unit already contains "1 dozen", "1 piece", etc.
+                        // Replace the "1" with actual quantity if different
+                        if (item.quantity === 1) {
+                            quantityText = item.unit;
+                        } else {
+                            // Replace "1 piece" with "5 pieces", "1 dozen" stays as is for quantity 1
+                            const unitPart = item.unit.substring(2); // Remove "1 " prefix
+                            // Pluralize if needed
+                            if (item.quantity > 1 && unitPart === 'piece') {
+                                quantityText = `${item.quantity} pieces`;
+                            } else if (item.quantity > 1 && unitPart === 'bunch') {
+                                quantityText = `${item.quantity} bunches`;
+                            } else if (item.quantity > 1 && unitPart === 'head') {
+                                quantityText = `${item.quantity} heads`;
+                            } else {
+                                quantityText = `${item.quantity} ${unitPart}`;
+                            }
+                        }
+                    } else {
+                        // Unit doesn't start with "1 ", use as is
+                        quantityText = item.quantity > 1 ? `${item.quantity} × ${item.unit}` : item.unit;
+                    }
+                    
+                    return `
+                        <div class="cart-item">
+                            <div class="item-details">
+                                <div class="item-name">${item.name}</div>
+                                <div class="item-meta">${quantityText}</div>
+                            </div>
+                            <div class="item-price">${item.price || 'N/A'}</div>
                         </div>
-                        <div class="item-price">${item.price || 'N/A'}</div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
                 document.getElementById('individualItems').innerHTML = individualHTML;
             } else {
                 document.getElementById('individualItemsSection').style.display = 'none';
