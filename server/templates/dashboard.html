@@ -705,18 +705,23 @@
                 return 'dairy';
             }
             
-            // Fruit items - be more specific to avoid false positives
+            // Fruit items - be very specific about what is actually a fruit
+            // Only include items that are typically in the fruit section of a grocery store
             if (name.includes('apple') || name.includes('banana') || name.includes('peach') || 
                 name.includes('plum') || name.includes('nectarine') || name.includes('berry') ||
-                name.includes('lemon') || name.includes('lime') || name.includes('avocado') || 
-                name.includes('melon') || name.includes('pear') || name.includes('grape')) {
-                // Exclude items that contain fruit words but aren't fruits
-                if (!name.includes('carrot') && !name.includes('pepper')) {
-                    return 'fruit';
-                }
+                name.includes('melon') || name.includes('pear') || name.includes('grape') ||
+                name.includes('grapefruit') || name.includes('mango') || name.includes('avocado')) {
+                return 'fruit';
+            }
+            
+            // Check for oranges specifically (but not orange-colored vegetables)
+            if (name.includes('orange') && !name.includes('carrot') && !name.includes('pepper') && 
+                !name.includes('bell') && !name.includes('squash')) {
+                return 'fruit';
             }
             
             // Default to produce (vegetables, herbs, etc)
+            // This includes tomatoes, peppers, lettuce, kale, zucchini, carrots, etc.
             return 'produce';
         }
         
