@@ -436,7 +436,9 @@
 
             <!-- Individual Items -->
             <div class="cart-section" id="individualItemsSection">
-                <h3 class="section-header">Individual Items</h3>
+                <h3 class="section-header">
+                    Individual Items <span id="individualItemsCount" style="color: #666; font-weight: normal; font-size: 16px;"></span>
+                </h3>
                 <div class="item-grid" id="individualItems">
                     <!-- Individual items will be inserted here -->
                 </div>
@@ -444,7 +446,9 @@
 
             <!-- Customizable Boxes -->
             <div class="cart-section" id="customizableBoxesSection">
-                <h3 class="section-header">Customizable Boxes</h3>
+                <h3 class="section-header">
+                    Customizable Boxes <span id="customizableBoxesCount" style="color: #666; font-weight: normal; font-size: 16px;"></span>
+                </h3>
                 <div id="customizableBoxes">
                     <!-- Customizable box data will be inserted here -->
                 </div>
@@ -452,7 +456,9 @@
 
             <!-- Non-Customizable Boxes -->
             <div class="cart-section" id="nonCustomizableBoxesSection">
-                <h3 class="section-header">Fixed Boxes</h3>
+                <h3 class="section-header">
+                    Fixed Boxes <span id="fixedBoxesCount" style="color: #666; font-weight: normal; font-size: 16px;"></span>
+                </h3>
                 <div id="nonCustomizableBoxes">
                     <!-- Non-customizable box data will be inserted here -->
                 </div>
@@ -673,6 +679,49 @@
             showCartAnalysis(realCartData);
         }
 
+        // Helper function to determine item category
+        function getItemCategory(itemName) {
+            const name = itemName.toLowerCase();
+            
+            // Protein items
+            if (name.includes('chicken') || name.includes('beef') || name.includes('turkey') || 
+                name.includes('pork') || name.includes('sausage') || name.includes('fish') || 
+                name.includes('salmon') || name.includes('bass') || name.includes('egg') ||
+                name.includes('kielbasa')) {
+                return 'protein';
+            }
+            
+            // Dairy items
+            if (name.includes('cheese') || name.includes('milk') || name.includes('yogurt') || 
+                name.includes('butter') || name.includes('mozzarella') || name.includes('cheddar') ||
+                name.includes('feta')) {
+                return 'dairy';
+            }
+            
+            // Fruit items
+            if (name.includes('apple') || name.includes('banana') || name.includes('peach') || 
+                name.includes('plum') || name.includes('nectarine') || name.includes('berry') ||
+                name.includes('orange') || name.includes('lemon') || name.includes('lime') ||
+                name.includes('avocado') || name.includes('melon')) {
+                return 'fruit';
+            }
+            
+            // Default to produce (vegetables, herbs, etc)
+            return 'produce';
+        }
+        
+        // Helper function to get category colors (minimal style like the reference image)
+        function getCategoryColors(category) {
+            const colors = {
+                'protein': { bg: '#FFF0F0', text: '#D32F2F', border: '#FFCDD2' },
+                'produce': { bg: '#F1F8F4', text: '#2E7D32', border: '#C8E6C9' },
+                'dairy': { bg: '#E3F2FD', text: '#1976D2', border: '#BBDEFB' },
+                'fruit': { bg: '#FCE4EC', text: '#C2185B', border: '#F8BBD0' },
+                'pantry': { bg: '#FFF8E1', text: '#F57C00', border: '#FFE082' }
+            };
+            return colors[category] || colors['produce'];
+        }
+        
         function showCartAnalysis(cartData, swaps = [], addons = []) {
             currentState = 'complete';
             
@@ -687,9 +736,16 @@
             // Generate suggested meals using GPT-5 API instead of hardcoded suggestions
             generateMealSuggestionsFromAPI(cartData);
 
-            // Show individual items
+            // Show individual items with category tags
             if (cartData.individual_items && cartData.individual_items.length > 0) {
+                // Update count
+                document.getElementById('individualItemsCount').textContent = `(${cartData.individual_items.length} items)`;
+                
                 const individualHTML = cartData.individual_items.map(item => {
+                    // Get category and colors
+                    const category = getItemCategory(item.name);
+                    const colors = getCategoryColors(category);
+                    
                     // Format quantity properly
                     let quantityText = '';
                     if (item.unit.startsWith('1 ')) {
@@ -717,8 +773,21 @@
                     }
                     
                     return `
-                        <div class="cart-item">
-                            <div class="item-details">
+                        <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
+                            <span class="category-tag" style="
+                                background: white;
+                                color: ${colors.text};
+                                padding: 4px 12px;
+                                border-radius: 16px;
+                                font-size: 13px;
+                                font-weight: 500;
+                                margin-right: 12px;
+                                min-width: 70px;
+                                text-align: center;
+                                border: 1.5px solid ${colors.border};
+                                display: inline-block;
+                            ">${category}</span>
+                            <div class="item-details" style="flex: 1;">
                                 <div class="item-name">${item.name}</div>
                                 <div class="item-meta">${quantityText}</div>
                             </div>
@@ -811,15 +880,17 @@
                     return `
                         <div class="addon-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
                             <span class="category-tag" style="
-                                background: ${colors.bg};
+                                background: white;
                                 color: ${colors.text};
-                                padding: 4px 10px;
-                                border-radius: 12px;
-                                font-size: 12px;
-                                font-weight: 600;
+                                padding: 4px 12px;
+                                border-radius: 16px;
+                                font-size: 13px;
+                                font-weight: 500;
                                 margin-right: 12px;
-                                min-width: 60px;
+                                min-width: 70px;
                                 text-align: center;
+                                border: 1.5px solid ${colors.border};
+                                display: inline-block;
                             ">${category}</span>
                             <div class="item-details" style="flex: 1;">
                                 <div class="item-name" style="font-weight: 600;">${addon.item}</div>
