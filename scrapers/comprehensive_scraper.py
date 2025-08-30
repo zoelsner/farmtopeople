@@ -302,6 +302,18 @@ async def main(credentials=None, return_data=False):
                     box_name = (await name_link.text_content()).strip()
                     print(f"📦 Found non-customizable box: {box_name}")
                     
+                    # Try to find price for non-customizable box
+                    box_price = ""
+                    price_elem = article.locator("p[class*='font-medium'], span[class*='price'], p:has-text('$'), span:has-text('$')").first
+                    if await price_elem.count() > 0:
+                        price_text = (await price_elem.text_content()).strip()
+                        # Extract just the price part
+                        import re
+                        price_match = re.search(r'\$[\d,]+\.?\d*', price_text)
+                        if price_match:
+                            box_price = price_match.group()
+                            print(f"💰 Found box price: {box_price}")
+                    
                     # Get sub-items from the list
                     selected_items = []
                     sub_items = await sub_list.locator("li[class*='cart-order-line-item-subproduct']").all()
@@ -337,6 +349,7 @@ async def main(credentials=None, return_data=False):
                     
                     non_customizable_box = {
                         "box_name": box_name,
+                        "price": box_price,
                         "selected_items": selected_items,
                         "available_alternatives": [],  # Non-customizable = no alternatives
                         "total_items": len(selected_items),
@@ -361,13 +374,25 @@ async def main(credentials=None, return_data=False):
         
         for i, customize_btn in enumerate(customize_btns):
             try:
-                # Get box name from the parent article
+                # Get box name and price from the parent article
                 article = customize_btn.locator("xpath=ancestor::article").first
                 box_name = "Unknown Box"
+                box_price = ""
                 if await article.count() > 0:
                     name_link = article.locator("a[href*='/product/']").first
                     if await name_link.count() > 0:
                         box_name = (await name_link.text_content()).strip()
+                    
+                    # Try to find price - look for elements with $ symbol
+                    price_elem = article.locator("p[class*='font-medium'], span[class*='price'], p:has-text('$'), span:has-text('$')").first
+                    if await price_elem.count() > 0:
+                        price_text = (await price_elem.text_content()).strip()
+                        # Extract just the price part (handle cases like "$45.99" or "Total: $45.99")
+                        import re
+                        price_match = re.search(r'\$[\d,]+\.?\d*', price_text)
+                        if price_match:
+                            box_price = price_match.group()
+                            print(f"💰 Found box price: {box_price}")
                 
                 print(f"\n=== PROCESSING BOX {i+1}: {box_name} ===")
                 
@@ -451,6 +476,8 @@ async def main(credentials=None, return_data=False):
                     }
                 box_data["box_name"] = box_name
                 box_data["box_index"] = i + 1
+                if box_price:
+                    box_data["price"] = box_price
                 
                 all_box_data.append(box_data)
                 
