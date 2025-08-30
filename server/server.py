@@ -1170,6 +1170,31 @@ async def dashboard_page(request: Request):
     """
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
+@app.get("/api/get-saved-cart")
+async def get_saved_cart():
+    """Retrieve saved cart data from database"""
+    try:
+        # Get the user's phone number from session or default test number
+        phone_number = "+14254955323"  # Your phone number
+        
+        # Get saved cart data from database
+        saved_cart = db.get_latest_cart_data(phone_number)
+        
+        if saved_cart and saved_cart.get('cart_data'):
+            return {
+                "cart_data": saved_cart['cart_data'],
+                "delivery_date": saved_cart.get('delivery_date'),
+                "scraped_at": saved_cart.get('scraped_at'),
+                "swaps": [],  # Can be populated later
+                "addons": []  # Can be populated later
+            }
+        else:
+            return {"error": "No saved cart data found"}
+            
+    except Exception as e:
+        print(f"Error retrieving saved cart: {e}")
+        return {"error": str(e)}
+
 @app.post("/api/analyze-cart")
 async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
     """
@@ -1355,7 +1380,7 @@ Return JSON:
     {{"from": "current item", "to": "alternative item", "reason": "why this swap makes sense"}}
   ],
   "addons": [
-    {{"item": "Fresh Lemons", "price": "$3.99", "reason": "Perfect for your kale and fish dishes", "category": "produce"}}
+    {{"item": "Organic Lemons", "price": "$1.99", "reason": "Perfect for your kale and fish dishes", "category": "produce"}}
   ]
 }}
 

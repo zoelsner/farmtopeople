@@ -548,29 +548,49 @@
             document.querySelector('.subtitle').textContent = userEmail;
         }
         
-        // Restore cart analysis state if available (fixes navigation issue)
-        const savedState = localStorage.getItem('cartAnalysisState');
-        const savedAnalysis = localStorage.getItem('cartAnalysisData');
-        if (savedState === 'complete' && savedAnalysis) {
+        // Function to load saved cart data from the server
+        async function loadSavedCartData() {
             try {
-                const { cartData, swaps, addons, timestamp } = JSON.parse(savedAnalysis);
-                // Only restore if data is less than 1 hour old
-                const oneHour = 60 * 60 * 1000;
-                if (Date.now() - timestamp < oneHour) {
-                    currentState = 'complete';
-                    // Restore the cart view after a short delay to ensure DOM is ready
-                    setTimeout(() => {
-                        showCartAnalysis(cartData, swaps, addons);
-                    }, 100);
-                } else {
-                    // Clear old data
-                    localStorage.removeItem('cartAnalysisData');
-                    localStorage.removeItem('cartAnalysisState');
+                const response = await fetch('/api/get-saved-cart');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.cart_data) {
+                        // We have saved cart data from the database
+                        currentState = 'complete';
+                        showCartAnalysis(data.cart_data, data.swaps || [], data.addons || []);
+                        return true;
+                    }
                 }
-            } catch (e) {
-                console.error('Error restoring cart analysis:', e);
+            } catch (error) {
+                console.error('Error loading saved cart:', error);
             }
+            
+            // Fallback to localStorage if server data not available
+            const savedState = localStorage.getItem('cartAnalysisState');
+            const savedAnalysis = localStorage.getItem('cartAnalysisData');
+            if (savedState === 'complete' && savedAnalysis) {
+                try {
+                    const { cartData, swaps, addons, timestamp } = JSON.parse(savedAnalysis);
+                    // Only restore if data is less than 1 hour old
+                    const oneHour = 60 * 60 * 1000;
+                    if (Date.now() - timestamp < oneHour) {
+                        currentState = 'complete';
+                        showCartAnalysis(cartData, swaps, addons);
+                        return true;
+                    } else {
+                        // Clear old data
+                        localStorage.removeItem('cartAnalysisData');
+                        localStorage.removeItem('cartAnalysisState');
+                    }
+                } catch (e) {
+                    console.error('Error restoring cart analysis:', e);
+                }
+            }
+            return false;
         }
+        
+        // Load saved cart data on page load
+        loadSavedCartData();
 
         async function startAnalysis() {
             // Clear any previous analysis data
@@ -706,11 +726,11 @@
             }
             
             // Fruit items - be very specific about what is actually a fruit
-            // Only include items that are typically in the fruit section of a grocery store
+            // Only include items that are typically snackable fruits
             if (name.includes('apple') || name.includes('banana') || name.includes('peach') || 
                 name.includes('plum') || name.includes('nectarine') || name.includes('berry') ||
                 name.includes('melon') || name.includes('pear') || name.includes('grape') ||
-                name.includes('grapefruit') || name.includes('mango') || name.includes('avocado')) {
+                name.includes('grapefruit') || name.includes('mango')) {
                 return 'fruit';
             }
             
@@ -771,7 +791,7 @@
                         box.selected_items.forEach(item => {
                             const category = getItemCategory(item.name);
                             if (category === 'protein' || category === 'produce' || category === 'fruit') {
-                                categoryCounts[category]++;
+                                categoryCounts[category] += item.quantity || 1;
                             }
                         });
                     }
@@ -785,7 +805,7 @@
                         box.selected_items.forEach(item => {
                             const category = getItemCategory(item.name);
                             if (category === 'protein' || category === 'produce' || category === 'fruit') {
-                                categoryCounts[category]++;
+                                categoryCounts[category] += item.quantity || 1;
                             }
                         });
                     }
@@ -849,27 +869,10 @@
                 `);
             }
             
-            // Add separator before swaps/addons if we have categories
-            if (summaryItems.length > 0 && (swaps?.length > 0 || addons?.length > 0)) {
-                summaryItems.push(`<div style="width: 1px; height: 20px; background: #ddd;"></div>`);
-            }
             
-            if (swaps && swaps.length > 0) {
-                summaryItems.push(`
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <span style="font-size: 16px; color: #777;">${swaps.length}×</span>
-                        <span class="category-tag" style="
-                            background: white;
-                            color: #777;
-                            padding: 4px 12px;
-                            border-radius: 16px;
-                            font-size: 13px;
-                            font-weight: 500;
-                            text-align: center;
-                            border: 1.5px solid #ccc;
-                        ">swaps</span>
-                    </div>
-                `);
+            // Add separator before addons if we have categories
+            if (summaryItems.length > 0 && addons?.length > 0) {
+                summaryItems.push(`<div style="width: 1px; height: 20px; background: #ddd;"></div>`);
             }
             
             if (addons && addons.length > 0) {
@@ -1392,13 +1395,19 @@
 
             // Show the right section based on state and tab
             if (tab === 'cart') {
-                // Cart tab shows the current cart analysis
+                // Cart tab shows saved data or allows new analysis
                 if (currentState === 'complete') {
                     document.getElementById('cartAnalysisSection').classList.add('active');
                 } else if (currentState === 'loading') {
                     document.getElementById('loadingSection').classList.add('active');
                 } else {
-                    document.getElementById('startSection').classList.add('active');
+                    // Try to load saved cart data first
+                    loadSavedCartData().then(loaded => {
+                        if (!loaded) {
+                            // No saved data, show the start screen
+                            document.getElementById('startSection').classList.add('active');
+                        }
+                    });
                 }
             } else if (tab === 'meals') {
                 // Meals tab shows meal suggestions

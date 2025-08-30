@@ -33,6 +33,13 @@ from product_catalog import (
     fuzzy_match_product,
     add_pricing_to_analysis
 )
+
+# Import supabase client for fallback cart data
+try:
+    import supabase_client
+except ImportError:
+    print("⚠️ Could not import supabase_client - stored cart fallback unavailable")
+    supabase_client = None
 from cart_analyzer import (
     generate_cart_analysis_summary as _generate_cart_analysis,
     create_sms_summary
@@ -257,7 +264,60 @@ Return corrected JSON with same structure."""
         return faulty_plan
 
 
-def run_main_planner(cart_data: dict = None, user_preferences: dict = None, generate_detailed_recipes: bool = False, user_skill_level: str = "intermediate"):
+async def run_cart_scraper_with_fallback(phone_number: str = None) -> dict:
+    """
+    Run cart scraper with fallback to stored data if scraping fails or cart is locked.
+    
+    Args:
+        phone_number: User's phone number for fallback data lookup
+        
+    Returns:
+        Cart data dict or None if both fail
+    """
+    try:
+        # First try to scrape fresh cart data
+        print("🔍 Attempting to scrape fresh cart data...")
+        
+        # Import and run comprehensive scraper
+        import sys
+        import asyncio
+        from pathlib import Path
+        
+        # Add scrapers directory to path
+        scrapers_path = Path(__file__).parent.parent / 'scrapers'
+        sys.path.insert(0, str(scrapers_path))
+        
+        from comprehensive_scraper import main as scraper_main
+        
+        # Run scraper with phone number for smart saving
+        fresh_data = await scraper_main(return_data=True, phone_number=phone_number)
+        
+        if fresh_data and not fresh_data.get("cart_locked"):
+            print("✅ Fresh cart data obtained successfully")
+            return fresh_data
+        else:
+            print("⚠️ Cart appears to be locked or scraping failed")
+            
+    except Exception as e:
+        print(f"⚠️ Cart scraping failed: {e}")
+    
+    # Fallback to stored cart data
+    if phone_number and supabase_client:
+        print(f"📦 Attempting to retrieve stored cart data for {phone_number}")
+        try:
+            stored_cart = supabase_client.get_latest_cart_data(phone_number)
+            if stored_cart and stored_cart.get('cart_data'):
+                print(f"✅ Using stored cart data (scraped: {stored_cart.get('scraped_at')})")
+                return stored_cart['cart_data']
+            else:
+                print("❌ No stored cart data found")
+        except Exception as e:
+            print(f"❌ Failed to retrieve stored cart data: {e}")
+    
+    print("❌ Both fresh scraping and stored data fallback failed")
+    return None
+
+def run_main_planner(cart_data: dict = None, user_preferences: dict = None, generate_detailed_recipes: bool = False, user_skill_level: str = "intermediate", phone_number: str = None):
     """
     Main orchestration function called by server.py.
     Generates a complete meal plan with optional recipe enhancement.
@@ -275,7 +335,7 @@ def run_main_planner(cart_data: dict = None, user_preferences: dict = None, gene
     # Get product list
     master_product_list = get_master_product_list()
     
-    # Use passed cart_data if available, otherwise read from file
+    # Use passed cart_data if available, otherwise try scraper with fallback
     if cart_data:
         print("✅ Using passed cart data directly")
         all_ingredients, analysis_data = get_comprehensive_ingredients_and_data(cart_data)
@@ -288,33 +348,32 @@ def run_main_planner(cart_data: dict = None, user_preferences: dict = None, gene
         generate_meal_plan._alternatives_context = [alt.get("name", "") for alt in alternatives]
         
     else:
-        # Fallback to reading from file
-        print("⚠️ No cart data passed, reading from file")
-        latest_file = get_latest_comprehensive_file(FARM_BOX_DATA_DIR)
-    
-        if latest_file:
-            comprehensive_data = load_cart_data(latest_file)
-            all_ingredients, analysis_data = get_comprehensive_ingredients_and_data(comprehensive_data)
+        # Try to get cart data with fallback system
+        import asyncio
+        
+        try:
+            print("🔍 No cart data provided - attempting to scrape or use fallback")
+            fallback_cart_data = asyncio.run(run_cart_scraper_with_fallback(phone_number))
             
-            # Set alternatives context for the AI
-            alternatives = []
-            for box in analysis_data.get("customizable_boxes", []):
-                alternatives.extend(box.get("available_alternatives", []))
-            
-            # Store alternatives for prompt context (hacky but maintains compatibility)
-            generate_meal_plan._alternatives_context = [alt.get("name", "") for alt in alternatives]
-            
-        else:
-            # Fallback to legacy cart format
-            latest_cart_file = get_latest_cart_file(FARM_BOX_DATA_DIR)
-            if not latest_cart_file:
-                return {"error": "Could not find cart data."}
+            if fallback_cart_data:
+                print("✅ Using cart data from scraper/fallback system")
+                all_ingredients, analysis_data = get_comprehensive_ingredients_and_data(fallback_cart_data)
                 
-            with open(latest_cart_file, 'r') as f:
-                cart_data = json.load(f)
-            
-            all_ingredients = get_all_ingredients_from_cart(cart_data, FARM_BOX_DATA_DIR)
-            generate_meal_plan._alternatives_context = []
+                # Set alternatives context for the AI
+                alternatives = []
+                for box in analysis_data.get("customizable_boxes", []):
+                    alternatives.extend(box.get("available_alternatives", []))
+                
+                generate_meal_plan._alternatives_context = [alt.get("name", "") for alt in alternatives]
+            else:
+                print("❌ Could not obtain cart data - using legacy file system")
+                # Fall back to old file-based system
+                all_ingredients, analysis_data = get_comprehensive_ingredients_and_data()
+                
+        except Exception as e:
+            print(f"⚠️ Fallback system failed: {e}")
+            print("❌ Using legacy file system as last resort")
+            all_ingredients, analysis_data = get_comprehensive_ingredients_and_data()
     
     # Extract preferences for meal planning
     if user_preferences:

@@ -2,16 +2,106 @@ from playwright.async_api import async_playwright
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import re
+import pytz
 import sys
 sys.path.append(os.path.dirname(__file__))
 from auth_helper import ensure_logged_in, login_to_farm_to_people
 
+# Add path for server modules
+sys.path.append(str(Path(__file__).resolve().parent.parent / 'server'))
+try:
+    import supabase_client
+except ImportError:
+    print("⚠️ Could not import supabase_client - database save will be skipped")
+    supabase_client = None
+
 # Load .env from project root
 project_root = Path(__file__).resolve().parent.parent
 load_dotenv(dotenv_path=project_root / '.env', override=True)
+
+def parse_delivery_date(delivery_text: str) -> datetime:
+    """Parse delivery date from text and return as datetime object."""
+    if not delivery_text:
+        return None
+    
+    try:
+        # Common patterns in Farm to People delivery text
+        import re
+        
+        # Pattern: "Sun, Aug 31, 10:00AM - 4:00PM"
+        pattern1 = r'(\w+),\s+(\w+)\s+(\d+)'
+        match = re.search(pattern1, delivery_text)
+        
+        if match:
+            month_name = match.group(2)
+            day = int(match.group(3))
+            current_year = datetime.now().year
+            
+            # Convert month name to number
+            months = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+                     'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+                     'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
+                     'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
+            
+            month = months.get(month_name, None)
+            if month:
+                return datetime(current_year, month, day)
+    
+    except Exception as e:
+        print(f"⚠️ Error parsing delivery date '{delivery_text}': {e}")
+    
+    return None
+
+def calculate_cart_lock_time(delivery_date: datetime) -> datetime:
+    """Calculate when cart locks: 11:59 AM ET the day before delivery."""
+    if not delivery_date:
+        return None
+    
+    # Cart locks the day before delivery at 11:59 AM ET
+    lock_date = delivery_date - timedelta(days=1)
+    eastern = pytz.timezone('US/Eastern')
+    
+    # Set to 11:59 AM ET
+    lock_datetime = eastern.localize(
+        datetime(lock_date.year, lock_date.month, lock_date.day, 11, 59, 0)
+    )
+    
+    return lock_datetime
+
+def get_cart_status(delivery_text: str) -> dict:
+    """Get cart status based on delivery date."""
+    delivery_date = parse_delivery_date(delivery_text)
+    if not delivery_date:
+        return {"status": "unknown", "reason": "Could not parse delivery date"}
+    
+    lock_time = calculate_cart_lock_time(delivery_date)
+    if not lock_time:
+        return {"status": "unknown", "reason": "Could not calculate lock time"}
+    
+    eastern = pytz.timezone('US/Eastern')
+    now = datetime.now(eastern)
+    
+    if now >= lock_time:
+        return {
+            "status": "locked",
+            "reason": "Cart locked",
+            "lock_time": lock_time,
+            "delivery_date": delivery_date,
+            "locked_ago_minutes": int((now - lock_time).total_seconds() / 60)
+        }
+    else:
+        minutes_until_lock = int((lock_time - now).total_seconds() / 60)
+        return {
+            "status": "active",
+            "reason": "Cart still active",
+            "lock_time": lock_time,
+            "delivery_date": delivery_date,
+            "minutes_until_lock": minutes_until_lock,
+            "should_backup_soon": minutes_until_lock <= 30  # Backup if locking within 30 mins
+        }
 
 async def scrape_customize_modal(page):
     """Scrape both selected and available items from the customize modal."""
@@ -93,7 +183,7 @@ async def scrape_customize_modal(page):
         "alternatives_count": len(available_alternatives)
     }
 
-async def main(credentials=None, return_data=False):
+async def main(credentials=None, return_data=False, phone_number=None):
     """
     Main scraper function.
     
@@ -566,6 +656,77 @@ async def main(credentials=None, return_data=False):
         
         with open(output_file, 'w') as f:
             json.dump(complete_results, f, indent=2)
+        
+        # Save to database if phone number provided and supabase client available
+        if phone_number and supabase_client:
+            try:
+                # Extract delivery date from delivery_info
+                delivery_date_text = None
+                if delivery_info and 'delivery_text' in delivery_info:
+                    delivery_date_text = delivery_info['delivery_text']
+                
+                # Get cart status based on delivery date
+                cart_status = get_cart_status(delivery_date_text) if delivery_date_text else {"status": "unknown"}
+                print(f"🕒 Cart status: {cart_status['status']} - {cart_status.get('reason', 'No reason')}")
+                
+                if cart_status['status'] == 'active' and cart_status.get('minutes_until_lock'):
+                    print(f"⏰ Cart locks in {cart_status['minutes_until_lock']} minutes")
+                elif cart_status['status'] == 'locked' and cart_status.get('locked_ago_minutes'):
+                    print(f"🔒 Cart locked {cart_status['locked_ago_minutes']} minutes ago")
+                
+                # Decision logic for saving cart data
+                should_save = False
+                save_reason = ""
+                
+                existing_cart = supabase_client.get_latest_cart_data(phone_number)
+                
+                if cart_status['status'] == 'active':
+                    if cart_status.get('should_backup_soon'):
+                        # Cart is about to lock - definitely save
+                        should_save = True
+                        save_reason = f"Cart locks in {cart_status['minutes_until_lock']} minutes - backup needed"
+                    elif not existing_cart:
+                        # No existing cart data - save this one
+                        should_save = True
+                        save_reason = "No existing cart data - saving first capture"
+                    else:
+                        # Cart is active but not about to lock, and we have existing data
+                        # Check if this looks like the same week's cart
+                        stored_delivery = existing_cart.get('delivery_date', '')
+                        if stored_delivery == delivery_date_text:
+                            should_save = True
+                            save_reason = "Same delivery date - updating cart data"
+                        else:
+                            should_save = False
+                            save_reason = f"Different delivery date (stored: '{stored_delivery}' vs current: '{delivery_date_text}') - preserving existing data"
+                
+                elif cart_status['status'] == 'locked':
+                    # Cart is locked - don't overwrite, this is likely next week's cart
+                    should_save = False
+                    save_reason = "Cart is locked - this might be next week's cart, preserving existing data"
+                
+                else:
+                    # Unknown status - be conservative
+                    if not existing_cart:
+                        should_save = True
+                        save_reason = "Unknown cart status but no existing data - saving"
+                    else:
+                        should_save = False
+                        save_reason = "Unknown cart status with existing data - preserving existing data"
+                
+                print(f"💭 Save decision: {save_reason}")
+                
+                if should_save:
+                    success = supabase_client.save_latest_cart_data(phone_number, complete_results, delivery_date_text)
+                    if success:
+                        print(f"💾 Cart data saved to database for {phone_number}")
+                    else:
+                        print(f"⚠️ Failed to save cart data to database")
+                else:
+                    print(f"🔒 Skipping database save: {save_reason}")
+                    
+            except Exception as e:
+                print(f"⚠️ Database save error: {e}")
         
         print(f"\n🎉 COMPLETE! Results saved to: {output_file}")
         

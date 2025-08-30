@@ -122,3 +122,141 @@ def get_user_by_email(ftp_email: str) -> Optional[Dict[str, Any]]:
     return row
 
 
+def save_latest_cart_data(phone_number: str, cart_data: Dict[str, Any], delivery_date = None) -> bool:
+    """
+    Save latest cart data for a user (overwrites previous data).
+    
+    Args:
+        phone_number: User's phone number
+        cart_data: Complete cart data from scraper
+        delivery_date: Optional delivery date (datetime object, ISO string, or raw text)
+        
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        client = get_client()
+        
+        # Parse delivery date if it's messy text
+        clean_delivery_date = None
+        if delivery_date:
+            clean_delivery_date = _parse_delivery_date(delivery_date)
+        
+        # Use upsert to overwrite existing data
+        payload = {
+            "phone_number": phone_number,
+            "cart_data": cart_data,
+            "scraped_at": "NOW()"
+        }
+        
+        # Only add delivery_date if we have a clean one
+        if clean_delivery_date:
+            payload["delivery_date"] = clean_delivery_date
+        
+        result = client.table("latest_cart_data").upsert(payload).execute()
+        
+        print(f"✅ Saved cart data for {phone_number}")
+        if clean_delivery_date:
+            print(f"📅 Delivery date: {clean_delivery_date}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Failed to save cart data: {e}")
+        return False
+
+
+def _parse_delivery_date(date_input):
+    """
+    Parse delivery date from various formats into ISO timestamp.
+    
+    Args:
+        date_input: Can be datetime object, ISO string, or messy Farm to People text
+        
+    Returns:
+        ISO timestamp string with timezone, or None if parsing fails
+    """
+    if not date_input:
+        return None
+    
+    try:
+        from datetime import datetime
+        import re
+        
+        # If it's already a datetime object
+        if hasattr(date_input, 'isoformat'):
+            return date_input.isoformat()
+        
+        # If it's a string, try to parse it
+        date_str = str(date_input)
+        
+        # Check if it's already an ISO string
+        if 'T' in date_str and ('Z' in date_str or '+' in date_str or '-' in date_str[-6:]):
+            return date_str
+        
+        # Parse messy Farm to People text like "AboutProducers...Shopping for: Sun, Aug 31, 10:00AM..."
+        pattern = r'(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\w*,?\s+(\w+)\s+(\d+)'
+        match = re.search(pattern, date_str)
+        
+        if match:
+            day_abbr = match.group(1)  # Sun
+            month_abbr = match.group(2)  # Aug  
+            day_num = int(match.group(3))  # 31
+            
+            # Convert month abbreviation to number
+            months = {
+                'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+                'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+                'January': 1, 'February': 2, 'March': 3, 'April': 4, 
+                'May': 5, 'June': 6, 'July': 7, 'August': 8, 
+                'September': 9, 'October': 10, 'November': 11, 'December': 12
+            }
+            
+            month_num = months.get(month_abbr)
+            if month_num:
+                current_year = datetime.now().year
+                
+                # Create delivery datetime (assume 2 PM ET for deliveries)
+                delivery_dt = datetime(current_year, month_num, day_num, 14, 0, 0)
+                
+                # If the date is in the past, it's probably next year
+                if delivery_dt < datetime.now():
+                    delivery_dt = datetime(current_year + 1, month_num, day_num, 14, 0, 0)
+                
+                # Convert to ET timezone and return ISO format
+                import pytz
+                eastern = pytz.timezone('US/Eastern')
+                delivery_et = eastern.localize(delivery_dt)
+                return delivery_et.isoformat()
+        
+        print(f"⚠️ Could not parse delivery date: {date_str}")
+        return None
+        
+    except Exception as e:
+        print(f"⚠️ Error parsing delivery date: {e}")
+        return None
+
+
+def get_latest_cart_data(phone_number: str) -> Optional[Dict[str, Any]]:
+    """
+    Get stored cart data for a user.
+    
+    Returns:
+        Dict with cart_data, delivery_date, scraped_at if found, None otherwise
+    """
+    try:
+        client = get_client()
+        result = client.table("latest_cart_data").select("*").eq("phone_number", phone_number).execute()
+        
+        if result.data:
+            stored_data = result.data[0]
+            print(f"📦 Retrieved stored cart data for {phone_number} (scraped: {stored_data.get('scraped_at')})")
+            return stored_data
+        else:
+            print(f"⚠️ No stored cart data found for {phone_number}")
+            return None
+            
+    except Exception as e:
+        print(f"❌ Failed to retrieve cart data: {e}")
+        return None
+
+
