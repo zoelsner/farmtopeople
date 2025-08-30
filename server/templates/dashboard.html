@@ -434,6 +434,13 @@
                 </div>
             </div>
 
+            <!-- Cart Summary -->
+            <div class="cart-section" id="cartSummarySection" style="margin-bottom: 20px;">
+                <div id="cartSummary" style="display: flex; gap: 15px; flex-wrap: wrap; padding: 15px; background: #f8f9fa; border-radius: 12px;">
+                    <!-- Summary counts will be inserted here -->
+                </div>
+            </div>
+
             <!-- Individual Items -->
             <div class="cart-section" id="individualItemsSection">
                 <h3 class="section-header">
@@ -698,12 +705,15 @@
                 return 'dairy';
             }
             
-            // Fruit items
+            // Fruit items - be more specific to avoid false positives
             if (name.includes('apple') || name.includes('banana') || name.includes('peach') || 
                 name.includes('plum') || name.includes('nectarine') || name.includes('berry') ||
-                name.includes('orange') || name.includes('lemon') || name.includes('lime') ||
-                name.includes('avocado') || name.includes('melon')) {
-                return 'fruit';
+                name.includes('lemon') || name.includes('lime') || name.includes('avocado') || 
+                name.includes('melon') || name.includes('pear') || name.includes('grape')) {
+                // Exclude items that contain fruit words but aren't fruits
+                if (!name.includes('carrot') && !name.includes('pepper')) {
+                    return 'fruit';
+                }
             }
             
             // Default to produce (vegetables, herbs, etc)
@@ -735,6 +745,110 @@
 
             // Generate suggested meals using GPT-5 API instead of hardcoded suggestions
             generateMealSuggestionsFromAPI(cartData);
+            
+            // Calculate and display category counts
+            const categoryCounts = { protein: 0, produce: 0, fruit: 0 };
+            
+            // Count from individual items
+            if (cartData.individual_items) {
+                cartData.individual_items.forEach(item => {
+                    const category = getItemCategory(item.name);
+                    if (category === 'protein' || category === 'produce' || category === 'fruit') {
+                        categoryCounts[category] += item.quantity || 1;
+                    }
+                });
+            }
+            
+            // Count from customizable boxes
+            if (cartData.customizable_boxes) {
+                cartData.customizable_boxes.forEach(box => {
+                    if (box.selected_items) {
+                        box.selected_items.forEach(item => {
+                            const category = getItemCategory(item.name);
+                            if (category === 'protein' || category === 'produce' || category === 'fruit') {
+                                categoryCounts[category]++;
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // Count from fixed boxes
+            if (cartData.non_customizable_boxes) {
+                cartData.non_customizable_boxes.forEach(box => {
+                    if (box.selected_items) {
+                        box.selected_items.forEach(item => {
+                            const category = getItemCategory(item.name);
+                            if (category === 'protein' || category === 'produce' || category === 'fruit') {
+                                categoryCounts[category]++;
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // Display summary with category counts
+            const summaryHTML = `
+                ${categoryCounts.protein > 0 ? `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 20px; font-weight: 600; color: #333;">${categoryCounts.protein}×</span>
+                        <span class="category-tag" style="
+                            background: white;
+                            color: ${getCategoryColors('protein').text};
+                            padding: 4px 12px;
+                            border-radius: 16px;
+                            font-size: 13px;
+                            font-weight: 500;
+                            min-width: 70px;
+                            text-align: center;
+                            border: 1.5px solid ${getCategoryColors('protein').border};
+                        ">protein</span>
+                    </div>
+                ` : ''}
+                ${categoryCounts.produce > 0 ? `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 20px; font-weight: 600; color: #333;">${categoryCounts.produce}×</span>
+                        <span class="category-tag" style="
+                            background: white;
+                            color: ${getCategoryColors('produce').text};
+                            padding: 4px 12px;
+                            border-radius: 16px;
+                            font-size: 13px;
+                            font-weight: 500;
+                            min-width: 70px;
+                            text-align: center;
+                            border: 1.5px solid ${getCategoryColors('produce').border};
+                        ">produce</span>
+                    </div>
+                ` : ''}
+                ${categoryCounts.fruit > 0 ? `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 20px; font-weight: 600; color: #333;">${categoryCounts.fruit}×</span>
+                        <span class="category-tag" style="
+                            background: white;
+                            color: ${getCategoryColors('fruit').text};
+                            padding: 4px 12px;
+                            border-radius: 16px;
+                            font-size: 13px;
+                            font-weight: 500;
+                            min-width: 70px;
+                            text-align: center;
+                            border: 1.5px solid ${getCategoryColors('fruit').border};
+                        ">fruit</span>
+                    </div>
+                ` : ''}
+                ${swaps && swaps.length > 0 ? `
+                    <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                        <span style="font-size: 16px; color: #666;">${swaps.length} swaps available</span>
+                    </div>
+                ` : ''}
+                ${addons && addons.length > 0 ? `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 16px; color: #666;">${addons.length} add-ons suggested</span>
+                    </div>
+                ` : ''}
+            `;
+            document.getElementById('cartSummary').innerHTML = summaryHTML;
 
             // Show individual items with category tags
             if (cartData.individual_items && cartData.individual_items.length > 0) {
@@ -813,7 +927,10 @@
                 const customizableHTML = cartData.customizable_boxes.map(box => `
                     <div style="margin-bottom: 20px;">
                         <div class="box-header">
-                            <div class="box-name">${box.box_name}</div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="box-name">${box.box_name}</div>
+                                <span style="color: #2e7d32; font-weight: 600; font-size: 18px;">${box.price || '$45.99'}</span>
+                            </div>
                             <div class="box-status">${box.alternatives_count} available alternatives</div>
                         </div>
                         <div class="item-grid">
@@ -861,7 +978,10 @@
                 const nonCustomizableHTML = cartData.non_customizable_boxes.map(box => `
                     <div style="margin-bottom: 20px;">
                         <div class="box-header">
-                            <div class="box-name">${box.box_name}</div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="box-name">${box.box_name}</div>
+                                <span style="color: #2e7d32; font-weight: 600; font-size: 18px;">${box.price || '$12.99'}</span>
+                            </div>
                             <div class="box-status">Fixed selection</div>
                         </div>
                         <div class="item-grid">
