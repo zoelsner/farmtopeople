@@ -436,7 +436,7 @@
 
             <!-- Cart Summary -->
             <div class="cart-section" id="cartSummarySection" style="margin-bottom: 20px;">
-                <div id="cartSummary" style="display: flex; gap: 15px; flex-wrap: wrap; padding: 15px; background: #f8f9fa; border-radius: 12px;">
+                <div id="cartSummary" style="display: flex; align-items: center; gap: 20px; padding: 12px 20px; background: #f8f9fa; border-radius: 12px; overflow-x: auto; white-space: nowrap;">
                     <!-- Summary counts will be inserted here -->
                 </div>
             </div>
@@ -787,11 +787,13 @@
                 });
             }
             
-            // Display summary with category counts
-            const summaryHTML = `
-                ${categoryCounts.protein > 0 ? `
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 20px; font-weight: 600; color: #333;">${categoryCounts.protein}×</span>
+            // Display summary with category counts - all in one row
+            const summaryItems = [];
+            
+            if (categoryCounts.protein > 0) {
+                summaryItems.push(`
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 18px; color: #555;">${categoryCounts.protein}×</span>
                         <span class="category-tag" style="
                             background: white;
                             color: ${getCategoryColors('protein').text};
@@ -799,15 +801,17 @@
                             border-radius: 16px;
                             font-size: 13px;
                             font-weight: 500;
-                            min-width: 70px;
                             text-align: center;
                             border: 1.5px solid ${getCategoryColors('protein').border};
                         ">protein</span>
                     </div>
-                ` : ''}
-                ${categoryCounts.produce > 0 ? `
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 20px; font-weight: 600; color: #333;">${categoryCounts.produce}×</span>
+                `);
+            }
+            
+            if (categoryCounts.produce > 0) {
+                summaryItems.push(`
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 18px; color: #555;">${categoryCounts.produce}×</span>
                         <span class="category-tag" style="
                             background: white;
                             color: ${getCategoryColors('produce').text};
@@ -815,15 +819,17 @@
                             border-radius: 16px;
                             font-size: 13px;
                             font-weight: 500;
-                            min-width: 70px;
                             text-align: center;
                             border: 1.5px solid ${getCategoryColors('produce').border};
                         ">produce</span>
                     </div>
-                ` : ''}
-                ${categoryCounts.fruit > 0 ? `
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 20px; font-weight: 600; color: #333;">${categoryCounts.fruit}×</span>
+                `);
+            }
+            
+            if (categoryCounts.fruit > 0) {
+                summaryItems.push(`
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 18px; color: #555;">${categoryCounts.fruit}×</span>
                         <span class="category-tag" style="
                             background: white;
                             color: ${getCategoryColors('fruit').text};
@@ -831,24 +837,31 @@
                             border-radius: 16px;
                             font-size: 13px;
                             font-weight: 500;
-                            min-width: 70px;
                             text-align: center;
                             border: 1.5px solid ${getCategoryColors('fruit').border};
                         ">fruit</span>
                     </div>
-                ` : ''}
-                ${swaps && swaps.length > 0 ? `
-                    <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
-                        <span style="font-size: 16px; color: #666;">${swaps.length} swaps available</span>
-                    </div>
-                ` : ''}
-                ${addons && addons.length > 0 ? `
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 16px; color: #666;">${addons.length} add-ons suggested</span>
-                    </div>
-                ` : ''}
-            `;
-            document.getElementById('cartSummary').innerHTML = summaryHTML;
+                `);
+            }
+            
+            // Add separator before swaps/addons if we have categories
+            if (summaryItems.length > 0 && (swaps?.length > 0 || addons?.length > 0)) {
+                summaryItems.push(`<div style="width: 1px; height: 20px; background: #ddd;"></div>`);
+            }
+            
+            if (swaps && swaps.length > 0) {
+                summaryItems.push(`
+                    <span style="font-size: 15px; color: #666;">${swaps.length} swaps available</span>
+                `);
+            }
+            
+            if (addons && addons.length > 0) {
+                summaryItems.push(`
+                    <span style="font-size: 15px; color: #666;">${addons.length} add-ons suggested</span>
+                `);
+            }
+            
+            document.getElementById('cartSummary').innerHTML = summaryItems.join('');
 
             // Show individual items with category tags
             if (cartData.individual_items && cartData.individual_items.length > 0) {
