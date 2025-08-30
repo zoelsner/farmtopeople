@@ -435,10 +435,8 @@
             </div>
 
             <!-- Cart Summary -->
-            <div class="cart-section" id="cartSummarySection" style="margin-bottom: 20px;">
-                <div id="cartSummary" style="display: flex; align-items: center; gap: 20px; padding: 12px 20px; background: #f8f9fa; border-radius: 12px; overflow-x: auto; white-space: nowrap;">
-                    <!-- Summary counts will be inserted here -->
-                </div>
+            <div id="cartSummary" style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding: 0 20px;">
+                <!-- Summary counts will be inserted here -->
             </div>
 
             <!-- Individual Items -->
@@ -830,19 +828,7 @@
             
             if (categoryCounts.protein > 0) {
                 summaryItems.push(`
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <span style="font-size: 16px; color: #555;">${categoryCounts.protein}×</span>
-                        <span class="category-tag" style="
-                            background: white;
-                            color: ${getCategoryColors('protein').text};
-                            padding: 4px 12px;
-                            border-radius: 16px;
-                            font-size: 13px;
-                            font-weight: 500;
-                            text-align: center;
-                            border: 1.5px solid ${getCategoryColors('protein').border};
-                        ">protein</span>
-                    </div>
+                    <span style="font-size: 18px; color: #333; font-weight: 500;">${categoryCounts.protein}× protein</span>
                 `);
             }
             
@@ -850,45 +836,12 @@
             
             if (categoryCounts.fruit > 0) {
                 summaryItems.push(`
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <span style="font-size: 16px; color: #555;">${categoryCounts.fruit}×</span>
-                        <span class="category-tag" style="
-                            background: white;
-                            color: ${getCategoryColors('fruit').text};
-                            padding: 4px 12px;
-                            border-radius: 16px;
-                            font-size: 13px;
-                            font-weight: 500;
-                            text-align: center;
-                            border: 1.5px solid ${getCategoryColors('fruit').border};
-                        ">fruit</span>
-                    </div>
+                    <span style="font-size: 18px; color: #333; font-weight: 500;">${categoryCounts.fruit}× fruit</span>
                 `);
             }
             
             
-            // Add separator before addons if we have categories
-            if (summaryItems.length > 0 && addons?.length > 0) {
-                summaryItems.push(`<div style="width: 1px; height: 20px; background: #ddd;"></div>`);
-            }
-            
-            if (addons && addons.length > 0) {
-                summaryItems.push(`
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <span style="font-size: 16px; color: #777;">${addons.length}×</span>
-                        <span class="category-tag" style="
-                            background: white;
-                            color: #777;
-                            padding: 4px 12px;
-                            border-radius: 16px;
-                            font-size: 13px;
-                            font-weight: 500;
-                            text-align: center;
-                            border: 1.5px solid #ccc;
-                        ">add-ons</span>
-                    </div>
-                `);
-            }
+            // Remove add-ons from summary for cleaner look
             
             document.getElementById('cartSummary').innerHTML = summaryItems.join('');
 
@@ -931,24 +884,24 @@
                     return `
                         <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
                             <div class="item-details" style="flex: 1;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div class="item-name">${item.name}</div>
-                                    <div class="item-price" style="color: #2e7d32; font-weight: 600;">${item.price || 'N/A'}</div>
-                                </div>
-                                <div class="item-meta" style="color: #666; font-size: 14px;">${quantityText}</div>
+                                <div class="item-name" style="font-size: 15px; font-weight: 600; color: #4169E1; margin-bottom: 2px;">${item.name}</div>
+                                <div class="item-meta" style="color: #666; font-size: 13px;">${quantityText}</div>
                             </div>
-                            <span class="category-tag" style="
-                                background: rgba(255, 255, 255, 0.5);
-                                color: ${colors.text};
-                                padding: 2px 6px;
-                                border-radius: 8px;
-                                font-size: 10px;
-                                font-weight: 500;
-                                text-align: center;
-                                border: 1px solid rgba(0, 0, 0, 0.08);
-                                display: inline-block;
-                                opacity: 0.75;
-                            ">${category}</span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="item-price" style="color: #2e7d32; font-weight: 600; font-size: 15px; min-width: 55px; text-align: right;">${item.price || ''}</div>
+                                <span class="category-tag" style="
+                                    background: rgba(255, 255, 255, 0.7);
+                                    color: ${colors.text};
+                                    padding: 3px 9px;
+                                    border-radius: 10px;
+                                    font-size: 12px;
+                                    font-weight: 500;
+                                    text-align: center;
+                                    border: 1px solid rgba(0, 0, 0, 0.1);
+                                    display: inline-block;
+                                    opacity: 0.9;
+                                ">${category}</span>
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -986,16 +939,16 @@
                                             <div class="item-meta" style="color: #666; font-size: 14px;">${item.unit} • ${item.producer || 'Farm Fresh'}</div>
                                         </div>
                                         <span class="category-tag" style="
-                                            background: white;
+                                            background: rgba(255, 255, 255, 0.7);
                                             color: ${colors.text};
-                                            padding: 4px 12px;
-                                            border-radius: 16px;
-                                            font-size: 13px;
+                                            padding: 3px 9px;
+                                            border-radius: 10px;
+                                            font-size: 12px;
                                             font-weight: 500;
-                                            min-width: 70px;
                                             text-align: center;
-                                            border: 1.5px solid ${colors.border};
+                                            border: 1px solid rgba(0, 0, 0, 0.1);
                                             display: inline-block;
+                                            opacity: 0.9;
                                         ">${category}</span>
                                     </div>
                                 `;
@@ -1037,16 +990,16 @@
                                             <div class="item-meta" style="color: #666; font-size: 14px;">${item.unit}</div>
                                         </div>
                                         <span class="category-tag" style="
-                                            background: white;
+                                            background: rgba(255, 255, 255, 0.7);
                                             color: ${colors.text};
-                                            padding: 4px 12px;
-                                            border-radius: 16px;
-                                            font-size: 13px;
+                                            padding: 3px 9px;
+                                            border-radius: 10px;
+                                            font-size: 12px;
                                             font-weight: 500;
-                                            min-width: 70px;
                                             text-align: center;
-                                            border: 1.5px solid ${colors.border};
+                                            border: 1px solid rgba(0, 0, 0, 0.1);
                                             display: inline-block;
+                                            opacity: 0.9;
                                         ">${category}</span>
                                     </div>
                                 `;
@@ -1089,16 +1042,16 @@
                                 <div class="item-meta" style="color: #666; font-size: 14px; margin-top: 2px;">${addon.reason}</div>
                             </div>
                             <span class="category-tag" style="
-                                background: rgba(255, 255, 255, 0.5);
+                                background: rgba(255, 255, 255, 0.7);
                                 color: ${colors.text};
-                                padding: 2px 6px;
-                                border-radius: 8px;
-                                font-size: 10px;
+                                padding: 3px 9px;
+                                border-radius: 10px;
+                                font-size: 12px;
                                 font-weight: 500;
                                 text-align: center;
-                                border: 1px solid rgba(0, 0, 0, 0.08);
+                                border: 1px solid rgba(0, 0, 0, 0.1);
                                 display: inline-block;
-                                opacity: 0.75;
+                                opacity: 0.9;
                             ">${category}</span>
                         </div>
                     `;
