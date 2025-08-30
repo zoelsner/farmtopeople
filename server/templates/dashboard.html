@@ -792,8 +792,8 @@
             
             if (categoryCounts.protein > 0) {
                 summaryItems.push(`
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="font-size: 18px; color: #555;">${categoryCounts.protein}×</span>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span style="font-size: 16px; color: #555;">${categoryCounts.protein}×</span>
                         <span class="category-tag" style="
                             background: white;
                             color: ${getCategoryColors('protein').text};
@@ -810,8 +810,8 @@
             
             if (categoryCounts.produce > 0) {
                 summaryItems.push(`
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="font-size: 18px; color: #555;">${categoryCounts.produce}×</span>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span style="font-size: 16px; color: #555;">${categoryCounts.produce}×</span>
                         <span class="category-tag" style="
                             background: white;
                             color: ${getCategoryColors('produce').text};
@@ -828,8 +828,8 @@
             
             if (categoryCounts.fruit > 0) {
                 summaryItems.push(`
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="font-size: 18px; color: #555;">${categoryCounts.fruit}×</span>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span style="font-size: 16px; color: #555;">${categoryCounts.fruit}×</span>
                         <span class="category-tag" style="
                             background: white;
                             color: ${getCategoryColors('fruit').text};
@@ -851,13 +851,37 @@
             
             if (swaps && swaps.length > 0) {
                 summaryItems.push(`
-                    <span style="font-size: 15px; color: #666;">${swaps.length} swaps available</span>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span style="font-size: 16px; color: #777;">${swaps.length}×</span>
+                        <span class="category-tag" style="
+                            background: white;
+                            color: #777;
+                            padding: 4px 12px;
+                            border-radius: 16px;
+                            font-size: 13px;
+                            font-weight: 500;
+                            text-align: center;
+                            border: 1.5px solid #ccc;
+                        ">swaps</span>
+                    </div>
                 `);
             }
             
             if (addons && addons.length > 0) {
                 summaryItems.push(`
-                    <span style="font-size: 15px; color: #666;">${addons.length} add-ons suggested</span>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span style="font-size: 16px; color: #777;">${addons.length}×</span>
+                        <span class="category-tag" style="
+                            background: white;
+                            color: #777;
+                            padding: 4px 12px;
+                            border-radius: 16px;
+                            font-size: 13px;
+                            font-weight: 500;
+                            text-align: center;
+                            border: 1.5px solid #ccc;
+                        ">add-ons</span>
+                    </div>
                 `);
             }
             
@@ -942,7 +966,7 @@
                         <div class="box-header">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div class="box-name">${box.box_name}</div>
-                                <span style="color: #2e7d32; font-weight: 600; font-size: 18px;">${box.price || '$45.99'}</span>
+                                ${box.price ? `<span style="color: #2e7d32; font-weight: normal; font-size: 16px;">${box.price}</span>` : ''}
                             </div>
                             <div class="box-status">${box.alternatives_count} available alternatives</div>
                         </div>
@@ -993,7 +1017,7 @@
                         <div class="box-header">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div class="box-name">${box.box_name}</div>
-                                <span style="color: #2e7d32; font-weight: 600; font-size: 18px;">${box.price || '$12.99'}</span>
+                                ${box.price ? `<span style="color: #2e7d32; font-weight: normal; font-size: 16px;">${box.price}</span>` : ''}
                             </div>
                             <div class="box-status">Fixed selection</div>
                         </div>
