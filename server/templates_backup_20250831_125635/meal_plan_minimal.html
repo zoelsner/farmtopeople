@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Box</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+            background: #ffffff;
+            color: #000000;
+            padding: 48px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.4;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 18px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            letter-spacing: 0.5px;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+        }
+        
+        .section {
+            margin-bottom: 36px;
+        }
+        
+        .section-title {
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            color: #333;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .item-name {
+            color: #4169E1;  /* Penny blue */
+            flex: 1;
+        }
+        
+        .item-detail {
+            color: #666;
+            font-size: 13px;
+            margin-left: 8px;
+        }
+        
+        .item-quantity {
+            color: #999;
+            font-size: 12px;
+            margin-left: 16px;
+            min-width: 30px;
+            text-align: right;
+        }
+        
+        .recipe {
+            margin-bottom: 14px;
+        }
+        
+        .recipe-title {
+            color: #4169E1;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        
+        .recipe-meta {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .swap {
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+        
+        .swap-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+        
+        .swap-from {
+            color: #999;
+            text-decoration: line-through;
+        }
+        
+        .swap-arrow {
+            color: #ccc;
+            font-size: 11px;
+        }
+        
+        .swap-to {
+            color: #4169E1;
+        }
+        
+        .swap-reason {
+            font-size: 11px;
+            color: #999;
+            margin-left: 0;
+            font-style: italic;
+        }
+        
+        .add-on {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .add-on-name {
+            color: #333;
+        }
+        
+        .add-on-price {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        footer {
+            margin-top: 60px;
+            padding-top: 24px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 11px;
+            color: #999;
+            letter-spacing: 0.3px;
+        }
+        
+        .tag {
+            display: inline-block;
+            font-size: 10px;
+            color: #999;
+            margin-right: 8px;
+            text-transform: lowercase;
+        }
+        
+        .storage-note {
+            font-size: 11px;
+            color: #999;
+            margin-top: 24px;
+            padding: 12px;
+            background: #fafafa;
+            border-radius: 4px;
+        }
+        
+        .divider {
+            height: 1px;
+            background: #f0f0f0;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Farm Box</h1>
+        <p class="subtitle">Week of December 26 · 2 Person Household</p>
+    </header>
+    
+    <div class="content">
+        <!-- Left Column -->
+        <div>
+            <section class="section">
+                <h2 class="section-title">Current Selections</h2>
+                
+                <div class="item">
+                    <span class="item-name">Heritage Carrots</span>
+                    <span class="item-quantity">2 lbs</span>
+                </div>
+                
+                <div class="item">
+                    <span class="item-name">Baby Spinach</span>
+                    <span class="item-quantity">1 bag</span>
+                </div>
+                
+                <div class="item">
+                    <span class="item-name">Cherry Tomatoes</span>
+                    <span class="item-quantity">1 pint</span>
+                </div>
+                
+                <div class="item">
+                    <span class="item-name">Zucchini</span>
+                    <span class="item-quantity">3 pc</span>
+                </div>
+                
+                <div class="item">
+                    <span class="item-name">Bell Peppers</span>
+                    <span class="item-quantity">2 pc</span>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div class="item">
+                    <span class="item-name">Wild Salmon</span>
+                    <span class="item-detail">+ lemon</span>
+                    <span class="item-quantity">1 lb</span>
+                </div>
+                
+                <div class="item">
+                    <span class="item-name">Chicken Breast</span>
+                    <span class="item-detail">+ herbs</span>
+                    <span class="item-quantity">2 lbs</span>
+                </div>
+                
+                <div class="item">
+                    <span class="item-name">Farm Eggs</span>
+                    <span class="item-quantity">dozen</span>
+                </div>
+                
+                <div class="item">
+                    <span class="item-name">Ground Beef</span>
+                    <span class="item-detail">grass-fed</span>
+                    <span class="item-quantity">1 lb</span>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">Suggested Meals</h2>
+                
+                <div class="recipe">
+                    <div class="recipe-title">Salmon + Roasted Vegetables</div>
+                    <div class="recipe-meta">
+                        <span class="tag">20 min</span>
+                        <span class="tag">38g protein</span>
+                        <span class="tag">serves 2</span>
+                    </div>
+                </div>
+                
+                <div class="recipe">
+                    <div class="recipe-title">Chicken Stir-Fry + Peppers</div>
+                    <div class="recipe-meta">
+                        <span class="tag">15 min</span>
+                        <span class="tag">35g protein</span>
+                        <span class="tag">serves 2</span>
+                    </div>
+                </div>
+                
+                <div class="recipe">
+                    <div class="recipe-title">Vegetable Frittata</div>
+                    <div class="recipe-meta">
+                        <span class="tag">25 min</span>
+                        <span class="tag">24g protein</span>
+                        <span class="tag">serves 4</span>
+                    </div>
+                </div>
+                
+                <div class="recipe">
+                    <div class="recipe-title">Beef + Zucchini Skillet</div>
+                    <div class="recipe-meta">
+                        <span class="tag">20 min</span>
+                        <span class="tag">32g protein</span>
+                        <span class="tag">serves 3</span>
+                    </div>
+                </div>
+                
+                <div class="recipe">
+                    <div class="recipe-title">Mediterranean Bowl</div>
+                    <div class="recipe-meta">
+                        <span class="tag">25 min</span>
+                        <span class="tag">28g protein</span>
+                        <span class="tag">serves 2</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- Right Column -->
+        <div>
+            <section class="section">
+                <h2 class="section-title">Recommended Swaps</h2>
+                
+                <div class="swap">
+                    <div class="swap-line">
+                        <span class="swap-from">Iceberg Lettuce</span>
+                        <span class="swap-arrow">→</span>
+                        <span class="swap-to">Baby Spinach</span>
+                    </div>
+                    <div class="swap-reason">higher nutritional value</div>
+                </div>
+                
+                <div class="swap">
+                    <div class="swap-line">
+                        <span class="swap-from">Regular Carrots</span>
+                        <span class="swap-arrow">→</span>
+                        <span class="swap-to">Heritage Rainbow</span>
+                    </div>
+                    <div class="swap-reason">peak season, better flavor</div>
+                </div>
+                
+                <div class="swap">
+                    <div class="swap-line">
+                        <span class="swap-from">Add</span>
+                        <span class="swap-arrow">→</span>
+                        <span class="swap-to">Yellow Onions</span>
+                    </div>
+                    <div class="swap-reason">essential for 4 recipes</div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2 class="section-title">Premium Additions</h2>
+                
+                <div class="add-on">
+                    <span class="add-on-name">Extra Salmon</span>
+                    <span class="add-on-price">18</span>
+                </div>
+                
+                <div class="add-on">
+                    <span class="add-on-name">Grass-Fed Ribeye</span>
+                    <span class="add-on-price">24</span>
+                </div>
+                
+                <div class="add-on">
+                    <span class="add-on-name">Organic Avocados</span>
+                    <span class="add-on-price">7</span>
+                </div>
+                
+                <div class="add-on">
+                    <span class="add-on-name">Artisan Sourdough</span>
+                    <span class="add-on-price">6</span>
+                </div>
+                
+                <div class="add-on">
+                    <span class="add-on-name">Raw Honey</span>
+                    <span class="add-on-price">12</span>
+                </div>
+            </section>
+            
+            <div class="storage-note">
+                <strong>Storage:</strong> Proteins 1-2 days or freeze. Leafy greens in crisper, wrapped. 
+                Tomatoes counter until ripe. Carrots remove tops, refrigerate up to 3 weeks.
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        local farms · seasonal produce · delivered weekly
+    </footer>
+</body>
+</html>

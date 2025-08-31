@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm to People AI Assistant</title>
+    <meta name="description" content="Transform your Farm to People box into personalized meal plans via SMS">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .hero {
+            background: #28a745;
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 24px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .hero-cta {
+            display: inline-block;
+            background: white;
+            color: #28a745;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-2px);
+        }
+
+        .content {
+            padding: 50px 40px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 12px;
+            background: #f8f9fa;
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .feature h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #28a745;
+        }
+
+        .feature p {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .cta-section {
+            background: #f8f9fa;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .cta-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .cta-button {
+            display: block;
+            padding: 20px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+            text-align: center;
+        }
+
+        .cta-primary {
+            background: #28a745;
+            color: white;
+        }
+
+        .cta-secondary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+            
+            .hero p {
+                font-size: 20px;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>🥬 Farm to People</h1>
+            <p>AI Meal Planning via SMS</p>
+            <a href="/onboard" class="hero-cta">Get Started</a>
+        </div>
+
+        <div class="content">
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📦</div>
+                    <h3>Analyze Your Cart</h3>
+                    <p>We analyze your actual Farm to People box contents in real-time</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Meal Plans</h3>
+                    <p>Get 5 personalized dinner recipes with 30g+ protein in 30 seconds</p>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">📱</div>
+                    <h3>Simple SMS</h3>
+                    <p>Just text "plan" to get your meal plan. No app downloads needed.</p>
+                </div>
+            </div>
+
+            <div class="cta-section">
+                <h2 style="margin-bottom: 15px; color: #333;">Ready to transform your farm box?</h2>
+                <p style="font-size: 18px; color: #666; margin-bottom: 20px;">Choose your path:</p>
+                
+                <div class="cta-buttons">
+                    <a href="/onboard" class="cta-button cta-primary">
+                        🚀 Complete Setup<br>
+                        <small style="opacity: 0.8;">5 minutes - full onboarding</small>
+                    </a>
+                    
+                    <a href="/sms" class="cta-button cta-secondary">
+                        📱 SMS Instructions<br>
+                        <small style="opacity: 0.8;">How to text for meal plans</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🔒 Your data is encrypted and secure. Text STOP anytime to unsubscribe.</p>
+        </div>
+    </div>
+</body>
+</html>

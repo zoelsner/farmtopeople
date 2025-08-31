@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Farm to People</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            padding-bottom: 80px; /* Space for bottom tabs */
+        }
+
+        /* Top Header */
+        .header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #212529;
+            margin-bottom: 4px;
+        }
+
+        .header .subtitle {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        /* Main Content Area */
+        .content {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Settings Categories Grid */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        /* Individual Category Card */
+        .category-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #4169E1;
+        }
+
+        .category-card:active {
+            transform: translateY(0);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .category-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #212529;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .category-icon {
+            font-size: 24px;
+            color: #4169E1; /* Penny blue */
+        }
+
+        .category-arrow {
+            font-size: 16px;
+            color: #6c757d;
+        }
+
+        .category-preview {
+            color: #6c757d;
+            font-size: 14px;
+            line-height: 1.4;
+            min-height: 20px; /* Prevent layout shift when loading */
+        }
+
+        /* Loading state for preview text */
+        .category-preview.loading {
+            background: linear-gradient(90deg, #e9ecef 0%, #f8f9fa 50%, #e9ecef 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+            height: 20px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Modal Overlay for Editing Categories */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 8px;
+        }
+
+        .modal-subtitle {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .modal-close:hover {
+            color: #212529;
+        }
+
+        /* Modal form elements - reuse onboarding styles */
+        .modal-options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .option-item:hover {
+            border-color: #4169E1;
+            background: #f3f7ff;
+        }
+
+        .option-item.selected {
+            border-color: #4169E1;
+            background: #e3f2fd;
+        }
+
+        .option-text {
+            font-weight: 500;
+            font-size: 16px;
+            color: #212529;
+        }
+
+        .option-check {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #4169E1;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4169E1;
+            font-weight: bold;
+        }
+
+        .option-item:not(.selected) .option-check {
+            border-color: #dee2e6;
+            color: transparent;
+        }
+
+        /* Household size grid (2x2 layout) */
+        .size-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .size-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .size-option:hover {
+            border-color: #4169E1;
+            background: #f3f7ff;
+        }
+
+        .size-option.selected {
+            border-color: #4169E1;
+            background: #e3f2fd;
+            transform: scale(1.02);
+        }
+
+        .size-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4169E1;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Modal action buttons */
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #e9ecef;
+        }
+
+        .btn-cancel:hover {
+            background: #e9ecef;
+        }
+
+        .btn-save {
+            background: #4169E1;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #3557c7;
+        }
+
+        .btn-save:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        /* Success/Error Messages */
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Bottom Navigation - matches dashboard */
+        .bottom-tabs {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            padding: 8px 0;
+            z-index: 50;
+        }
+
+        .tabs-container {
+            display: flex;
+            justify-content: space-around;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 12px;
+            text-decoration: none;
+            color: #6c757d;
+            transition: color 0.2s ease;
+        }
+
+        .tab.active {
+            color: #4169E1;
+        }
+
+        .tab-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .tab-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .content {
+                padding: 16px;
+            }
+            
+            .modal-content {
+                margin: 10px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <div class="header">
+        <h1>Settings</h1>
+        <p class="subtitle">Update your meal preferences and account settings</p>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content">
+        <!-- Success/Error Messages -->
+        <div id="messageContainer"></div>
+
+        <!-- Settings Categories -->
+        <div class="categories-grid">
+            <!-- Household Size Category -->
+            <div class="category-card" data-category="household">
+                <div class="category-header">
+                    <div class="category-title">
+                        <span class="category-icon">👥</span>
+                        Household Size
+                    </div>
+                    <span class="category-arrow">›</span>
+                </div>
+                <div class="category-preview loading" id="householdPreview">
+                    Loading...
+                </div>
+            </div>
+
+            <!-- Meal Preferences Category -->
+            <div class="category-card" data-category="meals">
+                <div class="category-header">
+                    <div class="category-title">
+                        <span class="category-icon">🍽️</span>
+                        Meal Preferences
+                    </div>
+                    <span class="category-arrow">›</span>
+                </div>
+                <div class="category-preview loading" id="mealsPreview">
+                    Loading...
+                </div>
+            </div>
+
+            <!-- Cooking Style Category -->
+            <div class="category-card" data-category="cooking">
+                <div class="category-header">
+                    <div class="category-title">
+                        <span class="category-icon">🍳</span>
+                        Cooking Style
+                    </div>
+                    <span class="category-arrow">›</span>
+                </div>
+                <div class="category-preview loading" id="cookingPreview">
+                    Loading...
+                </div>
+            </div>
+
+            <!-- Dietary Restrictions Category -->
+            <div class="category-card" data-category="dietary">
+                <div class="category-header">
+                    <div class="category-title">
+                        <span class="category-icon">🥗</span>
+                        Dietary Restrictions
+                    </div>
+                    <span class="category-arrow">›</span>
+                </div>
+                <div class="category-preview loading" id="dietaryPreview">
+                    Loading...
+                </div>
+            </div>
+
+            <!-- Health Goals Category -->
+            <div class="category-card" data-category="goals">
+                <div class="category-header">
+                    <div class="category-title">
+                        <span class="category-icon">🎯</span>
+                        Health Goals
+                    </div>
+                    <span class="category-arrow">›</span>
+                </div>
+                <div class="category-preview loading" id="goalsPreview">
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Overlay for Editing Categories -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Edit Category</h2>
+                <p class="modal-subtitle" id="modalSubtitle">Update your preferences</p>
+            </div>
+            
+            <!-- Dynamic modal content will be inserted here -->
+            <div id="modalBody"></div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-cancel" id="modalCancel">Cancel</button>
+                <button class="btn btn-save" id="modalSave">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-tabs">
+        <div class="tabs-container">
+            <a href="/dashboard#cart" class="tab">
+                <!-- Cart icon (2D style) -->
+                <svg class="tab-icon" viewBox="0 0 24 24">
+                    <circle cx="8" cy="21" r="1"/>
+                    <circle cx="19" cy="21" r="1"/>
+                    <path d="m2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+                </svg>
+                <span class="tab-label">Cart</span>
+            </a>
+
+            <a href="/dashboard#meals" class="tab">
+                <!-- Meals icon (2D style) -->
+                <svg class="tab-icon" viewBox="0 0 24 24">
+                    <path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 11.73z"/>
+                </svg>
+                <span class="tab-label">Meals</span>
+            </a>
+
+            <a href="/settings" class="tab active">
+                <!-- Settings icon (2D style) -->
+                <svg class="tab-icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="m12 1 2.09 2.09L16 2l.94.94L18 1l1 1-1.06 1.06.94.94L18 5.09 15.91 7 17 8.09 15.91 9 17 10.09 15.91 11 17 12.09 15.91 13 17 14.09 15.91 15 17 16.09 15.91 17 17 18.09 15.91 19 17 20.09 15.91 21 17 22.09 15.91 23H8.09L7 21.91 5.09 23 4 21.91 2.91 23 1.91 22 2.97 20.94 1.91 19.97 1 19l1.06-1.06L1.06 17 1 16l1.91-.91L1.91 14 3 12.91 1.91 11 3 9.91 1.91 8 3 6.91 1.91 5 3 3.91 1.91 2 3 .91z"/>
+                </svg>
+                <span class="tab-label">Settings</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- JavaScript for Settings Functionality -->
+    <script src="/static/settings.js"></script>
+</body>
+</html>

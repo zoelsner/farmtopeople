@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Meal Plan - Farm to People</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    
+    <!-- Fitbod-Inspired Professional CSS -->
+    <link rel="stylesheet" href="/static/css/fitbod_meal_planning.css">
+    
+    <style>
+        /* Base Reset and Typography */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            padding-bottom: 80px;
+        }
+
+        /* Top Header */
+        .header {
+            background: var(--bg-card);
+            padding: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Main Content Area */
+        .content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: calc(100vh - 200px);
+        }
+
+        /* Section Management */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            text-align: center;
+            padding: 60px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .start-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, var(--accent-green) 0%, #34d058 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+            box-shadow: 0 4px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .start-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .start-description {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        /* Loading State */
+        .loading-screen {
+            text-align: center;
+            padding: 60px 20px;
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .loading-animation {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            border: 4px solid var(--border-subtle);
+            border-top: 4px solid var(--accent-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            letter-spacing: -0.3px;
+        }
+
+        .loading-status {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .loading-tip {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-medium);
+            padding: 24px;
+            margin-top: 32px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: var(--shadow-card);
+        }
+
+        .loading-tip h3 {
+            font-size: 16px;
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .loading-tip p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        /* Cart Analysis Display */
+        .cart-analysis {
+            display: none;
+        }
+
+        .cart-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-medium);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .section-header {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            letter-spacing: -0.3px;
+        }
+
+        /* Enhanced Meal Cards for Suggested Meals */
+        .suggested-meal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-medium);
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all var(--transition-medium);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .suggested-meal-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card-hover);
+            border-color: var(--border-medium);
+        }
+
+        .suggested-meal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .suggested-meal-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+            letter-spacing: -0.2px;
+        }
+
+        .suggested-meal-details {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .suggested-meal-ingredients {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Bottom Navigation Tabs */
+        .bottom-tabs {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 1000;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            text-decoration: none;
+            color: var(--text-tertiary);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .tab.active {
+            color: var(--accent-green);
+        }
+
+        .tab.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: var(--accent-green);
+            border-radius: 0 0 3px 3px;
+        }
+
+        .tab-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .tab-label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* Item Grid */
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .item-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-small);
+            padding: 12px;
+            text-align: center;
+            transition: all var(--transition-fast);
+        }
+
+        .item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-subtle);
+            border-color: var(--border-medium);
+        }
+
+        .item-emoji {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .item-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .item-quantity {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Box Display */
+        .box-container {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-medium);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .box-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .box-badge {
+            background: var(--accent-blue);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .box-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .box-item-chip {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+        }
+
+        .box-item-chip:hover {
+            background: var(--accent-blue);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* Delivery Date Display */
+        #deliveryDate {
+            text-align: right;
+        }
+
+        #deliveryDateText {
+            color: var(--accent-green);
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .content {
+                padding: 16px;
+            }
+
+            .cart-section {
+                padding: 20px;
+                margin-bottom: 16px;
+            }
+
+            .item-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1>Farm to People</h1>
+                <p class="subtitle" id="headerSubtitle">Personalized Meal Planning</p>
+            </div>
+            <div id="deliveryDate" style="display: none;">
+                <div id="deliveryDateText"></div>
+                <div style="color: var(--text-secondary); font-size: 12px;">Delivery Date</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <!-- Start Screen -->
+        <div class="start-screen section active" id="startSection">
+            <div class="start-icon">📦</div>
+            <h2 class="start-title">Smart Cart Analysis</h2>
+            <p class="start-description">
+                Transform your Farm to People cart into personalized meal plans with high-protein recipes tailored to your preferences.
+            </p>
+            <button class="fitbod-btn success" onclick="startAnalysis()" style="font-size: 16px; padding: 14px 32px;">
+                Analyze My Cart
+            </button>
+        </div>
+
+        <!-- Loading Screen -->
+        <div class="loading-screen section" id="loadingSection">
+            <div class="loading-animation"></div>
+            <h2 class="loading-title">Analyzing Your Cart</h2>
+            <p class="loading-status" id="loadingStatus">Logging into Farm to People...</p>
+            
+            <div class="loading-tip">
+                <h3>Quick Tip</h3>
+                <p>This typically takes 20-30 seconds. We're checking your cart contents and generating personalized meal suggestions.</p>
+            </div>
+        </div>
+
+        <!-- Cart Analysis Display -->
+        <div class="cart-analysis section" id="cartAnalysisSection">
+            <!-- Suggested Meals Section -->
+            <div class="cart-section" id="suggestedMealsSection">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 class="section-header" style="margin: 0;">Suggested Meals</h3>
+                    <button class="fitbod-btn" onclick="refreshCartData()" style="padding: 8px 16px; font-size: 14px;">
+                        Refresh Cart
+                    </button>
+                </div>
+                <div id="suggestedMeals">
+                    <!-- Meal suggestions will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Cart Summary -->
+            <div id="cartSummary" style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding: 0 20px;">
+                <!-- Summary counts will be inserted here -->
+            </div>
+
+            <!-- Individual Items -->
+            <div class="cart-section" id="individualItemsSection">
+                <h3 class="section-header">
+                    Individual Items <span id="individualItemsCount" style="color: var(--text-secondary); font-weight: normal; font-size: 16px;"></span>
+                </h3>
+                <div class="item-grid" id="individualItems">
+                    <!-- Individual items will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Customizable Boxes -->
+            <div class="cart-section" id="customizableBoxesSection">
+                <h3 class="section-header">
+                    Customizable Boxes <span id="customizableBoxesCount" style="color: var(--text-secondary); font-weight: normal; font-size: 16px;"></span>
+                </h3>
+                <div id="customizableBoxes">
+                    <!-- Customizable box data will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Non-Customizable Boxes -->
+            <div class="cart-section" id="nonCustomizableBoxesSection">
+                <h3 class="section-header">
+                    Fixed Boxes <span id="fixedBoxesCount" style="color: var(--text-secondary); font-weight: normal; font-size: 16px;"></span>
+                </h3>
+                <div id="nonCustomizableBoxes">
+                    <!-- Non-customizable box data will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Meals View with Fitbod Design -->
+        <div class="meals-view section meal-calendar-container" id="mealsSection">
+            <div class="calendar-header">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h2 style="font-size: 24px; font-weight: 600; color: var(--text-primary);">Weekly Meal Plan</h2>
+                        <p style="color: var(--text-secondary); font-size: 14px;" id="weekDisplay">Monday - Friday Dinners</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="fitbod-btn" id="generatePDF" style="padding: 8px 16px; font-size: 14px;">
+                            Export PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading state -->
+            <div id="mealPlanLoading" class="loading-state" style="display: none;">
+                <div class="spinner"></div>
+                <p>Loading your meal plan...</p>
+            </div>
+
+            <!-- Empty state -->
+            <div id="mealPlanEmpty" class="empty-state" style="display: none;">
+                <div class="empty-icon">🍽️</div>
+                <h3 class="empty-title">No Meal Plan Yet</h3>
+                <p class="empty-description">Create your first meal plan by analyzing your cart</p>
+                <button class="fitbod-btn success" onclick="startAnalysis()">Create Meal Plan</button>
+            </div>
+
+            <!-- Main Calendar Grid with Fitbod Design -->
+            <div id="mealCalendarGrid" class="calendar-container" style="display: none;">
+                <!-- Calendar Days -->
+                <div class="calendar-grid">
+                    <!-- Monday -->
+                    <div class="day-row" data-day="monday">
+                        <div class="day-header">
+                            <h3>Monday</h3>
+                            <span class="day-date" id="monday-date"></span>
+                        </div>
+                        <div class="meal-slot" data-day="monday">
+                            <div class="add-meal-prompt">
+                                <span class="add-icon">+</span>
+                                <div>Add Meal</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tuesday -->
+                    <div class="day-row" data-day="tuesday">
+                        <div class="day-header">
+                            <h3>Tuesday</h3>
+                            <span class="day-date" id="tuesday-date"></span>
+                        </div>
+                        <div class="meal-slot" data-day="tuesday">
+                            <div class="add-meal-prompt">
+                                <span class="add-icon">+</span>
+                                <div>Add Meal</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wednesday -->
+                    <div class="day-row" data-day="wednesday">
+                        <div class="day-header">
+                            <h3>Wednesday</h3>
+                            <span class="day-date" id="wednesday-date"></span>
+                        </div>
+                        <div class="meal-slot" data-day="wednesday">
+                            <div class="add-meal-prompt">
+                                <span class="add-icon">+</span>
+                                <div>Add Meal</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thursday -->
+                    <div class="day-row" data-day="thursday">
+                        <div class="day-header">
+                            <h3>Thursday</h3>
+                            <span class="day-date" id="thursday-date"></span>
+                        </div>
+                        <div class="meal-slot" data-day="thursday">
+                            <div class="add-meal-prompt">
+                                <span class="add-icon">+</span>
+                                <div>Add Meal</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Friday -->
+                    <div class="day-row" data-day="friday">
+                        <div class="day-header">
+                            <h3>Friday</h3>
+                            <span class="day-date" id="friday-date"></span>
+                        </div>
+                        <div class="meal-slot" data-day="friday">
+                            <div class="add-meal-prompt">
+                                <span class="add-icon">+</span>
+                                <div>Add Meal</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Ingredient Pool with Circular Progress -->
+                <div class="ingredient-panel">
+                    <h3>Ingredient Pool</h3>
+                    <div id="ingredientList" class="ingredient-list">
+                        <!-- Sample ingredient with circular progress -->
+                        <div class="ingredient-card plenty">
+                            <div class="ingredient-visual">
+                                <div class="progress-circle-container">
+                                    <svg class="progress-circle">
+                                        <circle class="progress-circle-bg"></circle>
+                                        <circle class="progress-circle-fill plenty" 
+                                                style="stroke-dashoffset: 49px;"></circle>
+                                    </svg>
+                                    <div class="progress-percentage">70%</div>
+                                </div>
+                                <div class="ingredient-info">
+                                    <h4 class="ingredient-name">Wild Salmon</h4>
+                                    <div class="ingredient-quantity">1.2 lbs available</div>
+                                    <span class="ingredient-status-badge plenty">Plenty</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-actions">
+                        <button class="fitbod-btn success full-width" id="autoFillWeek">
+                            Auto-Fill Week
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings View -->
+        <div class="settings-view section" id="settingsSection">
+            <div class="cart-section">
+                <h2 class="section-header">Settings</h2>
+                <p style="color: var(--text-secondary); margin-top: 20px;">Preferences and account settings coming soon</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Tabs -->
+    <div class="bottom-tabs">
+        <div class="tab active" id="cartTab" onclick="showSection('cart')">
+            <span class="tab-icon">📦</span>
+            <span class="tab-label">Cart</span>
+        </div>
+        <div class="tab" id="mealsTab" onclick="showSection('meals')">
+            <span class="tab-icon">🍽️</span>
+            <span class="tab-label">Meals</span>
+        </div>
+        <div class="tab" id="settingsTab" onclick="showSection('settings')">
+            <span class="tab-icon">⚙️</span>
+            <span class="tab-label">Settings</span>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let mealPlanData = null;
+        let currentWeekOffset = 0;
+        let cartData = null;
+        let refreshCount = 0;
+        const MAX_REFRESH_COUNT = 3;
+
+        // Navigation functions
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            
+            // Remove active from all tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            // Show the selected section
+            if (section === 'cart') {
+                if (cartData) {
+                    document.getElementById('cartAnalysisSection').classList.add('active');
+                } else {
+                    document.getElementById('startSection').classList.add('active');
+                }
+                document.getElementById('cartTab').classList.add('active');
+            } else if (section === 'meals') {
+                document.getElementById('mealsSection').classList.add('active');
+                document.getElementById('mealsTab').classList.add('active');
+                if (!mealPlanData) {
+                    loadMealPlan();
+                }
+            } else if (section === 'settings') {
+                document.getElementById('settingsSection').classList.add('active');
+                document.getElementById('settingsTab').classList.add('active');
+            }
+        }
+
+        // Cart analysis functions
+        async function startAnalysis() {
+            document.getElementById('startSection').classList.remove('active');
+            document.getElementById('loadingSection').classList.add('active');
+            
+            const statusMessages = [
+                "Logging into Farm to People...",
+                "Scanning your cart contents...",
+                "Analyzing ingredients...",
+                "Generating meal suggestions..."
+            ];
+            
+            let messageIndex = 0;
+            const statusInterval = setInterval(() => {
+                if (messageIndex < statusMessages.length) {
+                    document.getElementById('loadingStatus').textContent = statusMessages[messageIndex];
+                    messageIndex++;
+                }
+            }, 3000);
+            
+            try {
+                const response = await fetch('/api/analyze-cart', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    cartData = data;
+                    clearInterval(statusInterval);
+                    displayCartAnalysis(data);
+                    document.getElementById('loadingSection').classList.remove('active');
+                    document.getElementById('cartAnalysisSection').classList.add('active');
+                    
+                    // Set mealPlanData for meals tab
+                    if (data.cart_data) {
+                        mealPlanData = { cart_data: data.cart_data };
+                    }
+                } else {
+                    throw new Error('Failed to analyze cart');
+                }
+            } catch (error) {
+                clearInterval(statusInterval);
+                console.error('Error analyzing cart:', error);
+                alert('Unable to analyze cart. Please try again.');
+                document.getElementById('loadingSection').classList.remove('active');
+                document.getElementById('startSection').classList.add('active');
+            }
+        }
+
+        function displayCartAnalysis(data) {
+            if (!data || !data.cart_data) return;
+            
+            const cart = data.cart_data;
+            
+            // Display delivery date
+            if (cart.delivery_date) {
+                document.getElementById('deliveryDate').style.display = 'block';
+                document.getElementById('deliveryDateText').textContent = formatDeliveryDate(cart.delivery_date);
+            }
+            
+            // Display suggested meals with enhanced cards
+            const suggestedMealsDiv = document.getElementById('suggestedMeals');
+            if (data.suggested_meals && data.suggested_meals.length > 0) {
+                suggestedMealsDiv.innerHTML = data.suggested_meals.map(meal => `
+                    <div class="suggested-meal-card">
+                        <div class="suggested-meal-header">
+                            <h4 class="suggested-meal-name">${meal.name}</h4>
+                            <span class="protein-badge">${meal.protein || '30g'} protein</span>
+                        </div>
+                        <div class="suggested-meal-details">
+                            <span class="meal-detail-item cooking-time">⏱️ ${meal.cook_time || '25 min'}</span>
+                            <span class="meal-detail-item servings">👥 ${meal.servings || '2 servings'}</span>
+                        </div>
+                        <div class="suggested-meal-ingredients">
+                            <strong>Key ingredients:</strong> ${meal.ingredients || 'Based on your cart items'}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Display individual items
+            displayIndividualItems(cart.individual_items);
+            
+            // Display boxes
+            displayCustomizableBoxes(cart.customizable_boxes);
+            displayNonCustomizableBoxes(cart.non_customizable_boxes);
+            
+            // Update header
+            document.getElementById('headerSubtitle').textContent = 'Cart analyzed successfully';
+        }
+
+        function displayIndividualItems(items) {
+            if (!items || items.length === 0) {
+                document.getElementById('individualItemsSection').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('individualItemsCount').textContent = `(${items.length})`;
+            document.getElementById('individualItems').innerHTML = items.map(item => `
+                <div class="item-card">
+                    <div class="item-emoji">${getItemEmoji(item.name)}</div>
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-quantity">${item.quantity} ${item.unit || ''}</div>
+                </div>
+            `).join('');
+        }
+
+        function displayCustomizableBoxes(boxes) {
+            if (!boxes || boxes.length === 0) {
+                document.getElementById('customizableBoxesSection').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('customizableBoxesCount').textContent = `(${boxes.length})`;
+            document.getElementById('customizableBoxes').innerHTML = boxes.map(box => `
+                <div class="box-container">
+                    <div class="box-header">
+                        ${box.box_name}
+                        <span class="box-badge">Customizable</span>
+                    </div>
+                    <div class="box-items">
+                        ${box.selected_items.map(item => 
+                            `<span class="box-item-chip">${item.name}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayNonCustomizableBoxes(boxes) {
+            if (!boxes || boxes.length === 0) {
+                document.getElementById('nonCustomizableBoxesSection').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('fixedBoxesCount').textContent = `(${boxes.length})`;
+            document.getElementById('nonCustomizableBoxes').innerHTML = boxes.map(box => `
+                <div class="box-container">
+                    <div class="box-header">${box.box_name}</div>
+                    <div class="box-items">
+                        ${box.selected_items.map(item => 
+                            `<span class="box-item-chip">${item.name}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Meal calendar functions
+        async function loadMealPlan() {
+            if (!mealPlanData) {
+                document.getElementById('mealPlanEmpty').style.display = 'block';
+                document.getElementById('mealCalendarGrid').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('mealPlanEmpty').style.display = 'none';
+            document.getElementById('mealCalendarGrid').style.display = 'grid';
+            
+            // Update week dates
+            updateWeekDates();
+            
+            // Load ingredients with circular progress
+            if (mealPlanData.cart_data) {
+                loadIngredientPool(mealPlanData.cart_data);
+            }
+        }
+
+        function loadIngredientPool(cartData) {
+            const ingredientList = document.getElementById('ingredientList');
+            const allIngredients = extractAllIngredients(cartData);
+            
+            ingredientList.innerHTML = allIngredients.map(ingredient => {
+                const percentage = Math.floor(Math.random() * 100); // Mock percentage
+                const status = percentage > 60 ? 'plenty' : percentage > 30 ? 'half' : 'low';
+                const strokeDashoffset = 163.36 - (percentage / 100) * 163.36;
+                
+                return `
+                    <div class="ingredient-card ${status}">
+                        <div class="ingredient-visual">
+                            <div class="progress-circle-container">
+                                <svg class="progress-circle">
+                                    <circle class="progress-circle-bg"></circle>
+                                    <circle class="progress-circle-fill ${status}" 
+                                            style="stroke-dashoffset: ${strokeDashoffset}px;"></circle>
+                                </svg>
+                                <div class="progress-percentage">${percentage}%</div>
+                            </div>
+                            <div class="ingredient-info">
+                                <h4 class="ingredient-name">${ingredient.name}</h4>
+                                <div class="ingredient-quantity">${ingredient.quantity}</div>
+                                <span class="ingredient-status-badge ${status}">
+                                    ${status === 'plenty' ? 'Plenty' : status === 'half' ? 'Half Used' : 'Running Low'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function extractAllIngredients(cartData) {
+            const ingredients = [];
+            
+            // Extract from individual items
+            if (cartData.individual_items) {
+                cartData.individual_items.forEach(item => {
+                    ingredients.push({
+                        name: item.name,
+                        quantity: `${item.quantity} ${item.unit || ''}`
+                    });
+                });
+            }
+            
+            // Extract from boxes
+            ['customizable_boxes', 'non_customizable_boxes'].forEach(boxType => {
+                if (cartData[boxType]) {
+                    cartData[boxType].forEach(box => {
+                        if (box.selected_items) {
+                            box.selected_items.forEach(item => {
+                                ingredients.push({
+                                    name: item.name,
+                                    quantity: item.quantity || '1 unit'
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+            
+            return ingredients.slice(0, 8); // Limit to first 8 for display
+        }
+
+        function updateWeekDates() {
+            const today = new Date();
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - today.getDay() + 1);
+            
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+            days.forEach((day, index) => {
+                const date = new Date(monday);
+                date.setDate(monday.getDate() + index);
+                const dateElement = document.getElementById(`${day}-date`);
+                if (dateElement) {
+                    dateElement.textContent = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }
+            });
+        }
+
+        // Helper functions
+        function formatDeliveryDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function getItemEmoji(name) {
+            const emojiMap = {
+                'avocado': '🥑',
+                'egg': '🥚',
+                'chicken': '🍗',
+                'beef': '🥩',
+                'salmon': '🐟',
+                'lettuce': '🥬',
+                'tomato': '🍅',
+                'carrot': '🥕',
+                'apple': '🍎',
+                'banana': '🍌',
+                'bread': '🍞',
+                'cheese': '🧀',
+                'milk': '🥛'
+            };
+            
+            const nameLower = name.toLowerCase();
+            for (const [key, emoji] of Object.entries(emojiMap)) {
+                if (nameLower.includes(key)) return emoji;
+            }
+            return '🥗';
+        }
+
+        // Refresh cart data
+        async function refreshCartData() {
+            if (refreshCount >= MAX_REFRESH_COUNT) {
+                alert(`You've reached the maximum number of refreshes (${MAX_REFRESH_COUNT}) for today.`);
+                return;
+            }
+            
+            const button = document.getElementById('refreshCartButton');
+            button.disabled = true;
+            button.textContent = 'Refreshing...';
+            
+            try {
+                await startAnalysis();
+                refreshCount++;
+            } finally {
+                button.disabled = false;
+                button.textContent = '🔄 Refresh Cart';
+            }
+        }
+
+        // Initialize drag and drop
+        function initializeDragAndDrop() {
+            const mealCards = document.querySelectorAll('.meal-card');
+            const mealSlots = document.querySelectorAll('.meal-slot');
+            
+            mealCards.forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+            
+            mealSlots.forEach(slot => {
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('drop', handleDrop);
+                slot.addEventListener('dragleave', handleDragLeave);
+                slot.addEventListener('dragenter', handleDragEnter);
+            });
+        }
+
+        function handleDragStart(e) {
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.innerHTML);
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.drag-over').forEach(el => {
+                el.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            e.target.closest('.day-column')?.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.target.closest('.day-column')?.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            const draggedElement = document.querySelector('.dragging');
+            if (draggedElement && e.target.classList.contains('meal-slot')) {
+                e.target.innerHTML = '';
+                e.target.appendChild(draggedElement.cloneNode(true));
+                draggedElement.parentNode.innerHTML = '<div class="add-meal-prompt"><span class="add-icon">+</span><div>Add Meal</div></div>';
+            }
+            
+            return false;
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDragAndDrop();
+            updateWeekDates();
+        });
+    </script>
+</body>
+</html>

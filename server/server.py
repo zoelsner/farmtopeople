@@ -1203,7 +1203,7 @@ async def dashboard_page(request: Request):
     
     This is where users start cart analysis and view meal plans.
     """
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+    return templates.TemplateResponse("dashboard_fitbod.html", {"request": request})
 
 @app.get("/api/get-saved-cart")
 async def get_saved_cart():
