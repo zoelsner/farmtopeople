@@ -147,7 +147,7 @@ BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER trigger_update_ingredient_quantities
     BEFORE UPDATE ON ingredient_pools
@@ -156,7 +156,9 @@ CREATE TRIGGER trigger_update_ingredient_quantities
 
 -- Function to initialize ingredient pool from cart data
 CREATE OR REPLACE FUNCTION initialize_ingredient_pool(plan_id UUID, cart_data JSONB)
-RETURNS VOID AS $$
+RETURNS VOID 
+LANGUAGE plpgsql
+SECURITY DEFINER AS $$
 DECLARE
     item JSONB;
     box JSONB;
@@ -229,11 +231,13 @@ BEGIN
         END LOOP;
     END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Function to clean up expired sessions
 CREATE OR REPLACE FUNCTION cleanup_expired_sessions()
-RETURNS INTEGER AS $$
+RETURNS INTEGER 
+LANGUAGE plpgsql
+SECURITY DEFINER AS $$
 DECLARE
     deleted_count INTEGER;
 BEGIN
@@ -241,7 +245,7 @@ BEGIN
     GET DIAGNOSTICS deleted_count = ROW_COUNT;
     RETURN deleted_count;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Comments for documentation
 COMMENT ON TABLE weekly_meal_plans IS 'Main container for weekly meal plans';

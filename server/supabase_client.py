@@ -122,7 +122,7 @@ def get_user_by_email(ftp_email: str) -> Optional[Dict[str, Any]]:
     return row
 
 
-def save_latest_cart_data(phone_number: str, cart_data: Dict[str, Any], delivery_date = None) -> bool:
+def save_latest_cart_data(phone_number: str, cart_data: Dict[str, Any], delivery_date = None, meal_suggestions = None) -> bool:
     """
     Save latest cart data for a user (overwrites previous data).
     
@@ -130,6 +130,7 @@ def save_latest_cart_data(phone_number: str, cart_data: Dict[str, Any], delivery
         phone_number: User's phone number
         cart_data: Complete cart data from scraper
         delivery_date: Optional delivery date (datetime object, ISO string, or raw text)
+        meal_suggestions: Optional meal suggestions from AI analysis
         
     Returns:
         True if successful, False otherwise
@@ -153,11 +154,17 @@ def save_latest_cart_data(phone_number: str, cart_data: Dict[str, Any], delivery
         if clean_delivery_date:
             payload["delivery_date"] = clean_delivery_date
         
+        # Add meal suggestions if provided
+        if meal_suggestions:
+            payload["meal_suggestions"] = meal_suggestions
+        
         result = client.table("latest_cart_data").upsert(payload).execute()
         
         print(f"✅ Saved cart data for {phone_number}")
         if clean_delivery_date:
             print(f"📅 Delivery date: {clean_delivery_date}")
+        if meal_suggestions:
+            print(f"🍽️ Saved {len(meal_suggestions)} meal suggestions")
         return True
         
     except Exception as e:

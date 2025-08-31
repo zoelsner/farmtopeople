@@ -40,6 +40,10 @@ print(f"🤖 AI Model configured: {AI_MODEL}")
 
 app = FastAPI()
 
+# Import and include meal planning API routes
+from meal_planning_api import router as meal_planning_router
+app.include_router(meal_planning_router)
+
 # Mount static files for serving CSS/JS assets
 app.mount("/static", StaticFiles(directory="server/static"), name="static")
 
@@ -359,6 +363,35 @@ async def run_full_meal_plan_flow(phone_number: str):
         generate_detailed_recipes=True, 
         user_skill_level=skill_level
     )
+    
+    # Step 2.5: Save meal suggestions to database for meal calendar consistency
+    if plan and plan.get('meals'):
+        try:
+            # Extract meal data for storage
+            meal_suggestions = []
+            for meal in plan.get('meals', []):
+                meal_data = {
+                    'title': meal.get('title', ''),
+                    'protein': meal.get('protein', ''),
+                    'cook_time': meal.get('cook_time', ''),
+                    'servings': meal.get('servings', 2),
+                    'ingredients': meal.get('ingredients', []),
+                    'instructions': meal.get('instructions', []),
+                    'nutrition': meal.get('nutrition', {}),
+                    'storage_tips': meal.get('storage_tips', [])
+                }
+                meal_suggestions.append(meal_data)
+            
+            # Save to database with meal suggestions
+            db.save_latest_cart_data(
+                phone_number=phone_number,
+                cart_data=cart_data,
+                meal_suggestions=meal_suggestions
+            )
+            print(f"✅ Saved {len(meal_suggestions)} meal suggestions to database")
+        except Exception as e:
+            print(f"⚠️ Failed to save meal suggestions: {e}")
+            # Continue even if saving fails
     
     # Step 3: Generate PDF meal plan (now with professional recipes)
     pdf_path = None
@@ -1650,6 +1683,36 @@ Format as JSON:
                             print(f"     → {meal['makes_x_dinners']}")
                             if meal.get('ingredients_used'):
                                 print(f"     → Uses: {', '.join(meal['ingredients_used'][:3])}")
+                        
+                        # Save meal suggestions to database for meal calendar consistency
+                        if phone:
+                            try:
+                                # Convert meals to storage format
+                                meal_suggestions = []
+                                for meal in meals:
+                                    meal_data = {
+                                        'title': meal['name'],
+                                        'protein': str(meal.get('protein', 25)),
+                                        'cook_time': meal.get('time', '30 min'),
+                                        'servings': meal.get('servings', servings_per_meal),
+                                        'ingredients': meal.get('ingredients_used', []),
+                                        'instructions': [],  # Will be filled when detailed recipes are generated
+                                        'nutrition': {'protein_g': meal.get('protein', 25)},
+                                        'makes_x_dinners': meal.get('makes_x_dinners', '')
+                                    }
+                                    meal_suggestions.append(meal_data)
+                                
+                                # Save to database
+                                db.save_latest_cart_data(
+                                    phone_number=phone,
+                                    cart_data=cart_data,
+                                    meal_suggestions=meal_suggestions
+                                )
+                                print(f"✅ Saved {len(meal_suggestions)} meal suggestions to database for calendar")
+                            except Exception as e:
+                                print(f"⚠️ Failed to save meal suggestions to database: {e}")
+                                # Continue even if saving fails
+                        
                         return {"success": True, "meals": meals, "household_size": household_size}
                 
                 print(f"⚠️ Could not extract valid JSON from GPT response")

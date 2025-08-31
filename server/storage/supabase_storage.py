@@ -11,7 +11,7 @@ from datetime import datetime, date, timedelta
 from decimal import Decimal
 
 from .base import MealPlanStorage, StorageError, ConflictError, NotFoundError, ValidationError
-from ..supabase_client import client
+import supabase_client as db
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +20,9 @@ class SupabaseMealStorage(MealPlanStorage):
     """Supabase implementation of meal plan storage."""
     
     def __init__(self):
-        self.client = client
+        self.client = db.get_client()
     
-    async def create_meal_plan(self, user_phone: str, week_of: date, cart_data: Dict) -> str:
+    def create_meal_plan(self, user_phone: str, week_of: date, cart_data: Dict) -> str:
         """Create a new meal plan and initialize ingredient pool."""
         try:
             # Create meal plan record
