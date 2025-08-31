@@ -6,21 +6,25 @@
     <title>Your Meal Plan - Farm to People</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    
+    <!-- Professional Fitbod CSS for styling only -->
+    <link rel="stylesheet" href="/static/css/fitbod_meal_planning.css">
+    
     <style>
-        /* Fitbod-Inspired Dark Theme */
+        /* Override with light theme colors */
         :root {
-            --bg-primary: #0f0f0f;
-            --bg-secondary: #1a1a1a;
-            --bg-card: #242424;
-            --border-subtle: rgba(255, 255, 255, 0.08);
-            --text-primary: #ffffff;
-            --text-secondary: #999999;
-            --text-tertiary: #666666;
-            --accent-blue: #007AFF;
-            --accent-green: #28a745;
-            --accent-red: #dc3545;
-            --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
-            --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --bg-primary: #f8f9fa !important;
+            --bg-secondary: #ffffff !important;
+            --bg-card: #ffffff !important;
+            --border-subtle: rgba(0, 0, 0, 0.08) !important;
+            --text-primary: #1a1a1a !important;
+            --text-secondary: #666666 !important;
+            --text-tertiary: #999999 !important;
+            --accent-blue: #007AFF !important;
+            --accent-green: #28a745 !important;
+            --accent-red: #dc3545 !important;
+            --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+            --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
         }
         
         * {
@@ -906,7 +910,7 @@
                 <div class="empty-icon">🍽️</div>
                 <h3>No Meal Plan Yet</h3>
                 <p>Create your first meal plan by analyzing your cart</p>
-                <button id="createMealPlan" class="analyze-button">Create Meal Plan</button>
+                <button id="createMealPlan" class="analyze-button" onclick="startAnalysis(); switchTab('cart', document.getElementById('cartTab'));">Create Meal Plan</button>
             </div>
 
             <!-- Main Calendar Grid -->
@@ -1919,12 +1923,101 @@
             } else if (tab === 'meals') {
                 // Meals tab shows meal suggestions
                 document.getElementById('mealsSection').classList.add('active');
+                
+                // Show the meal calendar if we have data
+                if (mealPlanData && mealPlanData.cart_data) {
+                    document.getElementById('mealPlanEmpty').style.display = 'none';
+                    document.getElementById('mealCalendarGrid').style.display = 'grid';
+                    
+                    // Update the week dates
+                    updateWeekDates();
+                    
+                    // Populate ingredient pool if not already done
+                    if (!document.getElementById('ingredientList').innerHTML.trim()) {
+                        populateIngredientPool();
+                    }
+                } else {
+                    // Show empty state
+                    document.getElementById('mealPlanEmpty').style.display = 'block';
+                    document.getElementById('mealCalendarGrid').style.display = 'none';
+                }
             } else if (tab === 'settings') {
                 // Settings redirects to separate page (handled by href)
                 document.getElementById('settingsSection').classList.add('active');
             }
         }
 
+        function updateWeekDates() {
+            const today = new Date();
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - today.getDay() + 1);
+            
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+            days.forEach((day, index) => {
+                const date = new Date(monday);
+                date.setDate(monday.getDate() + index);
+                const dateElement = document.getElementById(`${day}-date`);
+                if (dateElement) {
+                    dateElement.textContent = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }
+            });
+        }
+        
+        function populateIngredientPool() {
+            if (!mealPlanData || !mealPlanData.cart_data) return;
+            
+            const cartData = mealPlanData.cart_data;
+            const ingredients = [];
+            
+            // Extract ingredients from individual items
+            if (cartData.individual_items) {
+                cartData.individual_items.forEach(item => {
+                    ingredients.push({
+                        name: item.name,
+                        quantity: item.quantity,
+                        unit: item.unit || ''
+                    });
+                });
+            }
+            
+            // Extract from boxes
+            ['customizable_boxes', 'non_customizable_boxes'].forEach(boxType => {
+                if (cartData[boxType]) {
+                    cartData[boxType].forEach(box => {
+                        if (box.selected_items) {
+                            box.selected_items.forEach(item => {
+                                ingredients.push({
+                                    name: item.name,
+                                    quantity: item.quantity || 1,
+                                    unit: item.unit || ''
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+            
+            // Display first 8 ingredients with progress bars
+            const ingredientList = document.getElementById('ingredientList');
+            ingredientList.innerHTML = ingredients.slice(0, 8).map(ing => {
+                const percentage = Math.floor(Math.random() * 100); // Mock percentage for now
+                const status = percentage > 60 ? 'plenty' : percentage > 30 ? 'half' : 'low';
+                
+                return `
+                    <div class="ingredient-item">
+                        <div class="ingredient-name">${ing.name}</div>
+                        <div class="ingredient-progress">
+                            <div class="ingredient-progress-bar" style="width: ${percentage}%"></div>
+                        </div>
+                        <div class="ingredient-status">
+                            <span>${ing.quantity} ${ing.unit}</span>
+                            <span>${percentage}% available</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
         function showAddToHomeScreen() {
             // iOS Safari
             if (navigator.userAgent.match(/iPhone|iPad|iPod/)) {
@@ -2254,7 +2347,7 @@
             const ingredients = meal.allocated_ingredients || [];
             
             const ingredientChips = ingredients.map(ing => 
-                `<span class="ingredient-chip">${ing.name} ${ing.quantity}${ing.unit}</span>`
+                `<span class="ingredient-chip">${ing.name}</span>`
             ).join('');
             
             mealSlot.innerHTML = `
@@ -2264,8 +2357,7 @@
                         <span class="protein-badge">${mealData.protein || '25g'}</span>
                     </div>
                     <div class="meal-details">
-                        <span>⏱️ ${mealData.cook_time || '30 min'}</span>
-                        <span>👥 ${mealData.servings || 2} servings</span>
+                        <span>${mealData.cook_time || '30 min'} • ${mealData.servings || 2} servings</span>
                     </div>
                     <div class="ingredients-used">
                         ${ingredientChips}

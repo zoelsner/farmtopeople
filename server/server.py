@@ -1203,7 +1203,7 @@ async def dashboard_page(request: Request):
     
     This is where users start cart analysis and view meal plans.
     """
-    return templates.TemplateResponse("dashboard_fitbod.html", {"request": request})
+    return templates.TemplateResponse("dashboard.html", {"request": request})
 
 @app.get("/api/get-saved-cart")
 async def get_saved_cart():
@@ -1680,10 +1680,19 @@ async def refresh_meal_suggestions(request: Request):
             # Build focused prompt for GPT-5 WITH PREFERENCES
             prompt = f"""Analyze this cart and create meal suggestions for a household of {household_size}.
 
-CART CONTENTS:
+CART CONTENTS WITH EXACT QUANTITIES:
 PROTEINS ({len(proteins)} items): {', '.join(proteins) if proteins else 'none'}
 VEGETABLES ({len(vegetables)} items): {', '.join(vegetables) if vegetables else 'none'}  
 OTHER ITEMS ({len(other_items)} items): {', '.join(other_items) if other_items else 'none'}
+
+PROTEIN CALCULATION REFERENCE (per 4oz cooked serving):
+- Chicken breast: 35g protein
+- Chicken thigh: 28g protein
+- Salmon/Steelhead: 30-34g protein
+- Ground beef/turkey: 28-30g protein
+- Eggs: 6g per egg
+- Black Sea Bass: 24g protein
+- Tofu: 10g protein
 
 USER PREFERENCES:
 - Household size: {household_size} (need {servings_per_meal} servings per meal)
@@ -1721,7 +1730,8 @@ Format as JSON:
   "name": "Specific Meal Name Using Actual Ingredients",
   "servings": {servings_per_meal},
   "time": "X min",
-  "protein_per_serving": X,
+  "protein_per_serving": X,  // MUST CALCULATE: e.g., "0.7lb chicken = 2 servings @ 35g each" or "1lb salmon = 4 servings @ 30g each"
+  "protein_calculation": "Show your math: X lb protein / Y servings = Z grams per serving",
   "makes_x_dinners": "This recipe makes X dinners for your family",
   "ingredients_used": ["list", "actual", "cart", "items", "used"],
   "note": "optional note about what to add from store"
