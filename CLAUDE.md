@@ -4,9 +4,9 @@
 
 **Farm to People AI Assistant** transforms weekly produce boxes into personalized meal plans through intelligent SMS conversations. The system learns user preferences, analyzes cart contents, and delivers actionable cooking guidance.
 
-**Current Status:** Production Ready - Web app deployed with full onboarding and cart integration  
-**Last Updated:** August 28, 2025  
-**Version:** 2.3.0  
+**Current Status:** In Development - Meal calendar architecture complete, implementing frontend  
+**Last Updated:** August 31, 2025  
+**Version:** 3.0.0-beta (Meal Calendar Update)  
 **Branch:** `feature/customer-automation`  
 **Primary Contact:** SMS `18334391183` (Vonage)  
 **Live URL:** https://farmtopeople-production.up.railway.app
@@ -52,6 +52,9 @@ open http://localhost:8000/dashboard
 - [`docs/ONBOARDING_SYSTEM.md`](docs/ONBOARDING_SYSTEM.md) - Preference collection implementation
 
 ### **Technical Documentation**
+- [`docs/MEAL_CALENDAR_IMPLEMENTATION_PLAN.md`](docs/MEAL_CALENDAR_IMPLEMENTATION_PLAN.md) - **NEW:** Complete meal planning system design
+- [`docs/CODEBASE_AUDIT_REPORT_AUG31.md`](docs/CODEBASE_AUDIT_REPORT_AUG31.md) - **NEW:** Comprehensive architecture audit
+- [`database/meal_planning_schema.sql`](database/meal_planning_schema.sql) - **NEW:** Database schema for meal planning
 - [`docs/refactoring_opportunities.md`](docs/refactoring_opportunities.md) - Architecture improvements & conversation state management
 - [`docs/conversational_ai_architecture.md`](docs/conversational_ai_architecture.md) - AI system design patterns
 - [`DEBUGGING_PROTOCOL.md`](DEBUGGING_PROTOCOL.md) - Scraper troubleshooting guide
@@ -63,14 +66,20 @@ open http://localhost:8000/dashboard
 
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   WEB APP    │────▶│   DASHBOARD  │────▶│   SETTINGS   │
-│ (7-step flow)│     │ (Live Cart)  │     │ (CRUD Prefs) │
+│   WEB APP    │────▶│   DASHBOARD  │────▶│ MEAL CALENDAR│
+│ (7-step flow)│     │ (Live Cart)  │     │ (Drag & Drop)│
 └──────────────┘     └──────────────┘     └──────────────┘
         │                    │                     │
         ▼                    ▼                     ▼
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   SUPABASE   │◀────│   SCRAPER    │────▶│   GPT-5      │
-│ (User+Prefs) │     │ (Real Cart)  │     │ (Meal Plans) │
+│   SUPABASE   │◀────│   SCRAPER    │────▶│ STORAGE LAYER│
+│(Users+Meals) │     │ (Real Cart)  │     │ (Abstraction)│
+└──────────────┘     └──────────────┘     └──────────────┘
+        │                    │                     │
+        ▼                    ▼                     ▼
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   SESSIONS   │     │   AI MODELS  │     │    REDIS     │
+│ (Cross-device)│     │  (GPT-5)     │     │  (Future)    │
 └──────────────┘     └──────────────┘     └──────────────┘
 ```
 
@@ -158,6 +167,57 @@ Every SMS now includes contextual help text to guide users:
 4. "🤖 Generating personalized meal plans with your ingredients..."
 5. [Final meal plan SMS]
 ```
+
+---
+
+## 📅 **MEAL CALENDAR SYSTEM (NEW - Aug 31, 2025)**
+
+### **Revolutionary Feature: Drag & Drop Meal Planning**
+Transform cart contents into interactive weekly meal calendar with smart ingredient allocation.
+
+### **Key Innovations:**
+- **Smart Ingredient Tracking** - System prevents over-allocation of ingredients
+- **Drag & Drop Interface** - Move meals between days with real-time conflict detection  
+- **Context-Aware Regeneration** - AI considers remaining ingredients when recreating meals
+- **Cross-Device Sync** - Seamless planning across phone and desktop
+
+### **Architecture:**
+```
+Cart Data → Ingredient Pool → Weekly Calendar → Meal Assignments
+     ↓            ↓               ↓              ↓
+   JSON        Database       React UI     Supabase Storage
+```
+
+### **Database Schema (4 New Tables):**
+- `weekly_meal_plans` - Main meal plan containers
+- `meal_assignments` - Individual meals per day (Mon-Fri)
+- `ingredient_pools` - Track ingredient allocation/availability  
+- `meal_plan_sessions` - Cross-device sync sessions
+
+### **User Flow Example:**
+1. **Generate Plan** - AI creates 5-day meal plan from cart
+2. **Review Calendar** - See Monday-Friday with assigned meals
+3. **Drag to Modify** - Move Tuesday's chicken to Thursday
+4. **Auto-Validation** - System checks ingredient availability
+5. **Smart Regeneration** - Click refresh on Tuesday for new meal
+6. **Conflict Resolution** - Suggest alternatives if ingredients insufficient
+
+### **Storage Architecture (Redis-Ready):**
+```python
+# Abstract storage layer for easy migration
+storage = SupabaseMealStorage()  # Current
+# storage = RedisMealStorage()   # Future (>100 users)
+
+# Key operations:
+await storage.create_meal_plan(user_phone, week_of, cart_data)
+await storage.assign_meal(plan_id, "monday", meal_data, ingredients)
+await storage.get_ingredient_pool(plan_id)  # Real-time availability
+```
+
+### **Status:** 
+- ✅ **Backend Complete** - Database schema, storage layer, conflict detection
+- 🚧 **API Endpoints** - In development (meal CRUD, regeneration)
+- 📅 **Frontend** - Starting soon (drag & drop calendar component)
 
 ---
 
