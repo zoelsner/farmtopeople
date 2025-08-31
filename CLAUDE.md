@@ -4,9 +4,9 @@
 
 **Farm to People AI Assistant** transforms weekly produce boxes into personalized meal plans through intelligent SMS conversations. The system learns user preferences, analyzes cart contents, and delivers actionable cooking guidance.
 
-**Current Status:** In Development - Meal calendar architecture complete, implementing frontend  
+**Current Status:** Core System Complete - Cart analysis, meal calendar, and debugging fixes deployed  
 **Last Updated:** August 31, 2025  
-**Version:** 3.0.0-beta (Meal Calendar Update)  
+**Version:** 3.1.0 (Cart Analysis Fixes)  
 **Branch:** `feature/customer-automation`  
 **Primary Contact:** SMS `18334391183` (Vonage)  
 **Live URL:** https://farmtopeople-production.up.railway.app
@@ -109,6 +109,9 @@ Step 7: FTP Account Credentials → Dashboard
 ### **Important Business Rules**
 - **Cart Lock Time:** Carts lock at 11:59 AM ET the day before delivery
 - **Fallback Logic:** When cart is locked, system uses stored cart data with complete boxes
+- **Phone Format Handling:** System tries multiple formats: `phone`, `+phone`, `+1phone`, `1phone`
+- **Delivery Date Display:** Green text in top-right of cart analysis showing delivery date
+- **Customizable Box Detection:** Uses `customizable` flag regardless of storage array
 - **Protein Requirements:** Women: 30g minimum, Men: 35-40g minimum per meal
 
 ### **Settings System (Full CRUD)**
@@ -278,7 +281,7 @@ await storage.get_ingredient_pool(plan_id)  # Real-time availability
 - **✅ Cart Scraping** - Comprehensive capture including delivery date extraction
 - **✅ User Management** - Phone-first flow with existing user skip logic
 - **✅ Database Schema** - Supabase user/preference storage with encrypted credentials
-- **✅ Live Cart → Dashboard** - Real FTP data integration with fallback to mock data
+- **✅ Live Cart → Dashboard** - Real FTP data integration with phone format handling
 - **✅ Navigation System** - Clean tab structure (Cart/Meals/Settings) with proper routing
 - **✅ GPT-5 Implementation** - Production-ready meal plan generation
 - **✅ Deployment** - Live on Railway with environment variables configured
@@ -287,16 +290,24 @@ await storage.get_ingredient_pool(plan_id)  # Real-time availability
 - **✅ Meal Variety Engine** - Different proteins/cooking methods each day
 - **✅ Preference Integration** - User goals shape meal generation (high-protein, quick dinners)
 - **✅ Cross-device Foundation** - Session management API for multi-device sync
+- **✅ Cart Analysis Fixes** - Proper cart detection, delivery date display, box categorization
+- **✅ Date Navigation Fixes** - Stable week navigation without erratic date jumping
 
-### ✅ **COMPLETED THIS WEEK (8/31 - MEAL CALENDAR SPRINT)**
-- **✅ Saturday:** Complete meal planning database schema with ingredient allocation
-- **✅ Saturday:** Meal planning API with CRUD operations and conflict detection
-- **✅ Saturday:** User preference integration in meal generation algorithms
-- **✅ Saturday:** Meal variety system (different proteins/cooking methods per day)
-- **✅ Saturday:** Interactive meal calendar interface with drag & drop
-- **✅ Saturday:** Ingredient pool tracking with real-time progress visualization
-- **✅ Saturday:** Mobile-responsive calendar design with touch-friendly interactions
-- **✅ Saturday:** Complete documentation of meal calendar system
+### ✅ **COMPLETED THIS WEEK (8/31 - MEAL CALENDAR & DEBUG FIXES)**
+- **✅ Saturday PM:** Complete meal planning database schema with ingredient allocation
+- **✅ Saturday PM:** Meal planning API with CRUD operations and conflict detection
+- **✅ Saturday PM:** User preference integration in meal generation algorithms
+- **✅ Saturday PM:** Meal variety system (different proteins/cooking methods per day)
+- **✅ Saturday PM:** Interactive meal calendar interface with drag & drop
+- **✅ Saturday PM:** Ingredient pool tracking with real-time progress visualization
+- **✅ Saturday PM:** Mobile-responsive calendar design with touch-friendly interactions
+- **✅ Saturday PM:** Complete documentation of meal calendar system
+- **✅ Saturday LATE:** Critical cart analysis debugging - fixed phone format lookup
+- **✅ Saturday LATE:** Fixed Python indentation errors preventing server startup
+- **✅ Saturday LATE:** Fixed "Please analyze your cart first" error with proper cart detection
+- **✅ Saturday LATE:** Added delivery date display in green text at top-right
+- **✅ Saturday LATE:** Fixed meal calendar week navigation with proper date handling
+- **✅ Saturday LATE:** Fixed customizable box categorization using `customizable` flag
 
 ### ✅ **PREVIOUS WEEK (8/26-8/28)**
 - **✅ Monday:** Settings page with 5 preference categories and modal editing
@@ -318,28 +329,25 @@ await storage.get_ingredient_pool(plan_id)  # Real-time availability
 
 ## 🚨 CRITICAL GAPS & HANDOFF ISSUES
 
-### **Gap 1: Preferences → Meal Planning**
-**Issue**: Collected preferences not utilized in GPT prompts  
-**Impact**: Missing personalization opportunity despite data collection  
-**Solution**:
-```python
-# In server.py run_full_meal_plan_flow():
-user_record = db.get_user_by_phone(phone_number)
-preferences = user_record.get('preferences', {})
+### ~~**Gap 1: Preferences → Meal Planning** ✅ RESOLVED~~
+~~**Issue**: Collected preferences not utilized in GPT prompts~~  
+~~**Impact**: Missing personalization opportunity despite data collection~~  
+**Status**: ✅ **FIXED** - User preferences now integrated into meal generation
 
-# Pass to meal_planner:
-plan = meal_planner.run_main_planner(preferences)  # ADD THIS
-```
-
-### **Gap 2: Live Cart → Real Analysis**
-**Issue**: Scraper works but test data still used  
-**Impact**: Recommendations don't reflect actual purchased ingredients  
-**Solution**: Ensure meal_planner uses actual scraped JSON data
+### ~~**Gap 2: Live Cart → Real Analysis** ✅ RESOLVED~~
+~~**Issue**: Scraper works but test data still used~~  
+~~**Impact**: Recommendations don't reflect actual purchased ingredients~~  
+**Status**: ✅ **FIXED** - System now properly uses stored cart data with phone format lookup
 
 ### **Gap 3: Goals → Ranking Logic**
 **Issue**: Goal weights defined but not implemented  
 **Impact**: "Quick dinners" goal doesn't prioritize fast recipes  
 **Solution**: Implement ranking adjustments based on goals
+
+### **NEW: Cart Data Structure Mismatch**
+**Issue**: Customizable boxes sometimes stored in `non_customizable_boxes` array  
+**Impact**: Frontend logic fails to detect customizable features  
+**Status**: ✅ **FIXED** - Now uses `customizable` flag regardless of storage array
 
 ---
 
@@ -487,17 +495,29 @@ command not found: python
 Changes not reflected
 # Fix: ps aux | grep server.py && kill [PID]
 
+# Python indentation errors preventing startup
+IndentationError: expected an indented block
+# Fix: Check server.py for consistent indentation (spaces vs tabs)
+
+# Cart analysis shows "Please analyze your cart first"
+mealPlanData not set despite cart being analyzed
+# Fix: Ensure showCartAnalysis() sets mealPlanData = { cart_data: cartData }
+
+# Phone number format mismatch
+Cart data not found despite being stored in Supabase
+# Fix: System now tries multiple formats: phone, +phone, +1phone, 1phone
+
 # Scraper authentication fails
 Zipcode modal appears
 # Fix: Check EMAIL/PASSWORD in .env
 
-# Cart data not updating
-Using old test data
-# Fix: Check meal_planner.py uses latest JSON
+# Date navigation jumping erratically
+Meal calendar showing wrong weeks or skipping by months
+# Fix: Avoid date mutation - create new Date objects instead of modifying existing ones
 
-# Terminal shows no comprehensive output
-Missing individual items or boxes
-# Fix: venv not activated OR authentication failed
+# Customizable boxes not detected
+Box has customizable=true but appears as non-customizable
+# Fix: Check customizable flag, not which array it's stored in
 ```
 
 ---
@@ -527,9 +547,10 @@ Missing individual items or boxes
 
 ---
 
-**Last Updated:** August 24, 2025  
-**Version:** 2.1.0  
-**Status:** Development - Core complete, integration gaps identified  
-**Next Sprint:** Week of August 26 - Core Integration Focus
+**Last Updated:** August 31, 2025  
+**Version:** 3.1.0  
+**Status:** Core System Complete - Cart analysis, meal calendar, debugging fixes deployed  
+**Recent Fixes:** Phone format lookup, cart detection, delivery date display, date navigation stability  
+**Next Sprint:** Week of September 2 - Advanced meal planning features
 
 *This guide provides the essential information for developing and maintaining the Farm to People AI Assistant. For detailed implementation specifics, refer to the documentation index above.*

@@ -393,8 +393,8 @@
         }
         
         .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            display: flex;
+            flex-direction: column;
             gap: 12px;
             min-height: 300px;
         }
@@ -716,7 +716,7 @@
             }
             
             .calendar-grid {
-                grid-template-columns: 1fr;
+                flex-direction: column;
                 gap: 8px;
             }
             
@@ -893,11 +893,11 @@
 
             <!-- Main Calendar Grid -->
             <div id="mealCalendarGrid" class="calendar-container" style="display: none;">
-                <!-- Calendar Days -->
+                <!-- Calendar Days (Vertical Layout) -->
                 <div class="calendar-grid">
-                    <div class="day-column" data-day="monday">
+                    <div class="day-row" data-day="monday">
                         <div class="day-header">
-                            <h3>Monday</h3>
+                            <h3>Mon</h3>
                             <span class="day-date" id="monday-date"></span>
                         </div>
                         <div class="meal-slot" data-day="monday">
@@ -908,9 +908,9 @@
                         </div>
                     </div>
 
-                    <div class="day-column" data-day="tuesday">
+                    <div class="day-row" data-day="tuesday">
                         <div class="day-header">
-                            <h3>Tuesday</h3>
+                            <h3>Tue</h3>
                             <span class="day-date" id="tuesday-date"></span>
                         </div>
                         <div class="meal-slot" data-day="tuesday">
@@ -921,9 +921,9 @@
                         </div>
                     </div>
 
-                    <div class="day-column" data-day="wednesday">
+                    <div class="day-row" data-day="wednesday">
                         <div class="day-header">
-                            <h3>Wednesday</h3>
+                            <h3>Wed</h3>
                             <span class="day-date" id="wednesday-date"></span>
                         </div>
                         <div class="meal-slot" data-day="wednesday">
@@ -934,9 +934,9 @@
                         </div>
                     </div>
 
-                    <div class="day-column" data-day="thursday">
+                    <div class="day-row" data-day="thursday">
                         <div class="day-header">
-                            <h3>Thursday</h3>
+                            <h3>Thu</h3>
                             <span class="day-date" id="thursday-date"></span>
                         </div>
                         <div class="meal-slot" data-day="thursday">
@@ -947,9 +947,9 @@
                         </div>
                     </div>
 
-                    <div class="day-column" data-day="friday">
+                    <div class="day-row" data-day="friday">
                         <div class="day-header">
-                            <h3>Friday</h3>
+                            <h3>Fri</h3>
                             <span class="day-date" id="friday-date"></span>
                         </div>
                         <div class="meal-slot" data-day="friday">
@@ -1966,12 +1966,28 @@
                             
                             if (months[month] !== undefined) {
                                 const deliveryDate = new Date(currentYear, months[month], day);
+                                
+                                // If the delivery date is in the past (more than 7 days ago), it's probably next year
+                                const today = new Date();
+                                const daysDiff = Math.floor((today - deliveryDate) / (1000 * 60 * 60 * 24));
+                                if (daysDiff > 7) {
+                                    deliveryDate.setFullYear(currentYear + 1);
+                                }
+                                
                                 console.log(`📦 Delivery date: ${deliveryDate.toDateString()}`);
                                 
-                                // Set target date to the day after delivery for meal planning
-                                targetDate = new Date(deliveryDate);
-                                targetDate.setDate(targetDate.getDate() + 1);
-                                console.log(`🍽️ Meal planning target date: ${targetDate.toDateString()}`);
+                                // For Sunday delivery, meal planning week starts Monday
+                                // Sunday Aug 31 -> Week of Sept 1-5
+                                if (deliveryDate.getDay() === 0) { // Sunday
+                                    targetDate = new Date(deliveryDate);
+                                    targetDate.setDate(targetDate.getDate() + 1); // Monday
+                                } else {
+                                    // For other days, start the following Monday
+                                    targetDate = new Date(deliveryDate);
+                                    const daysUntilMonday = (8 - deliveryDate.getDay()) % 7;
+                                    targetDate.setDate(targetDate.getDate() + daysUntilMonday);
+                                }
+                                console.log(`🍽️ Meal planning week starts: ${targetDate.toDateString()}`);
                             } else {
                                 console.log(`❌ Unknown month: ${month}`);
                             }
@@ -1987,7 +2003,17 @@
             }
             
             // Initialize currentWeek to the Monday of the target week
-            currentWeek = getMonday(targetDate);
+            console.log(`📅 Target date for meals: ${targetDate.toDateString()}`);
+            
+            // If target date is already Monday, use it directly
+            if (targetDate.getDay() === 1) {
+                currentWeek = new Date(targetDate);
+                console.log(`✅ Target is already Monday: ${currentWeek.toDateString()}`);
+            } else {
+                currentWeek = getMonday(targetDate);
+                console.log(`📅 Calculated Monday: ${currentWeek.toDateString()}`);
+            }
+            
             updateWeekDisplay();
             loadCurrentWeekPlan();
             setupEventListeners();
