@@ -1255,7 +1255,15 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                 print(f"🔍 Looking up credentials for {phone}")
                 
                 # First check if we have recent stored cart data (for when cart is locked)
-                stored_cart = db.get_latest_cart_data(phone)
+                # Try multiple phone formats to find stored data
+                stored_cart = None
+                phone_formats = [phone, f"+{phone}", f"+1{phone}", f"1{phone}" if not phone.startswith('1') else phone]
+                
+                for phone_format in phone_formats:
+                    stored_cart = db.get_latest_cart_data(phone_format)
+                    if stored_cart and stored_cart.get('cart_data'):
+                        print(f"✅ Found stored cart data with phone format: {phone_format}")
+                        break
                 if stored_cart and stored_cart.get('cart_data'):
                     # Check if cart might be locked based on delivery date
                     # Cart locks the day before delivery at 11:59am
@@ -1293,87 +1301,112 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                     
                     if is_cart_locked:
                         print("🔒 Cart is locked. Using stored data if available.")
-                        if stored_cart['cart_data'].get('customizable_boxes'):
-                            print("✅ Using stored cart data with complete boxes")
+                        # Check if stored cart has complete data (with customizable boxes)
+                        has_boxes = (stored_cart['cart_data'].get('customizable_boxes') and 
+                                   len(stored_cart['cart_data'].get('customizable_boxes', [])) > 0)
+                        
+                        if has_boxes:
+                            print(f"✅ Using stored cart data with {len(stored_cart['cart_data']['customizable_boxes'])} customizable boxes")
                             cart_data = stored_cart['cart_data']
-                            # Skip scraping entirely and go to meal generation
-                            # Continue to meal generation below...
+                        else:
+                            # Even without boxes, use stored data if it has more items than locked cart would show
+                            print("⚠️ Stored cart data has no customizable boxes")
+                            if len(stored_cart['cart_data'].get('individual_items', [])) > 4:
+                                print(f"✅ Using stored cart with {len(stored_cart['cart_data']['individual_items'])} items")
+                                cart_data = stored_cart['cart_data']
+                            else:
+                                print("❌ Stored cart data is incomplete")
+                                return {
+                                    "success": False,
+                                    "error": "Cart is locked and no complete cart data is available",
+                                    "debug_info": {
+                                        "reason": "Cart locks at 11:59 AM the day before delivery",
+                                        "stored_items": len(stored_cart['cart_data'].get('individual_items', [])),
+                                        "stored_boxes": len(stored_cart['cart_data'].get('customizable_boxes', [])),
+                                        "suggestion": "Please analyze cart before it locks on Saturday at 11:59 AM"
+                                    }
+                                }
                 
-                # Try multiple phone formats like other endpoints do
-                phone_formats = [phone, f"+{phone}", f"1{phone}" if not phone.startswith('1') else phone, f"+1{phone}"]
-                user_record = None
-                
-                for phone_format in phone_formats:
-                    print(f"  📞 Trying phone format: {phone_format}")
-                    user_record = db.get_user_by_phone(phone_format)
-                    if user_record:
-                        print(f"  ✅ Found user with format: {phone_format}")
-                        break
-                
-                # Get user credentials from database (only if we don't already have cart_data)
-                if not cart_data and user_record and user_record.get('ftp_email'):
-                    email = user_record['ftp_email']
-                    # Decrypt password (it's base64 encoded)
-                    import base64
-                    encoded_pwd = user_record.get('ftp_password_encrypted', '')
-                    password = base64.b64decode(encoded_pwd).decode('utf-8') if encoded_pwd else None
+                # If we already have cart_data from stored (when locked), skip scraping
+                if cart_data:
+                    print(f"✅ Already have cart data, skipping scraper")
+                    # Jump to the end where we return success with cart_data
+                else:
+                    # Try multiple phone formats like other endpoints do
+                    phone_formats = [phone, f"+{phone}", f"1{phone}" if not phone.startswith('1') else phone, f"+1{phone}"]
+                    user_record = None
                     
-                    if email and password:
-                        print(f"🛒 Running live scraper for {email}")
-                        # Run the actual scraper with return_data=True (properly isolated from async context)
-                        credentials = {'email': email, 'password': password}
+                    for phone_format in phone_formats:
+                        print(f"  📞 Trying phone format: {phone_format}")
+                        user_record = db.get_user_by_phone(phone_format)
+                        if user_record:
+                            print(f"  ✅ Found user with format: {phone_format}")
+                            break
+                    
+                    # Get user credentials from database (only if we don't already have cart_data)
+                    if not cart_data and user_record and user_record.get('ftp_email'):
+                        email = user_record['ftp_email']
+                        # Decrypt password (it's base64 encoded)
+                        import base64
+                        encoded_pwd = user_record.get('ftp_password_encrypted', '')
+                        password = base64.b64decode(encoded_pwd).decode('utf-8') if encoded_pwd else None
                         
-                        # Use async scraper directly (clean solution)
-                        cart_data = await run_cart_scraper(credentials, return_data=True, phone_number=phone)
+                        if email and password:
+                            print(f"🛒 Running live scraper for {email}")
+                            # Run the actual scraper with return_data=True (properly isolated from async context)
+                            credentials = {'email': email, 'password': password}
+                            
+                            # Use async scraper directly (clean solution)
+                            cart_data = await run_cart_scraper(credentials, return_data=True, phone_number=phone)
                         
-                        if cart_data:
-                            print("✅ Successfully scraped live cart data!")
-                            
-                            # Check if cart is missing customizable boxes (likely locked)
-                            has_customizable = cart_data.get('customizable_boxes') and len(cart_data['customizable_boxes']) > 0
-                            
-                            if not has_customizable:
-                                print("⚠️ Cart appears locked (no customizable boxes). Checking for stored data...")
+                            if cart_data:
+                                print("✅ Successfully scraped live cart data!")
+                                
+                                # Check if cart is missing customizable boxes (likely locked)
+                                has_customizable = cart_data.get('customizable_boxes') and len(cart_data['customizable_boxes']) > 0
+                                
+                                if not has_customizable:
+                                    print("⚠️ Cart appears locked (no customizable boxes). Checking for stored data...")
+                                    stored_cart = db.get_latest_cart_data(phone)
+                                    
+                                    if stored_cart and stored_cart.get('cart_data'):
+                                        stored_has_customizable = (stored_cart['cart_data'].get('customizable_boxes') and 
+                                                                  len(stored_cart['cart_data']['customizable_boxes']) > 0)
+                                        
+                                        if stored_has_customizable:
+                                            print("✅ Using stored cart data with complete boxes")
+                                            cart_data = stored_cart['cart_data']
+                                        else:
+                                            print("⚠️ Stored cart also has no customizable boxes")
+                            else:
+                                # Try to get stored cart data as fallback
+                                print("⚠️ Scraper returned no data. Checking for stored cart...")
                                 stored_cart = db.get_latest_cart_data(phone)
                                 
                                 if stored_cart and stored_cart.get('cart_data'):
-                                    stored_has_customizable = (stored_cart['cart_data'].get('customizable_boxes') and 
-                                                              len(stored_cart['cart_data']['customizable_boxes']) > 0)
-                                    
-                                    if stored_has_customizable:
-                                        print("✅ Using stored cart data with complete boxes")
-                                        cart_data = stored_cart['cart_data']
-                                    else:
-                                        print("⚠️ Stored cart also has no customizable boxes")
+                                    print("✅ Using stored cart data")
+                                    cart_data = stored_cart['cart_data']
+                                else:
+                                    # Return error if no data available
+                                    return {
+                                        "success": False,
+                                        "error": "No cart data available. Please check your Farm to People account.",
+                                        "debug_info": "Scraper failed and no stored data found"
+                                    }
                         else:
-                            # Try to get stored cart data as fallback
-                            print("⚠️ Scraper returned no data. Checking for stored cart...")
-                            stored_cart = db.get_latest_cart_data(phone)
-                            
-                            if stored_cart and stored_cart.get('cart_data'):
-                                print("✅ Using stored cart data")
-                                cart_data = stored_cart['cart_data']
-                            else:
-                                # Return error if no data available
-                                return {
-                                    "success": False,
-                                    "error": "No cart data available. Please check your Farm to People account.",
-                                    "debug_info": "Scraper failed and no stored data found"
-                                }
-                    else:
+                            # Return error instead of mock data
+                            return {
+                                "success": False,
+                                "error": "Missing Farm to People credentials. Please log in first.",
+                                "debug_info": f"User found but no credentials stored for {email if 'email' in locals() else 'unknown'}"
+                            }
+                    elif not cart_data:
                         # Return error instead of mock data
                         return {
                             "success": False,
-                            "error": "Missing Farm to People credentials. Please log in first.",
-                            "debug_info": f"User found but no credentials stored for {email if 'email' in locals() else 'unknown'}"
+                            "error": "User not found. Please complete onboarding first.",
+                            "debug_info": f"No user record found for phone: {phone}"
                         }
-                else:
-                    # Return error instead of mock data
-                    return {
-                        "success": False,
-                        "error": "User not found. Please complete onboarding first.",
-                        "debug_info": f"No user record found for phone: {phone}"
-                    }
                     
             except Exception as e:
                 # Return error instead of mock data

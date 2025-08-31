@@ -1107,18 +1107,43 @@
                 if (data.success) {
                     showCartAnalysis(data.cart_data, data.swaps, data.addons);
                 } else {
-                    // For now, show mock data
-                    showMockCartAnalysis();
+                    // Show error message instead of mock data
+                    showError(data.error || 'Failed to analyze cart', data.debug_info);
                 }
             } catch (error) {
                 clearInterval(statusInterval);
-                // Show mock data for testing
-                showMockCartAnalysis();
+                // Show error message instead of mock data
+                showError('Network error: ' + error.message);
             }
         }
 
+        function showError(message, debugInfo) {
+            currentState = 'error';
+            document.getElementById('loadingSection').classList.remove('active');
+            document.getElementById('cartAnalysisSection').classList.add('active');
+            document.getElementById('headerSubtitle').textContent = 'Error analyzing cart';
+            
+            // Show error in the cart analysis section
+            document.getElementById('cartAnalysisSection').innerHTML = `
+                <div style="background: #fee; border: 2px solid #fcc; border-radius: 12px; padding: 20px; margin: 20px;">
+                    <h3 style="color: #d00; margin-bottom: 10px;">⚠️ Cart Analysis Error</h3>
+                    <p style="color: #800; margin-bottom: 10px;">${message}</p>
+                    ${debugInfo ? `<details style="margin-top: 10px;">
+                        <summary style="cursor: pointer; color: #666;">Debug Info (click to expand)</summary>
+                        <pre style="background: #f5f5f5; padding: 10px; margin-top: 10px; font-size: 12px; overflow-x: auto;">${typeof debugInfo === 'string' ? debugInfo : JSON.stringify(debugInfo, null, 2)}</pre>
+                    </details>` : ''}
+                    <button onclick="startAnalysis()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; margin-top: 15px; cursor: pointer;">Try Again</button>
+                </div>
+            `;
+        }
+        
+        // DEPRECATED: Mock data function - no longer used
         function showMockCartAnalysis() {
-            // Real cart data from last week's scraping
+            // Show error instead of mock data
+            showError('Mock data disabled. Please fix the real cart analysis.', 'Mock data was being shown because the real cart analysis failed.');
+            return;
+            
+            // Original mock data code (disabled)
             const realCartData = {
                 individual_items: [
                     {name: "Pasture Raised Eggs", quantity: 1, unit: "1 dozen", price: "$7.49", type: "individual"},
@@ -1272,7 +1297,7 @@
                 });
             }
             
-            // Count from fixed boxes
+            // Count from non_customizable_boxes (but some might actually be customizable!)
             if (cartData.non_customizable_boxes) {
                 cartData.non_customizable_boxes.forEach(box => {
                     if (box.selected_items) {
@@ -1373,16 +1398,21 @@
                 document.getElementById('individualItemsSection').style.display = 'none';
             }
 
+            // Separate boxes based on customizable flag (not which array they're in)
+            const allBoxes = [...(cartData.customizable_boxes || []), ...(cartData.non_customizable_boxes || [])];
+            const actuallyCustomizable = allBoxes.filter(box => box.customizable === true || box.customizable === undefined && box.alternatives_count > 0);
+            const actuallyNonCustomizable = allBoxes.filter(box => box.customizable === false);
+            
             // Show customizable boxes with category tags
-            if (cartData.customizable_boxes && cartData.customizable_boxes.length > 0) {
+            if (actuallyCustomizable.length > 0) {
                 // Update count
                 let totalItems = 0;
-                cartData.customizable_boxes.forEach(box => {
+                actuallyCustomizable.forEach(box => {
                     totalItems += (box.selected_items ? box.selected_items.length : 0);
                 });
                 document.getElementById('customizableBoxesCount').textContent = `(${totalItems} items)`;
                 
-                const customizableHTML = cartData.customizable_boxes.map(box => `
+                const customizableHTML = actuallyCustomizable.map(box => `
                     <div style="margin-bottom: 20px;">
                         <div class="box-header">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -1425,15 +1455,15 @@
             }
 
             // Show non-customizable boxes with category tags
-            if (cartData.non_customizable_boxes && cartData.non_customizable_boxes.length > 0) {
+            if (actuallyNonCustomizable.length > 0) {
                 // Update count
                 let totalItems = 0;
-                cartData.non_customizable_boxes.forEach(box => {
+                actuallyNonCustomizable.forEach(box => {
                     totalItems += (box.selected_items ? box.selected_items.length : 0);
                 });
                 document.getElementById('fixedBoxesCount').textContent = `(${totalItems} items)`;
                 
-                const nonCustomizableHTML = cartData.non_customizable_boxes.map(box => `
+                const nonCustomizableHTML = actuallyNonCustomizable.map(box => `
                     <div style="margin-bottom: 20px;">
                         <div class="box-header">
                             <div style="display: flex; align-items: center; gap: 10px;">
