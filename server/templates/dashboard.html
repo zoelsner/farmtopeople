@@ -999,18 +999,132 @@
         <!-- Settings -->
         <div class="settings-view section" id="settingsSection">
             <div class="cart-section">
-                <h2 class="section-header">Settings</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 24px;">Update your meal preferences and account settings</p>
-                
-                <div class="settings-placeholder">
-                    <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
-                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.6;">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
-                            </svg>
+                <h3 class="section-header">Account Information</h3>
+                <div class="item-grid">
+                    <div class="cart-item">
+                        <div>
+                            <span style="font-weight: 600; color: #212529;">Farm to People Account</span>
+                            <div style="font-size: 14px; color: #6c757d;" id="userEmailDisplay">Loading...</div>
                         </div>
-                        <h3 style="font-size: 18px; color: var(--text-primary); margin-bottom: 8px;">Settings Coming Soon</h3>
-                        <p style="font-size: 14px; line-height: 1.5;">You'll be able to update your meal preferences, dietary restrictions, and account settings here.</p>
+                        <div style="color: #28a745; font-size: 14px; font-weight: 600;">
+                            ✓ Connected
+                        </div>
+                    </div>
+                    <div class="cart-item">
+                        <div>
+                            <span style="font-weight: 600; color: #212529;">Phone Number</span>
+                            <div style="font-size: 14px; color: #6c757d;" id="userPhoneDisplay">Loading...</div>
+                        </div>
+                        <div style="color: #28a745; font-size: 14px; font-weight: 600;">
+                            ✓ Verified
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Household & Timing -->
+            <div class="cart-section">
+                <h3 class="section-header">Household Information</h3>
+                <div class="item-grid">
+                    <div class="cart-item">
+                        <div>
+                            <span style="font-weight: 600; color: #212529;">Household Size</span>
+                            <div style="font-size: 14px; color: #6c757d;" id="householdSizeDisplay">Loading...</div>
+                        </div>
+                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
+                            Edit →
+                        </div>
+                    </div>
+                    <div class="cart-item">
+                        <div>
+                            <span style="font-weight: 600; color: #212529;">Meal Timing</span>
+                            <div style="font-size: 14px; color: #6c757d;" id="mealTimingDisplay">Loading...</div>
+                        </div>
+                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
+                            Edit →
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meal Preferences -->
+            <div class="cart-section">
+                <h3 class="section-header">Meal Preferences</h3>
+                <div class="item-grid">
+                    <div class="cart-item">
+                        <div>
+                            <span style="font-weight: 600; color: #212529;">Favorite Dishes</span>
+                            <div style="font-size: 14px; color: #6c757d; margin-top: 4px;" id="favoriteMealsDisplay">Loading...</div>
+                        </div>
+                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
+                            Edit →
+                        </div>
+                    </div>
+                    <div class="cart-item">
+                        <div>
+                            <span style="font-weight: 600; color: #212529;">Cooking Methods</span>
+                            <div style="font-size: 14px; color: #6c757d; margin-top: 4px;" id="cookingMethodsDisplay">Loading...</div>
+                        </div>
+                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
+                            Edit →
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dietary Requirements -->
+            <div class="cart-section">
+                <h3 class="section-header">Dietary Requirements</h3>
+                <div class="item-grid">
+                    <div class="cart-item">
+                        <div>
+                            <span style="font-weight: 600; color: #212529;">Dietary Restrictions</span>
+                            <div style="font-size: 14px; color: #6c757d; margin-top: 4px;" id="dietaryRestrictionsDisplay">Loading...</div>
+                        </div>
+                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
+                            Edit →
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Goals -->
+            <div class="cart-section">
+                <h3 class="section-header">Health Goals</h3>
+                <div class="item-grid">
+                    <div class="cart-item">
+                        <div>
+                            <span style="font-weight: 600; color: #212529;">Current Goals</span>
+                            <div style="font-size: 14px; color: #6c757d; margin-top: 4px;" id="healthGoalsDisplay">Loading...</div>
+                        </div>
+                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
+                            Edit →
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Actions -->
+            <div class="cart-section">
+                <h3 class="section-header">Account Actions</h3>
+                <div class="item-grid">
+                    <div class="cart-item" onclick="refreshUserPreferences()">
+                        <div>
+                            <span style="font-weight: 600; color: #212529;">Refresh Settings</span>
+                            <div style="font-size: 14px; color: #6c757d;">Sync latest preferences from your account</div>
+                        </div>
+                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
+                            🔄 Sync
+                        </div>
+                    </div>
+                    <div class="cart-item" onclick="updateAccountCredentials()">
+                        <div>
+                            <span style="font-weight: 600; color: #212529;">Update Login</span>
+                            <div style="font-size: 14px; color: #6c757d;">Change Farm to People account credentials</div>
+                        </div>
+                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
+                            Edit →
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1033,7 +1147,7 @@
             </svg>
             <span class="tab-label">Meals</span>
         </a>
-        <a href="#settings" class="tab" onclick="switchTab('settings', this); return false;">
+        <a href="/settings" class="tab">
             <svg class="tab-icon icon-settings" viewBox="0 0 24 24">
                 <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
             </svg>
@@ -1897,6 +2011,122 @@
             }
         }
         
+        // ===== SETTINGS FUNCTIONALITY =====
+        
+        async function loadUserSettings() {
+            try {
+                const userPhone = getPhoneNumber();
+                const response = await fetch(`/api/settings/${userPhone}`);
+                
+                if (response.ok) {
+                    const userData = await response.json();
+                    displayUserSettings(userData);
+                } else {
+                    // Show fallback data from localStorage
+                    displayFallbackSettings();
+                }
+            } catch (error) {
+                console.error('Error loading user settings:', error);
+                displayFallbackSettings();
+            }
+        }
+        
+        function displayUserSettings(userData) {
+            const preferences = userData.preferences || {};
+            
+            // Account Information
+            document.getElementById('userEmailDisplay').textContent = 
+                localStorage.getItem('ftpEmail') || 'Not connected';
+            document.getElementById('userPhoneDisplay').textContent = 
+                formatPhoneNumber(getPhoneNumber()) || 'Not provided';
+            
+            // Household Information
+            document.getElementById('householdSizeDisplay').textContent = 
+                preferences.household_size || 'Not specified';
+            document.getElementById('mealTimingDisplay').textContent = 
+                preferences.meal_timing ? preferences.meal_timing.join(', ') : 'Not specified';
+            
+            // Meal Preferences
+            document.getElementById('favoriteMealsDisplay').textContent = 
+                preferences.selected_meals ? `${preferences.selected_meals.length} dishes selected` : 'None selected';
+            document.getElementById('cookingMethodsDisplay').textContent = 
+                preferences.cooking_methods ? preferences.cooking_methods.join(', ') : 'All methods';
+            
+            // Dietary Requirements
+            const restrictions = preferences.dietary_restrictions || [];
+            document.getElementById('dietaryRestrictionsDisplay').textContent = 
+                restrictions.length > 0 ? restrictions.join(', ') : 'None specified';
+            
+            // Health Goals
+            const goals = preferences.goals || [];
+            document.getElementById('healthGoalsDisplay').textContent = 
+                goals.length > 0 ? goals.join(', ') : 'None specified';
+        }
+        
+        function displayFallbackSettings() {
+            // Show basic info from localStorage if available
+            document.getElementById('userEmailDisplay').textContent = 
+                localStorage.getItem('ftpEmail') || 'Not connected';
+            document.getElementById('userPhoneDisplay').textContent = 
+                formatPhoneNumber(getPhoneNumber()) || 'Not provided';
+            
+            // Show placeholders for other fields
+            document.getElementById('householdSizeDisplay').textContent = 'Complete onboarding to see preferences';
+            document.getElementById('mealTimingDisplay').textContent = 'Complete onboarding to see preferences';
+            document.getElementById('favoriteMealsDisplay').textContent = 'Complete onboarding to see preferences';
+            document.getElementById('cookingMethodsDisplay').textContent = 'Complete onboarding to see preferences';
+            document.getElementById('dietaryRestrictionsDisplay').textContent = 'Complete onboarding to see preferences';
+            document.getElementById('healthGoalsDisplay').textContent = 'Complete onboarding to see preferences';
+        }
+        
+        function formatPhoneNumber(phone) {
+            if (!phone) return '';
+            // Format as (XXX) XXX-XXXX
+            const cleaned = phone.replace(/\D/g, '');
+            if (cleaned.length === 10) {
+                return `(${cleaned.slice(0,3)}) ${cleaned.slice(3,6)}-${cleaned.slice(6)}`;
+            }
+            return phone;
+        }
+        
+        async function refreshUserPreferences() {
+            const button = event.currentTarget.querySelector('[style*="cursor: pointer"]');
+            const originalText = button.textContent;
+            
+            try {
+                button.textContent = '⏳ Loading...';
+                await loadUserSettings();
+                button.textContent = '✓ Updated';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            } catch (error) {
+                console.error('Error refreshing settings:', error);
+                button.textContent = '❌ Error';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            }
+        }
+        
+        function updateAccountCredentials() {
+            const newEmail = prompt('Enter your new Farm to People email:', localStorage.getItem('ftpEmail') || '');
+            if (!newEmail) return;
+            
+            const newPassword = prompt('Enter your new Farm to People password:');
+            if (!newPassword) return;
+            
+            // Update localStorage
+            localStorage.setItem('ftpEmail', newEmail);
+            localStorage.setItem('ftpPassword', newPassword);
+            
+            // Update display
+            document.getElementById('userEmailDisplay').textContent = newEmail;
+            document.querySelector('.subtitle').textContent = newEmail;
+            
+            alert('Account credentials updated successfully!');
+        }
+        
         function updateMealSuggestions(meals) {
             const mealsHTML = meals.map((meal, index) => `
                 <div class="cart-item" style="background: #f0f8f0; border-left: 3px solid #4169E1;">
@@ -1960,6 +2190,8 @@
                 document.getElementById('settingsSection').classList.add('active');
                 // Hide the header banner for settings
                 document.querySelector('.header').style.display = 'none';
+                // Load user settings
+                loadUserSettings();
             }
             
             // Show header banner for cart and meals tabs
