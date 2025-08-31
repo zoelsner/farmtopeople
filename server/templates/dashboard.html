@@ -1279,6 +1279,9 @@
         function showCartAnalysis(cartData, swaps = [], addons = []) {
             currentState = 'complete';
             
+            // Set global mealPlanData so meal calendar can access cart data
+            mealPlanData = { cart_data: cartData };
+            
             // Store cart analysis data in localStorage for persistence
             const analysisData = { cartData, swaps, addons, timestamp: Date.now() };
             localStorage.setItem('cartAnalysisData', JSON.stringify(analysisData));
@@ -1946,11 +1949,14 @@
                     
                     if (deliveryInfo && deliveryInfo.delivery_text) {
                         // Parse delivery date: "Shopping for: Sun, Aug 31, 10:00AM - 4:00PM"
+                        console.log(`🔍 Parsing delivery text: "${deliveryInfo.delivery_text}"`);
                         const match = deliveryInfo.delivery_text.match(/Shopping for: .+?(\w{3}), (\w{3}) (\d{1,2})/);
                         if (match) {
                             const month = match[2]; // "Aug"
                             const day = parseInt(match[3]); // 31
                             const currentYear = new Date().getFullYear();
+                            
+                            console.log(`🗓️ Parsed: ${month} ${day}, ${currentYear}`);
                             
                             // Convert month abbreviation to month number
                             const months = {
@@ -1960,12 +1966,20 @@
                             
                             if (months[month] !== undefined) {
                                 const deliveryDate = new Date(currentYear, months[month], day);
+                                console.log(`📦 Delivery date: ${deliveryDate.toDateString()}`);
+                                
                                 // Set target date to the day after delivery for meal planning
                                 targetDate = new Date(deliveryDate);
                                 targetDate.setDate(targetDate.getDate() + 1);
-                                console.log(`📅 Using delivery-based meal planning week: ${targetDate.toDateString()}`);
+                                console.log(`🍽️ Meal planning target date: ${targetDate.toDateString()}`);
+                            } else {
+                                console.log(`❌ Unknown month: ${month}`);
                             }
+                        } else {
+                            console.log(`❌ Could not parse delivery text: "${deliveryInfo.delivery_text}"`);
                         }
+                    } else {
+                        console.log('ℹ️ No delivery info found, using current date');
                     }
                 } catch (e) {
                     console.log('Could not parse delivery date, using current date');
