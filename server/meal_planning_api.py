@@ -324,6 +324,21 @@ async def generate_initial_meal_plan(plan_id: str, cart_data: Dict, user_phone: 
     try:
         logger.info(f"Generating initial meal plan for {plan_id}")
         
+        # Get user preferences for meal generation
+        user_preferences = {}
+        try:
+            import supabase_client as db
+            # Try different phone formats to find user
+            phone_formats = [user_phone, f"+{user_phone}", f"+1{user_phone}", f"1{user_phone}"]
+            for phone_format in phone_formats:
+                user_record = db.get_user_by_phone(phone_format)
+                if user_record:
+                    user_preferences = user_record.get('preferences', {})
+                    logger.info(f"Found user preferences for {phone_format}")
+                    break
+        except Exception as e:
+            logger.warning(f"Could not retrieve user preferences: {e}")
+        
         # Get ingredient pool
         ingredient_pool = await storage.get_ingredient_pool(plan_id)
         
@@ -364,7 +379,7 @@ async def generate_initial_meal_plan(plan_id: str, cart_data: Dict, user_phone: 
                             logger.warning(f"Ingredient conflict for {day}: {e.conflicts}")
                             # Fall back to generating a new meal
                             meal_data, ingredients = await generate_meal_for_day(
-                                day, ingredient_pool, cart_data, user_phone
+                                day, ingredient_pool, cart_data, user_phone, user_preferences
                             )
                             if meal_data and ingredients:
                                 await storage.assign_meal(plan_id, day, meal_data, ingredients)
@@ -374,7 +389,7 @@ async def generate_initial_meal_plan(plan_id: str, cart_data: Dict, user_phone: 
             for day in days:
                 # Generate meal for this day
                 meal_data, ingredients = await generate_meal_for_day(
-                    day, ingredient_pool, cart_data, user_phone
+                    day, ingredient_pool, cart_data, user_phone, user_preferences
                 )
                 
                 if meal_data and ingredients:
@@ -422,44 +437,100 @@ async def generate_meal_for_day(day: str, ingredient_pool: Dict, cart_data: Dict
     Returns (meal_data, ingredients) tuple or (None, None) if generation fails.
     """
     try:
-        # This would integrate with your existing meal_planner.py
-        # For now, return a placeholder
-        
         # Available proteins and vegetables from ingredient pool
         available_proteins = [name for name, info in ingredient_pool.items() 
                             if info['remaining'] > 0 and is_protein(name)]
         available_vegetables = [name for name, info in ingredient_pool.items() 
                               if info['remaining'] > 0 and is_vegetable(name)]
+        available_other = [name for name, info in ingredient_pool.items()
+                         if info['remaining'] > 0 and not is_protein(name) and not is_vegetable(name)]
         
-        if not available_proteins:
+        if not available_proteins and 'Eggs' not in available_other:
             logger.warning(f"No proteins available for {day}")
             return None, None
         
-        # Simple meal generation (replace with your AI integration)
-        protein = available_proteins[0]
-        vegetables = available_vegetables[:2]  # Take first 2 vegetables
+        # Extract preferences
+        preferences = preferences or {}
+        dietary_restrictions = preferences.get('dietary_restrictions', [])
+        health_goals = preferences.get('goals', [])
+        cooking_methods = preferences.get('cooking_methods', [])
+        household_size = preferences.get('household_size', '1-2')
+        servings_needed = 2 if '1-2' in str(household_size) else 4
+        
+        # Check for high-protein goal
+        high_protein = 'high-protein' in health_goals
+        target_protein = "35-40g" if high_protein else "28g"
+        
+        # Vary meals based on day of week
+        day_index = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].index(day) if day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] else 0
+        
+        # Different cooking methods for variety
+        cooking_styles = [
+            ("Pan-Seared", "Heat pan over medium-high heat"),
+            ("Grilled", "Preheat grill to medium heat"),
+            ("Roasted", "Preheat oven to 425°F"),
+            ("Stir-Fried", "Heat wok or large pan over high heat"),
+            ("Baked", "Preheat oven to 375°F")
+        ]
+        
+        # Choose protein based on what's available and what hasn't been used
+        if available_proteins:
+            # Rotate through proteins for variety
+            protein_index = day_index % len(available_proteins)
+            protein = available_proteins[protein_index]
+            protein_quantity = 0.75 if high_protein else 0.5
+            protein_unit = ingredient_pool[protein]['unit']
+        elif 'Eggs' in available_other:
+            protein = 'Eggs'
+            protein_quantity = 4 if high_protein else 3
+            protein_unit = 'piece'
+        else:
+            return None, None
+        
+        # Choose vegetables for variety
+        if available_vegetables:
+            # Try to use different vegetables each day
+            veg_index = day_index % len(available_vegetables)
+            vegetable = available_vegetables[veg_index] if available_vegetables else None
+        else:
+            vegetable = None
+        
+        # Select cooking style based on preferences or rotate for variety
+        style_index = day_index % len(cooking_styles)
+        cooking_style, cooking_instruction = cooking_styles[style_index]
+        
+        # Build meal name with variety
+        if protein == 'Eggs':
+            meal_names = ["Scrambled Eggs", "Eggs Frittata", "Egg Shakshuka", "Eggs Benedict Style", "Veggie Omelet"]
+            meal_name = meal_names[day_index] + (f" with {vegetable}" if vegetable else "")
+        else:
+            meal_name = f"{cooking_style} {protein}" + (f" with {vegetable}" if vegetable else "")
         
         meal_data = {
-            "name": f"Pan-Seared {protein} with {' and '.join(vegetables)}",
-            "protein": "28g",
-            "cook_time": "25 min",
-            "servings": 2,
-            "ingredients": [protein] + vegetables,
+            "name": meal_name,
+            "protein": target_protein,
+            "cook_time": "25 min" if cooking_style != "Roasted" else "35 min",
+            "servings": servings_needed,
+            "ingredients": [protein] + ([vegetable] if vegetable else []),
             "instructions": [
                 f"Season {protein} with salt and pepper",
-                f"Heat pan over medium-high heat",
-                f"Cook {protein} for 4-5 minutes per side",
-                f"Add {vegetables[0]} and cook 3 minutes",
-                "Serve hot"
+                cooking_instruction,
+                f"Cook {protein} until golden brown" if protein != 'Eggs' else f"Cook eggs until {cooking_style.lower()}",
+                f"Add {vegetable} and cook until tender" if vegetable else "",
+                "Season to taste and serve hot"
             ]
         }
         
-        # Allocate reasonable quantities
+        # Clean up empty instructions
+        meal_data["instructions"] = [inst for inst in meal_data["instructions"] if inst]
+        
+        # Allocate ingredients
         ingredients = [
-            {"name": protein, "quantity": 0.5, "unit": "lb"},
-            {"name": vegetables[0], "quantity": 1.0, "unit": "piece"} if vegetables else None
+            {"name": protein, "quantity": protein_quantity, "unit": protein_unit}
         ]
-        ingredients = [ing for ing in ingredients if ing is not None]
+        if vegetable:
+            veg_quantity = 2 if servings_needed > 2 else 1
+            ingredients.append({"name": vegetable, "quantity": veg_quantity, "unit": "piece"})
         
         return meal_data, ingredients
         

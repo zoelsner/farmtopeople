@@ -42,7 +42,9 @@ app = FastAPI()
 
 # Import and include meal planning API routes
 from meal_planning_api import router as meal_planning_router
+from test_meal_api import router as test_meal_router
 app.include_router(meal_planning_router)
+app.include_router(test_meal_router)
 
 # Mount static files for serving CSS/JS assets
 app.mount("/static", StaticFiles(directory="server/static"), name="static")

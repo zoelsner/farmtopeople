@@ -22,7 +22,50 @@ class SupabaseMealStorage(MealPlanStorage):
     def __init__(self):
         self.client = db.get_client()
     
-    def create_meal_plan(self, user_phone: str, week_of: date, cart_data: Dict) -> str:
+    def _initialize_ingredient_pool(self, plan_id: str, cart_data: Dict):
+        """Initialize ingredient pool from cart data."""
+        ingredients_to_insert = []
+        
+        # Process individual items
+        for item in cart_data.get('individual_items', []):
+            ingredients_to_insert.append({
+                'meal_plan_id': plan_id,
+                'ingredient_name': item.get('name', 'Unknown'),
+                'total_quantity': float(item.get('quantity', 1)),
+                'allocated_quantity': 0,
+                'remaining_quantity': float(item.get('quantity', 1)),
+                'unit': item.get('unit', 'piece')
+            })
+        
+        # Process customizable boxes
+        for box in cart_data.get('customizable_boxes', []):
+            for item in box.get('selected_items', []):
+                ingredients_to_insert.append({
+                    'meal_plan_id': plan_id,
+                    'ingredient_name': item.get('name', 'Unknown'),
+                    'total_quantity': float(item.get('quantity', 1)),
+                    'allocated_quantity': 0,
+                    'remaining_quantity': float(item.get('quantity', 1)),
+                    'unit': item.get('unit', 'piece')
+                })
+        
+        # Process non-customizable boxes
+        for box in cart_data.get('non_customizable_boxes', []):
+            for item in box.get('selected_items', []):
+                ingredients_to_insert.append({
+                    'meal_plan_id': plan_id,
+                    'ingredient_name': item.get('name', 'Unknown'),
+                    'total_quantity': float(item.get('quantity', 1)),
+                    'allocated_quantity': 0,
+                    'remaining_quantity': float(item.get('quantity', 1)),
+                    'unit': item.get('unit', 'piece')
+                })
+        
+        # Insert all ingredients
+        if ingredients_to_insert:
+            self.client.table('ingredient_pools').insert(ingredients_to_insert).execute()
+    
+    async def create_meal_plan(self, user_phone: str, week_of: date, cart_data: Dict) -> str:
         """Create a new meal plan and initialize ingredient pool."""
         try:
             # Create meal plan record
@@ -40,11 +83,8 @@ class SupabaseMealStorage(MealPlanStorage):
             
             plan_id = result.data[0]['id']
             
-            # Initialize ingredient pool using database function
-            self.client.rpc('initialize_ingredient_pool', {
-                'plan_id': plan_id,
-                'cart_data': cart_data
-            }).execute()
+            # Initialize ingredient pool directly in Python
+            self._initialize_ingredient_pool(plan_id, cart_data)
             
             logger.info(f"Created meal plan {plan_id} for user {user_phone}, week {week_of}")
             return plan_id

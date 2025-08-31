@@ -27,6 +27,9 @@ async def test_endpoint():
 async def test_schema():
     """Test that we can connect to the new meal planning tables."""
     try:
+        import sys
+        import os
+        sys.path.append(os.path.dirname(os.path.abspath(__file__)))
         import supabase_client as db
         client = db.get_client()
         
@@ -52,6 +55,9 @@ async def test_schema():
 async def create_test_plan():
     """Create a simple test meal plan to verify basic functionality."""
     try:
+        import sys
+        import os
+        sys.path.append(os.path.dirname(os.path.abspath(__file__)))
         import supabase_client as db
         from datetime import date, timedelta
         
