@@ -744,8 +744,16 @@
 </head>
 <body>
     <div class="header">
-        <h1>Cart Analysis</h1>
-        <p class="subtitle" id="headerSubtitle">Ready to analyze your cart</p>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1>Cart Analysis</h1>
+                <p class="subtitle" id="headerSubtitle">Ready to analyze your cart</p>
+            </div>
+            <div id="deliveryDate" style="display: none; text-align: right;">
+                <div style="color: #28a745; font-weight: 600; font-size: 16px;" id="deliveryDateText"></div>
+                <div style="color: #6c757d; font-size: 12px;">Delivery Date</div>
+            </div>
+        </div>
     </div>
 
     <div class="content">
@@ -1231,6 +1239,31 @@
             return 'produce';
         }
         
+        // Helper function to show delivery date in header
+        function showDeliveryDate(cartData) {
+            const deliveryInfo = cartData?.delivery_info;
+            if (deliveryInfo && deliveryInfo.delivery_text) {
+                // Parse "Shopping for: Sun, Aug 31, 10:00AM - 4:00PM"
+                const text = deliveryInfo.delivery_text;
+                const match = text.match(/Shopping for: (.+?),.*(\d{1,2}:\d{2}[AP]M)/);
+                
+                if (match) {
+                    const dayDate = match[1].trim(); // "Sun, Aug 31"
+                    const time = match[2]; // "10:00AM"
+                    
+                    // Format for display
+                    const displayText = `${dayDate} • ${time}`;
+                    
+                    document.getElementById('deliveryDateText').textContent = displayText;
+                    document.getElementById('deliveryDate').style.display = 'block';
+                } else {
+                    // Fallback - show raw text
+                    document.getElementById('deliveryDateText').textContent = text.replace('Shopping for: ', '');
+                    document.getElementById('deliveryDate').style.display = 'block';
+                }
+            }
+        }
+        
         // Helper function to get category colors (minimal style like the reference image)
         function getCategoryColors(category) {
             const colors = {
@@ -1253,6 +1286,9 @@
             document.getElementById('loadingSection').classList.remove('active');
             document.getElementById('cartAnalysisSection').classList.add('active');
             document.getElementById('headerSubtitle').textContent = 'Cart analysis complete';
+            
+            // Show delivery date if available
+            showDeliveryDate(cartData);
 
             // Check if we already have cached meal suggestions
             const cachedMeals = localStorage.getItem('cachedMealSuggestions');
@@ -1898,8 +1934,46 @@
         // Initialize calendar when meals tab is clicked
         function initMealCalendar() {
             console.log('🍽️ Initializing meal calendar');
-            // Initialize currentWeek to the Monday of this week
-            currentWeek = getMonday(new Date());
+            
+            // Try to get delivery date from cart data to determine meal planning week
+            const savedAnalysis = localStorage.getItem('cartAnalysisData');
+            let targetDate = new Date(); // Default to current date
+            
+            if (savedAnalysis) {
+                try {
+                    const { cartData } = JSON.parse(savedAnalysis);
+                    const deliveryInfo = cartData?.delivery_info;
+                    
+                    if (deliveryInfo && deliveryInfo.delivery_text) {
+                        // Parse delivery date: "Shopping for: Sun, Aug 31, 10:00AM - 4:00PM"
+                        const match = deliveryInfo.delivery_text.match(/Shopping for: .+?(\w{3}), (\w{3}) (\d{1,2})/);
+                        if (match) {
+                            const month = match[2]; // "Aug"
+                            const day = parseInt(match[3]); // 31
+                            const currentYear = new Date().getFullYear();
+                            
+                            // Convert month abbreviation to month number
+                            const months = {
+                                'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+                                'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+                            };
+                            
+                            if (months[month] !== undefined) {
+                                const deliveryDate = new Date(currentYear, months[month], day);
+                                // Set target date to the day after delivery for meal planning
+                                targetDate = new Date(deliveryDate);
+                                targetDate.setDate(targetDate.getDate() + 1);
+                                console.log(`📅 Using delivery-based meal planning week: ${targetDate.toDateString()}`);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.log('Could not parse delivery date, using current date');
+                }
+            }
+            
+            // Initialize currentWeek to the Monday of the target week
+            currentWeek = getMonday(targetDate);
             updateWeekDisplay();
             loadCurrentWeekPlan();
             setupEventListeners();
