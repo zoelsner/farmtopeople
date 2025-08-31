@@ -996,10 +996,24 @@
             </div>
         </div>
 
-        <!-- Settings - Hidden for now -->
+        <!-- Settings -->
         <div class="settings-view section" id="settingsSection">
-            <h2>Settings</h2>
-            <p style="color: #6c757d; margin-top: 20px;">Preferences and account settings</p>
+            <div class="cart-section">
+                <h2 class="section-header">Settings</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">Update your meal preferences and account settings</p>
+                
+                <div class="settings-placeholder">
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.6;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+                            </svg>
+                        </div>
+                        <h3 style="font-size: 18px; color: var(--text-primary); margin-bottom: 8px;">Settings Coming Soon</h3>
+                        <p style="font-size: 14px; line-height: 1.5;">You'll be able to update your meal preferences, dietary restrictions, and account settings here.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1942,8 +1956,15 @@
                     document.getElementById('mealCalendarGrid').style.display = 'none';
                 }
             } else if (tab === 'settings') {
-                // Settings redirects to separate page (handled by href)
+                // Settings section
                 document.getElementById('settingsSection').classList.add('active');
+                // Hide the header banner for settings
+                document.querySelector('.header').style.display = 'none';
+            }
+            
+            // Show header banner for cart and meals tabs
+            if (tab === 'cart' || tab === 'meals') {
+                document.querySelector('.header').style.display = 'block';
             }
         }
 
