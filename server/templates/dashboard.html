@@ -859,12 +859,13 @@
             <div class="calendar-header">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <div>
-                        <h2>🍽️ Weekly Meal Plan</h2>
-                        <p style="color: #6c757d; font-size: 14px;" id="weekDisplay">Week of October 11, 2025</p>
+                        <h2>🍽️ This Week's Meals</h2>
+                        <p style="color: #6c757d; font-size: 14px;" id="weekDisplay">Plan your Sunday-Thursday dinners</p>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button id="prevWeek" class="nav-button">‹</button>
-                        <button id="nextWeek" class="nav-button">›</button>
+                        <!-- Week navigation hidden for now - showing only current delivery week -->
+                        <button id="prevWeek" class="nav-button" style="display: none;">‹</button>
+                        <button id="nextWeek" class="nav-button" style="display: none;">›</button>
                         <button id="generatePDF" class="pdf-button">📄 PDF</button>
                     </div>
                 </div>
@@ -2075,10 +2076,13 @@
             const friday = new Date(monday);
             friday.setDate(friday.getDate() + 4);
             
-            const weekString = `Week of ${monday.toLocaleDateString('en-US', { 
-                month: 'long', 
-                day: 'numeric',
-                year: 'numeric'
+            // Update the subtitle to show the date range
+            const weekString = `${monday.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric'
+            })} - ${friday.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric'
             })}`;
             
             document.getElementById('weekDisplay').textContent = weekString;
