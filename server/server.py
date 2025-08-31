@@ -1254,6 +1254,51 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
             try:
                 print(f"🔍 Looking up credentials for {phone}")
                 
+                # First check if we have recent stored cart data (for when cart is locked)
+                stored_cart = db.get_latest_cart_data(phone)
+                if stored_cart and stored_cart.get('cart_data'):
+                    # Check if cart might be locked based on delivery date
+                    # Cart locks the day before delivery at 11:59am
+                    from datetime import datetime, timedelta
+                    now = datetime.now()
+                    
+                    # Try to get delivery date from stored cart
+                    delivery_date = stored_cart.get('delivery_date')
+                    is_cart_locked = False
+                    
+                    if delivery_date:
+                        # Parse delivery date if it's a string
+                        if isinstance(delivery_date, str):
+                            try:
+                                delivery_dt = datetime.fromisoformat(delivery_date.replace('Z', '+00:00'))
+                            except:
+                                # Fallback to simple date parsing
+                                delivery_dt = datetime.strptime(delivery_date.split('T')[0], '%Y-%m-%d')
+                        else:
+                            delivery_dt = delivery_date
+                        
+                        # Cart locks at 11:59am the day before delivery
+                        lock_time = delivery_dt.replace(hour=11, minute=59, second=0) - timedelta(days=1)
+                        is_cart_locked = now > lock_time
+                        
+                        if is_cart_locked:
+                            print(f"🔒 Cart is locked (past {lock_time.strftime('%Y-%m-%d %I:%M%p')})")
+                        else:
+                            minutes_until_lock = int((lock_time - now).total_seconds() / 60)
+                            print(f"⏰ Cart locks in {minutes_until_lock} minutes at {lock_time.strftime('%Y-%m-%d %I:%M%p')}")
+                    else:
+                        # Fallback to day-of-week logic if no delivery date
+                        # Most deliveries are Sunday, so cart locks Saturday at 11:59am
+                        is_cart_locked = (now.weekday() == 5 and now.hour >= 12) or now.weekday() == 6
+                    
+                    if is_cart_locked:
+                        print("🔒 Cart is locked. Using stored data if available.")
+                        if stored_cart['cart_data'].get('customizable_boxes'):
+                            print("✅ Using stored cart data with complete boxes")
+                            cart_data = stored_cart['cart_data']
+                            # Skip scraping entirely and go to meal generation
+                            # Continue to meal generation below...
+                
                 # Try multiple phone formats like other endpoints do
                 phone_formats = [phone, f"+{phone}", f"1{phone}" if not phone.startswith('1') else phone, f"+1{phone}"]
                 user_record = None
@@ -1265,8 +1310,8 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                         print(f"  ✅ Found user with format: {phone_format}")
                         break
                 
-                # Get user credentials from database
-                if user_record and user_record.get('ftp_email'):
+                # Get user credentials from database (only if we don't already have cart_data)
+                if not cart_data and user_record and user_record.get('ftp_email'):
                     email = user_record['ftp_email']
                     # Decrypt password (it's base64 encoded)
                     import base64
@@ -1279,17 +1324,42 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                         credentials = {'email': email, 'password': password}
                         
                         # Use async scraper directly (clean solution)
-                        cart_data = await run_cart_scraper(credentials, return_data=True)
+                        cart_data = await run_cart_scraper(credentials, return_data=True, phone_number=phone)
                         
                         if cart_data:
                             print("✅ Successfully scraped live cart data!")
+                            
+                            # Check if cart is missing customizable boxes (likely locked)
+                            has_customizable = cart_data.get('customizable_boxes') and len(cart_data['customizable_boxes']) > 0
+                            
+                            if not has_customizable:
+                                print("⚠️ Cart appears locked (no customizable boxes). Checking for stored data...")
+                                stored_cart = db.get_latest_cart_data(phone)
+                                
+                                if stored_cart and stored_cart.get('cart_data'):
+                                    stored_has_customizable = (stored_cart['cart_data'].get('customizable_boxes') and 
+                                                              len(stored_cart['cart_data']['customizable_boxes']) > 0)
+                                    
+                                    if stored_has_customizable:
+                                        print("✅ Using stored cart data with complete boxes")
+                                        cart_data = stored_cart['cart_data']
+                                    else:
+                                        print("⚠️ Stored cart also has no customizable boxes")
                         else:
-                            # Return error instead of mock data
-                            return {
-                                "success": False,
-                                "error": "Scraper returned no data. Please check your Farm to People account.",
-                                "debug_info": "Scraper ran but returned None"
-                            }
+                            # Try to get stored cart data as fallback
+                            print("⚠️ Scraper returned no data. Checking for stored cart...")
+                            stored_cart = db.get_latest_cart_data(phone)
+                            
+                            if stored_cart and stored_cart.get('cart_data'):
+                                print("✅ Using stored cart data")
+                                cart_data = stored_cart['cart_data']
+                            else:
+                                # Return error if no data available
+                                return {
+                                    "success": False,
+                                    "error": "No cart data available. Please check your Farm to People account.",
+                                    "debug_info": "Scraper failed and no stored data found"
+                                }
                     else:
                         # Return error instead of mock data
                         return {

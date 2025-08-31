@@ -1860,6 +1860,7 @@
 
         // ===== MEAL CALENDAR FUNCTIONALITY =====
         
+        // Initialize to current date (will be set to Monday in initMealCalendar)
         let currentWeek = new Date();
         let currentMealPlan = null;
         let draggedMeal = null;
@@ -1867,6 +1868,9 @@
         // Initialize calendar when meals tab is clicked
         function initMealCalendar() {
             console.log('🍽️ Initializing meal calendar');
+            // Initialize currentWeek to the Monday of this week
+            currentWeek = getMonday(new Date());
+            updateWeekDisplay();
             loadCurrentWeekPlan();
             setupEventListeners();
         }
@@ -1906,7 +1910,10 @@
             const d = new Date(date);
             const day = d.getDay();
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-            return new Date(d.setDate(diff));
+            // Create a new date to avoid mutating the original
+            const monday = new Date(d);
+            monday.setDate(diff);
+            return monday;
         }
         
         function updateWeekDisplay() {
@@ -1938,7 +1945,10 @@
         }
         
         function changeWeek(direction) {
-            currentWeek.setDate(currentWeek.getDate() + (direction * 7));
+            // Create a new date to avoid mutation issues
+            const newWeek = new Date(currentWeek);
+            newWeek.setDate(newWeek.getDate() + (direction * 7));
+            currentWeek = newWeek;
             updateWeekDisplay();
             loadCurrentWeekPlan();
         }

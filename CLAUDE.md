@@ -103,8 +103,13 @@ Step 7: FTP Account Credentials → Dashboard
 
 ### **Dashboard Navigation**
 - **Cart Tab:** Live cart analysis with delivery date
-- **Meals Tab:** AI-generated meal suggestions with refresh (3x limit)
+- **Meals Tab:** Weekly meal calendar with drag-and-drop (Monday-Friday)
 - **Settings Tab:** Update any preferences via modal editing
+
+### **Important Business Rules**
+- **Cart Lock Time:** Carts lock at 11:59 AM ET the day before delivery
+- **Fallback Logic:** When cart is locked, system uses stored cart data with complete boxes
+- **Protein Requirements:** Women: 30g minimum, Men: 35-40g minimum per meal
 
 ### **Settings System (Full CRUD)**
 - **Household Size:** 1-7+ people grid selection
