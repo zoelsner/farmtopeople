@@ -264,18 +264,22 @@ async def run_full_meal_plan_flow(phone_number: str):
     # Step 0: Look up user credentials from Supabase
     print(f"🔍 Looking up user credentials for {phone_number}")
     
-    # Normalize phone number format - try multiple formats
-    phone_formats = [phone_number, f"+{phone_number}", f"1{phone_number}" if not phone_number.startswith('1') else phone_number]
+    # Use phone service for consistent normalization
+    from services.phone_service import normalize_phone
+    normalized_phone = normalize_phone(phone_number)
+    
+    if not normalized_phone:
+        print(f"❌ Invalid phone number format: {phone_number}")
+        return False
+    
     user_data = None
     
     try:
-        for phone_format in phone_formats:
-            user_data = db.get_user_by_phone(phone_format)
-            if user_data:
-                print(f"✅ User found with format: {phone_format}")
-                # Add a print statement to confirm what's found
-                print(f"   Email: {user_data.get('ftp_email')}, Password: {'******' if user_data.get('ftp_password') else 'Not found'}")
-                break
+        user_data = db.get_user_by_phone(normalized_phone)
+        if user_data:
+            print(f"✅ User found with phone: {normalized_phone}")
+            # Add a print statement to confirm what's found
+            print(f"   Email: {user_data.get('ftp_email')}, Password: {'******' if user_data.get('ftp_password') else 'Not found'}")
         
         if not user_data:
             print(f"❌ No user found for phone number {phone_number}")
@@ -1254,18 +1258,16 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
             try:
                 print(f"🔍 Looking up credentials for {phone}")
                 
-                # SIMPLIFIED: Just normalize the phone and get data
-                # Normalize phone number to consistent format: +1XXXXXXXXXX
-                normalized_phone = phone
-                if phone and not phone.startswith('+'):
-                    digits = ''.join(c for c in phone if c.isdigit())
-                    if len(digits) == 10:
-                        normalized_phone = '+1' + digits
-                    elif len(digits) == 11 and digits[0] == '1':
-                        normalized_phone = '+' + digits
-                    else:
-                        # Default to adding +1
-                        normalized_phone = '+1' + digits.lstrip('1')
+                # Use centralized phone service for consistent normalization
+                from services.phone_service import normalize_phone
+                normalized_phone = normalize_phone(phone)
+                
+                if not normalized_phone:
+                    return {
+                        "success": False,
+                        "error": "Invalid phone number format",
+                        "debug_info": f"Could not normalize phone: {phone}"
+                    }
                 
                 print(f"📞 Normalized phone: {phone} -> {normalized_phone}")
                 
@@ -1375,18 +1377,26 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
         swaps = []
         addons = []
         
-        # Get user preferences if we have phone
+        # Get user preferences for personalized meal generation
+        # IMPORTANT: This feeds into the Meals tab - consistent user lookup is critical
+        # for meal personalization (high-protein, quick dinners, dietary restrictions)
         user_preferences = {}
         if phone:
             try:
-                phone_formats = [phone, f"+{phone}", f"1{phone}" if not phone.startswith('1') else phone, f"+1{phone}"]
-                for phone_format in phone_formats:
-                    user_record = db.get_user_by_phone(phone_format)
+                # Normalize once for consistent user lookup
+                if not normalized_phone:  # May already be normalized from above
+                    from services.phone_service import normalize_phone
+                    normalized_phone = normalize_phone(phone)
+                
+                if normalized_phone:
+                    user_record = db.get_user_by_phone(normalized_phone)
                     if user_record:
                         user_preferences = user_record.get('preferences', {})
-                        break
-            except:
-                pass
+                        print(f"✅ Loaded preferences for meal generation: {list(user_preferences.keys())}")
+                    else:
+                        print(f"⚠️ No preferences found for {normalized_phone} - using defaults")
+            except Exception as e:
+                print(f"⚠️ Error loading preferences: {e}")
         
         # Use GPT-5 to generate smart swaps and add-ons
         if cart_data and cart_data.get("customizable_boxes"):
