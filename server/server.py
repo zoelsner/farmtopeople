@@ -121,7 +121,10 @@ async def handle_meal_plan_confirmation(phone_number: str, user_message: str, ba
         send_progress_sms(phone_number, error_reply)
         return PlainTextResponse("Error", status_code=500)
 
-def format_sms_with_help(message: str, state: str = None) -> str:
+# Moved to services/sms_handler.py
+from services.sms_handler import format_sms_with_help
+
+def format_sms_with_help_deprecated(message: str, state: str = None) -> str:
     """
     Add contextual help text to SMS messages based on conversation state.
     
@@ -488,10 +491,11 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
 
     print(f"Received message from {user_phone_number}: '{user_message}'")
 
-    # --- Main App Logic Router ---
+    # --- Use SMS Handler Service for Routing ---
+    from services.sms_handler import route_sms_message
     base_url = str(request.base_url).rstrip('/')
 
-    # Check if user is in meal plan confirmation flow
+    # Check if user is in meal plan confirmation flow (keeping this special case for now)
     try:
         user_data = db.get_user_by_phone(user_phone_number)
         if user_data and user_data.get('meal_plan_step') == 'awaiting_confirmation':
@@ -500,18 +504,11 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
     except Exception as e:
         print(f"⚠️ Error checking meal plan step: {e}")
 
-    if "hello" in user_message:
-        # Welcome message with basic navigation help
-        reply = format_sms_with_help(
-            "Hi there! I'm your Farm to People meal planning assistant.", 
-            'greeting'
-        )
-    elif "plan" in user_message:
-        # Immediate acknowledgment with progress indicator and timing expectation
-        reply = format_sms_with_help(
-            "📦 Analyzing your Farm to People cart...", 
-            'analyzing'
-        )
+    # Route the message using our service
+    reply, should_trigger_task = route_sms_message(user_phone_number, user_message)
+    
+    # If we need to trigger background meal generation
+    if should_trigger_task:
         # Add the scraping/planning job to the background
         print(f"🎯 Adding background task for meal plan flow: {user_phone_number}")
         try:
@@ -519,31 +516,12 @@ async def sms_incoming(request: Request, background_tasks: BackgroundTasks, msis
             print(f"✅ Background task added successfully")
         except Exception as e:
             print(f"❌ Error adding background task: {e}")
-            # Technical error with recovery options
+            # Update reply if task failed
+            from services.sms_handler import format_sms_with_help
             reply = format_sms_with_help(
                 "We're experiencing a technical issue. Please try again in a moment.", 
                 'error'
             )
-    elif "new" in user_message:
-        # New user registration with secure web link for credential collection
-        login_link = f"{base_url}/login?phone={quote(user_phone_number)}"
-        reply = format_sms_with_help(
-            f"Welcome! Let's get you set up.\n\nTo connect your Farm to People account securely: {login_link}",
-            'onboarding'
-        )
-    elif "login" in user_message or "email" in user_message:
-        # User requesting login help - provide secure credential collection link
-        login_link = f"{base_url}/login?phone={quote(user_phone_number)}"
-        reply = format_sms_with_help(
-            f"To securely provide your FTP credentials: {login_link}",
-            'login'
-        )
-    else:
-        # Fallback for unrecognized input with general help options
-        reply = format_sms_with_help(
-            "Sorry, I didn't understand that.",
-            'default'
-        )
 
     # Send immediate reply via Vonage
     try:
@@ -1256,20 +1234,21 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
         if not use_mock and phone:
             # Try to get real cart data using stored credentials
             try:
-                print(f"🔍 Looking up credentials for {phone}")
+                print(f"[CART-ANALYSIS] Starting analysis for phone: {phone}")
                 
                 # Use centralized phone service for consistent normalization
                 from services.phone_service import normalize_phone
                 normalized_phone = normalize_phone(phone)
                 
                 if not normalized_phone:
+                    print(f"[CART-ERROR] Invalid phone format: {phone}")
                     return {
                         "success": False,
                         "error": "Invalid phone number format",
                         "debug_info": f"Could not normalize phone: {phone}"
                     }
                 
-                print(f"📞 Normalized phone: {phone} -> {normalized_phone}")
+                print(f"[CART-STEP-1] Normalized: {phone} -> {normalized_phone}")
                 
                 # Try to get stored cart data (but don't rely on it exclusively)
                 stored_cart = db.get_latest_cart_data(normalized_phone)
@@ -1535,17 +1514,17 @@ async def refresh_meal_suggestions(request: Request):
         user_preferences = {}
         if phone:
             try:
-                # Try multiple phone formats like other endpoints do
-                phone_formats = [phone, f"+{phone}", f"1{phone}" if not phone.startswith('1') else phone, f"+1{phone}"]
-                user_record = None
+                # Use centralized phone normalization
+                from services.phone_service import normalize_phone
+                normalized_phone = normalize_phone(phone)
                 
-                for phone_format in phone_formats:
-                    user_record = db.get_user_by_phone(phone_format)
+                if normalized_phone:
+                    user_record = db.get_user_by_phone(normalized_phone)
                     if user_record:
-                        break
-                
-                if user_record:
-                    user_preferences = user_record.get('preferences', {})
+                        user_preferences = user_record.get('preferences', {})
+                        print(f"✅ Loaded preferences for meal refresh")
+                else:
+                    print(f"⚠️ Could not normalize phone: {phone}")
             except Exception as e:
                 print(f"⚠️ Could not load user preferences: {e}")
         
@@ -1933,23 +1912,18 @@ async def get_user_preferences(phone: str):
         JSON with preference categories or error if user not found
     """
     try:
-        # Try multiple phone number formats to find user
-        phone_formats = []
+        # Use centralized phone normalization
+        from services.phone_service import normalize_phone, get_phone_variants
+        normalized_phone = normalize_phone(phone)
         
-        # Add original format
-        phone_formats.append(phone)
+        if not normalized_phone:
+            return {
+                "success": False,
+                "error": "Invalid phone number format"
+            }
         
-        # Add normalized format (with +1)
-        if not phone.startswith('+'):
-            phone_formats.append('+1' + phone.lstrip('+1'))
-        
-        # Add without +1 prefix
-        if phone.startswith('+1'):
-            phone_formats.append(phone[2:])
-        
-        # Add with 1 prefix but no +
-        if not phone.startswith('1') and not phone.startswith('+'):
-            phone_formats.append('1' + phone)
+        # For backward compatibility, also check variants
+        phone_formats = get_phone_variants(phone)
             
         print(f"🔍 Looking up user preferences for phone formats: {phone_formats}")
         
