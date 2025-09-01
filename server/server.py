@@ -1502,6 +1502,9 @@ async def refresh_meal_suggestions(request: Request):
     This allows users to get different meal ideas without re-analyzing their cart.
     Limited to prevent abuse (track refresh count on frontend).
     """
+    from services.meal_generator import generate_meals
+    from services.phone_service import normalize_phone
+    
     try:
         data = await request.json()
         cart_data = data.get('cart_data')
@@ -1513,23 +1516,31 @@ async def refresh_meal_suggestions(request: Request):
         # Get user preferences for personalized meal generation
         user_preferences = {}
         if phone:
-            try:
-                # Use centralized phone normalization
-                from services.phone_service import normalize_phone
-                normalized_phone = normalize_phone(phone)
-                
-                if normalized_phone:
-                    user_record = db.get_user_by_phone(normalized_phone)
-                    if user_record:
-                        user_preferences = user_record.get('preferences', {})
-                        print(f"✅ Loaded preferences for meal refresh")
-                else:
-                    print(f"⚠️ Could not normalize phone: {phone}")
-            except Exception as e:
-                print(f"⚠️ Could not load user preferences: {e}")
+            normalized_phone = normalize_phone(phone)
+            if normalized_phone:
+                user_record = db.get_user_by_phone(normalized_phone)
+                if user_record:
+                    user_preferences = user_record.get('preferences', {})
+                    print(f"✅ Loaded preferences for meal refresh")
         
-        # Generate meals using ONLY ingredients actually in the cart
-        try:
+        # Use meal generator service
+        result = await generate_meals(cart_data, user_preferences)
+        
+        if result['success']:
+            return {
+                "success": True,
+                "meals": result['meals'],
+                "household_size": user_preferences.get('household_size', '2 people')
+            }
+        else:
+            return result
+        
+    except Exception as e:
+        print(f"❌ Error in refresh meals: {e}")
+        return {"success": False, "error": str(e)}
+
+# OLD CODE BELOW - TO BE REMOVED AFTER TESTING
+def old_meal_generation_code():
             print(f"🍽️ STEP 1: Analyzing cart contents for meal generation...")
             
             # Extract all actual ingredients from cart
