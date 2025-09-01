@@ -1160,6 +1160,21 @@
         let mealPlanData = null;
         let refreshesLeft = 3;  // Track refresh count
 
+        // Clear stale cache data to prevent cross-user contamination
+        const currentUser = localStorage.getItem('ftpEmail');
+        const lastUser = localStorage.getItem('lastLoggedInUser');
+        
+        if (currentUser && currentUser !== lastUser) {
+            // Different user logged in - clear all cached data
+            console.log('Different user detected, clearing cache...');
+            localStorage.removeItem('cartAnalysisData');
+            localStorage.removeItem('cartAnalysisState');
+            localStorage.removeItem('cachedMealSuggestions');
+            localStorage.removeItem('cachedMealSuggestionsTimestamp');
+            localStorage.removeItem('refreshesLeft');
+            localStorage.setItem('lastLoggedInUser', currentUser);
+        }
+
         // Check if we have saved credentials
         const userEmail = localStorage.getItem('ftpEmail');
         if (userEmail) {

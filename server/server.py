@@ -1254,94 +1254,39 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
             try:
                 print(f"🔍 Looking up credentials for {phone}")
                 
-                # First check if we have recent stored cart data (for when cart is locked)
-                # Try multiple phone formats to find stored data
-                stored_cart = None
-                phone_formats = [phone, f"+{phone}", f"+1{phone}", f"1{phone}" if not phone.startswith('1') else phone]
-                
-                for phone_format in phone_formats:
-                    stored_cart = db.get_latest_cart_data(phone_format)
-                    if stored_cart and stored_cart.get('cart_data'):
-                        print(f"✅ Found stored cart data with phone format: {phone_format}")
-                        break
-                if stored_cart and stored_cart.get('cart_data'):
-                    # Check if cart might be locked based on delivery date
-                    # Cart locks the day before delivery at 11:59am
-                    from datetime import datetime, timedelta
-                    now = datetime.now()
-                    
-                    # Try to get delivery date from stored cart
-                    delivery_date = stored_cart.get('delivery_date')
-                    is_cart_locked = False
-                    
-                    if delivery_date:
-                        # Parse delivery date if it's a string
-                        if isinstance(delivery_date, str):
-                            try:
-                                delivery_dt = datetime.fromisoformat(delivery_date.replace('Z', '+00:00'))
-                            except:
-                                # Fallback to simple date parsing
-                                delivery_dt = datetime.strptime(delivery_date.split('T')[0], '%Y-%m-%d')
-                        else:
-                            delivery_dt = delivery_date
-                        
-                        # Cart locks at 11:59am the day before delivery
-                        lock_time = delivery_dt.replace(hour=11, minute=59, second=0) - timedelta(days=1)
-                        is_cart_locked = now > lock_time
-                        
-                        if is_cart_locked:
-                            print(f"🔒 Cart is locked (past {lock_time.strftime('%Y-%m-%d %I:%M%p')})")
-                        else:
-                            minutes_until_lock = int((lock_time - now).total_seconds() / 60)
-                            print(f"⏰ Cart locks in {minutes_until_lock} minutes at {lock_time.strftime('%Y-%m-%d %I:%M%p')}")
+                # SIMPLIFIED: Just normalize the phone and get data
+                # Normalize phone number to consistent format: +1XXXXXXXXXX
+                normalized_phone = phone
+                if phone and not phone.startswith('+'):
+                    digits = ''.join(c for c in phone if c.isdigit())
+                    if len(digits) == 10:
+                        normalized_phone = '+1' + digits
+                    elif len(digits) == 11 and digits[0] == '1':
+                        normalized_phone = '+' + digits
                     else:
-                        # Fallback to day-of-week logic if no delivery date
-                        # Most deliveries are Sunday, so cart locks Saturday at 11:59am
-                        is_cart_locked = (now.weekday() == 5 and now.hour >= 12) or now.weekday() == 6
-                    
-                    if is_cart_locked:
-                        print("🔒 Cart is locked. Using stored data if available.")
-                        # Check if stored cart has complete data (with customizable boxes)
-                        has_boxes = (stored_cart['cart_data'].get('customizable_boxes') and 
-                                   len(stored_cart['cart_data'].get('customizable_boxes', [])) > 0)
-                        
-                        if has_boxes:
-                            print(f"✅ Using stored cart data with {len(stored_cart['cart_data']['customizable_boxes'])} customizable boxes")
-                            cart_data = stored_cart['cart_data']
-                        else:
-                            # Even without boxes, use stored data if it has more items than locked cart would show
-                            print("⚠️ Stored cart data has no customizable boxes")
-                            if len(stored_cart['cart_data'].get('individual_items', [])) > 4:
-                                print(f"✅ Using stored cart with {len(stored_cart['cart_data']['individual_items'])} items")
-                                cart_data = stored_cart['cart_data']
-                            else:
-                                print("❌ Stored cart data is incomplete")
-                                return {
-                                    "success": False,
-                                    "error": "Cart is locked and no complete cart data is available",
-                                    "debug_info": {
-                                        "reason": "Cart locks at 11:59 AM the day before delivery",
-                                        "stored_items": len(stored_cart['cart_data'].get('individual_items', [])),
-                                        "stored_boxes": len(stored_cart['cart_data'].get('customizable_boxes', [])),
-                                        "suggestion": "Please analyze cart before it locks on Saturday at 11:59 AM"
-                                    }
-                                }
+                        # Default to adding +1
+                        normalized_phone = '+1' + digits.lstrip('1')
                 
-                # If we already have cart_data from stored (when locked), skip scraping
-                if cart_data:
-                    print(f"✅ Already have cart data, skipping scraper")
-                    # Jump to the end where we return success with cart_data
+                print(f"📞 Normalized phone: {phone} -> {normalized_phone}")
+                
+                # Try to get stored cart data (but don't rely on it exclusively)
+                stored_cart = db.get_latest_cart_data(normalized_phone)
+                if stored_cart and stored_cart.get('cart_data'):
+                    print(f"📦 Found stored cart data for {normalized_phone}")
                 else:
-                    # Try multiple phone formats like other endpoints do
-                    phone_formats = [phone, f"+{phone}", f"1{phone}" if not phone.startswith('1') else phone, f"+1{phone}"]
-                    user_record = None
-                    
-                    for phone_format in phone_formats:
-                        print(f"  📞 Trying phone format: {phone_format}")
-                        user_record = db.get_user_by_phone(phone_format)
-                        if user_record:
-                            print(f"  ✅ Found user with format: {phone_format}")
-                            break
+                    print(f"⚠️ No stored cart data for {normalized_phone}")
+                
+                # REMOVED ALL CART LOCK LOGIC - Always try to scrape fresh data
+                cart_data = None
+                
+                # Always try to scrape fresh data if we have credentials
+                if True:  # Simplified condition
+                    # Use the normalized phone to find user
+                    user_record = db.get_user_by_phone(normalized_phone)
+                    if user_record:
+                        print(f"  ✅ Found user with normalized phone: {normalized_phone}")
+                    else:
+                        print(f"  ⚠️ No user found for {normalized_phone}")
                     
                     # Get user credentials from database (only if we don't already have cart_data)
                     if not cart_data and user_record and user_record.get('ftp_email'):
@@ -1356,8 +1301,8 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                             # Run the actual scraper with return_data=True (properly isolated from async context)
                             credentials = {'email': email, 'password': password}
                             
-                            # Use async scraper directly (clean solution)
-                            cart_data = await run_cart_scraper(credentials, return_data=True, phone_number=phone)
+                            # Use async scraper directly with normalized phone
+                            cart_data = await run_cart_scraper(credentials, return_data=True, phone_number=normalized_phone)
                         
                             if cart_data:
                                 print("✅ Successfully scraped live cart data!")
@@ -1366,25 +1311,23 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                                 has_customizable = cart_data.get('customizable_boxes') and len(cart_data['customizable_boxes']) > 0
                                 
                                 if not has_customizable:
-                                    print("⚠️ Cart appears locked (no customizable boxes). Checking for stored data...")
-                                    stored_cart = db.get_latest_cart_data(phone)
-                                    
+                                    print("⚠️ Cart appears empty (no customizable boxes).")
+                                    # Use the stored cart if we already have it
                                     if stored_cart and stored_cart.get('cart_data'):
                                         stored_has_customizable = (stored_cart['cart_data'].get('customizable_boxes') and 
                                                                   len(stored_cart['cart_data']['customizable_boxes']) > 0)
                                         
                                         if stored_has_customizable:
-                                            print("✅ Using stored cart data with complete boxes")
+                                            print("✅ Using previously stored cart data with complete boxes")
                                             cart_data = stored_cart['cart_data']
                                         else:
                                             print("⚠️ Stored cart also has no customizable boxes")
                             else:
-                                # Try to get stored cart data as fallback
-                                print("⚠️ Scraper returned no data. Checking for stored cart...")
-                                stored_cart = db.get_latest_cart_data(phone)
+                                # Try to get stored cart data as fallback (use what we already fetched)
+                                print("⚠️ Scraper returned no data.")
                                 
                                 if stored_cart and stored_cart.get('cart_data'):
-                                    print("✅ Using stored cart data")
+                                    print("✅ Using previously stored cart data as fallback")
                                     cart_data = stored_cart['cart_data']
                                 else:
                                     # Return error if no data available
