@@ -17,8 +17,12 @@ from dotenv import load_dotenv
 import sys
 import os
 import importlib
-sys.path.insert(0, os.path.dirname(__file__))  # For server directory imports
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))  # For scrapers
+
+# Fix import paths for services
+current_dir = os.path.dirname(__file__)
+sys.path.insert(0, current_dir)  # For server directory imports
+sys.path.insert(0, os.path.join(current_dir, 'services'))  # For services imports
+sys.path.append(os.path.join(current_dir, '..'))  # For scrapers
 
 # Direct imports from the server directory
 import supabase_client as db
