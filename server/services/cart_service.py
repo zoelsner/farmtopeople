@@ -15,17 +15,22 @@ from scrapers.comprehensive_scraper import main as run_cart_scraper
 import base64
 
 
-async def analyze_user_cart(phone: str, use_mock: bool = False) -> Dict[str, Any]:
+async def analyze_user_cart(phone: str, use_mock: bool = False, force_refresh: bool = False) -> Dict[str, Any]:
     """
     Analyze a user's cart - either from live scraping or stored data.
     
     Args:
         phone: User's phone number (will be normalized)
         use_mock: Whether to use mock data (for testing)
+        force_refresh: Force fresh scrape even if cache exists
     
     Returns:
         Dict with cart_data, swaps, addons, or error info
     """
+    # Import data isolation for security
+    from services.data_isolation_service import verify_cart_ownership
+    from services.cache_service import get_cached_cart, cache_cart
+    
     # Normalize phone for consistent lookups
     normalized_phone = normalize_phone(phone)
     
@@ -38,7 +43,24 @@ async def analyze_user_cart(phone: str, use_mock: bool = False) -> Dict[str, Any
     
     print(f"📞 Analyzing cart for: {normalized_phone}")
     
-    # Try to get stored cart data first (as fallback)
+    # Check Redis cache first (unless force refresh)
+    if not force_refresh:
+        cached_cart = get_cached_cart(normalized_phone)
+        if cached_cart:
+            print(f"⚡ Using cached cart data for {normalized_phone} (< 1 hour old)")
+            return {
+                "success": True,
+                "cart_data": cached_cart,
+                "from_cache": True,
+                "cache_age": "< 1 hour",
+                "swaps": [],
+                "addons": [],
+                "preferences": {}
+            }
+    else:
+        print(f"🔄 Force refresh requested - skipping cache")
+    
+    # Try to get stored cart data (as fallback)
     stored_cart = db.get_latest_cart_data(normalized_phone)
     if stored_cart and stored_cart.get('cart_data'):
         print(f"📦 Found stored cart data for {normalized_phone}")
@@ -68,6 +90,15 @@ async def analyze_user_cart(phone: str, use_mock: bool = False) -> Dict[str, Any
             
             if cart_data:
                 print("✅ Successfully scraped live cart data!")
+                
+                # CRITICAL: Verify cart ownership
+                if not verify_cart_ownership(normalized_phone, cart_data):
+                    print(f"🚨 SECURITY: Cart data does not belong to {normalized_phone}")
+                    return {
+                        "success": False,
+                        "error": "Cart ownership verification failed",
+                        "debug_info": "Security check failed"
+                    }
                 
                 # Check if cart appears empty/locked
                 has_customizable = (

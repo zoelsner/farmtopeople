@@ -38,24 +38,42 @@ def get_client() -> Client:
 
 
 def _encode_password(plain_text: str) -> str:
-    """Lightweight reversible encoding.
+    """Secure password encryption using Fernet.
 
-    NOTE: This is NOT cryptographic encryption. Replace with a KMS-based
-    envelope encryption scheme for production. For now we avoid new
-    dependencies and simply avoid storing cleartext.
+    This replaces the insecure base64 encoding with proper
+    symmetric encryption using cryptography library.
     """
     if plain_text is None:
         return ""
-    return base64.b64encode(plain_text.encode("utf-8")).decode("ascii")
+    
+    try:
+        from services.encryption_service import PasswordEncryption
+        return PasswordEncryption.encrypt_password(plain_text)
+    except ImportError:
+        # Fallback to base64 if encryption service not available
+        print("⚠️ Using fallback base64 encoding - encryption service not available")
+        return base64.b64encode(plain_text.encode("utf-8")).decode("ascii")
 
 
 def _decode_password(encoded_text: str) -> str:
+    """Decrypt password using proper encryption.
+    
+    Handles both new Fernet encryption and legacy base64 encoding
+    for backward compatibility during migration.
+    """
     if not encoded_text:
         return ""
+    
     try:
-        return base64.b64decode(encoded_text.encode("ascii")).decode("utf-8")
-    except Exception:
-        return encoded_text
+        from services.encryption_service import PasswordEncryption
+        decrypted = PasswordEncryption.decrypt_password(encoded_text)
+        return decrypted if decrypted else encoded_text
+    except ImportError:
+        # Fallback to base64 if encryption service not available
+        try:
+            return base64.b64decode(encoded_text.encode("ascii")).decode("utf-8")
+        except Exception:
+            return encoded_text
 
 
 def upsert_user_credentials(
