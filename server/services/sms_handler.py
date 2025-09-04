@@ -6,6 +6,7 @@ Extracted from server.py to isolate SMS logic.
 """
 
 import os
+from typing import Tuple
 from services.phone_service import normalize_phone
 import supabase_client as db
 
@@ -61,7 +62,7 @@ Reply with:
     return f"{message}\n{help_text}"
 
 
-def route_sms_message(phone: str, message: str) -> tuple[str, bool]:
+def route_sms_message(phone: str, message: str) -> Tuple[str, bool]:
     """
     Route an incoming SMS to the appropriate handler.
     
