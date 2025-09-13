@@ -992,6 +992,13 @@ async def dashboard_page(request: Request):
     """
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
+@app.get("/test")
+async def test_page(request: Request):
+    """
+    Serve the meal integration test page.
+    """
+    return templates.TemplateResponse("test_meal_integration.html", {"request": request})
+
 @app.get("/api/get-saved-cart")
 async def get_saved_cart():
     """Retrieve saved cart data from database"""
@@ -1034,6 +1041,7 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
         use_mock = data.get('use_mock', False)
         phone = data.get('phone')
         force_refresh = data.get('force_refresh', False)  # New parameter!
+        regenerate_only = data.get('regenerate_only', False)  # Skip scraping, just regenerate suggestions
         
         cart_data = None
         
@@ -1063,11 +1071,26 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                 else:
                     print(f"⚠️ No stored cart data for {normalized_phone}")
                 
-                # REMOVED ALL CART LOCK LOGIC - Always try to scrape fresh data
-                cart_data = None
+                # If regenerate_only flag is set, just use stored data (no scraping)
+                if regenerate_only:
+                    if stored_cart and stored_cart.get('cart_data'):
+                        print("✨ Regenerate mode: Using stored cart data for new suggestions")
+                        cart_data = stored_cart.get('cart_data')
+                    else:
+                        return {
+                            "success": False,
+                            "error": "No stored cart data available. Please analyze your cart first.",
+                            "debug_info": "regenerate_only requires existing cart data"
+                        }
+                else:
+                    # REMOVED ALL CART LOCK LOGIC - Always try to scrape fresh data
+                    cart_data = None
                 
-                # Always try to scrape fresh data if we have credentials
-                if True:  # Simplified condition
+                # Check if we should use stored data or try to scrape
+                use_stored_data = data.get('use_stored', False)
+                
+                # Skip all scraping logic if we're in regenerate_only mode
+                if not regenerate_only:
                     # Use the normalized phone to find user
                     user_record = db.get_user_by_phone(normalized_phone)
                     if user_record:
@@ -1075,8 +1098,9 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                     else:
                         print(f"  ⚠️ No user found for {normalized_phone}")
                     
-                    # Get user credentials from database (only if we don't already have cart_data)
-                    if not cart_data and user_record and user_record.get('ftp_email'):
+                    # Try live scraping first if we have credentials
+                    if user_record and user_record.get('ftp_email'):
+                        # Get user credentials from database (only if we don't already have cart_data)
                         email = user_record['ftp_email']
                         # Decrypt password (it's base64 encoded)
                         import base64
@@ -1090,7 +1114,7 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                             
                             # Use async scraper directly with normalized phone
                             cart_data = await run_cart_scraper(credentials, return_data=True, phone_number=normalized_phone)
-                        
+                            
                             if cart_data:
                                 print("✅ Successfully scraped live cart data!")
                                 
@@ -1110,9 +1134,9 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                                         else:
                                             print("⚠️ Stored cart also has no customizable boxes")
                             else:
-                                # Try to get stored cart data as fallback (use what we already fetched)
+                                # Scraper returned no data
                                 print("⚠️ Scraper returned no data.")
-                                
+                            
                                 if stored_cart and stored_cart.get('cart_data'):
                                     print("✅ Using previously stored cart data as fallback")
                                     cart_data = stored_cart['cart_data']

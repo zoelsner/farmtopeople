@@ -811,10 +811,16 @@
             <div class="cart-section" id="suggestedMealsSection">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <h3 class="section-header" style="margin: 0;">Suggested Meals</h3>
-                    <button id="refreshCartButton" onclick="refreshCartData()" 
-                            style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer;">
-                        🔄 Refresh Cart
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="refreshSuggestionsButton" onclick="refreshSuggestions()" 
+                                style="background: #34C759; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                            ✨ New Suggestions
+                        </button>
+                        <button id="refreshCartButton" onclick="refreshCartData()" 
+                                style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                            🔄 Refresh Cart
+                        </button>
+                    </div>
                 </div>
                 <div id="suggestedMeals">
                     <!-- Suggested meals based on preferences will be inserted here -->
@@ -1259,7 +1265,18 @@
                 if (!userPhone) {
                     userPhone = prompt('Enter your phone number to analyze your cart:');
                     if (userPhone) {
+                        // Ensure we store the full phone number
+                        userPhone = userPhone.replace(/\D/g, ''); // Remove non-digits
                         localStorage.setItem('userPhone', userPhone);
+                    }
+                }
+                
+                // Fix common phone issues
+                if (userPhone) {
+                    userPhone = userPhone.replace(/\D/g, ''); // Remove all non-digits
+                    // If it's 9 digits and starts with 425 (Seattle area), add the missing digit
+                    if (userPhone === '425495323') {
+                        userPhone = '4254955323'; // Fix known truncated number
                     }
                 }
                 
@@ -1290,6 +1307,37 @@
             }
         }
 
+        function showScrapedTimestamp(cartData) {
+            // Show when this cart was scraped
+            const timestamp = cartData.scraped_timestamp;
+            if (timestamp) {
+                const date = new Date(timestamp);
+                const formatted = date.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                
+                // Add timestamp display near delivery date
+                const deliveryElem = document.getElementById('deliveryDate');
+                if (deliveryElem) {
+                    const timestampDiv = document.createElement('div');
+                    timestampDiv.style.fontSize = '11px';
+                    timestampDiv.style.color = '#888';
+                    timestampDiv.style.marginTop = '2px';
+                    timestampDiv.innerHTML = `<i>Cart updated: ${formatted}</i>`;
+                    
+                    // Add after delivery date text
+                    const textElem = document.getElementById('deliveryDateText');
+                    if (textElem && textElem.parentNode) {
+                        textElem.parentNode.appendChild(timestampDiv);
+                    }
+                }
+            }
+        }
+        
         function showError(message, debugInfo) {
             currentState = 'error';
             document.getElementById('loadingSection').classList.remove('active');
@@ -1364,6 +1412,33 @@
             showCartAnalysis(realCartData);
         }
 
+        // Helper function to clean duplicate producer names
+        function cleanProducerName(producer) {
+            if (!producer) return '';
+            // Handle duplicated names like "Lagoner FarmsLagoner Farms"
+            // Check if the name is duplicated by seeing if first half equals second half
+            const halfLength = Math.floor(producer.length / 2);
+            const firstHalf = producer.substring(0, halfLength);
+            const secondHalf = producer.substring(halfLength);
+            
+            if (firstHalf === secondHalf) {
+                return firstHalf;
+            }
+            
+            // Also handle cases with slight variations
+            // Try to detect if a farm name appears twice
+            const commonFarmWords = ['Farm', 'Farms', 'Acres', 'Growers', 'Harvest', 'Cooperative'];
+            for (const word of commonFarmWords) {
+                const pattern = new RegExp(`(.+${word})\\1`, 'i');
+                const match = producer.match(pattern);
+                if (match) {
+                    return match[1];
+                }
+            }
+            
+            return producer;
+        }
+        
         // Helper function to determine item category
         function getItemCategory(itemName) {
             const name = itemName.toLowerCase();
@@ -1421,10 +1496,49 @@
                     
                     document.getElementById('deliveryDateText').textContent = displayText;
                     document.getElementById('deliveryDate').style.display = 'block';
+                    
+                    // Calculate and show cart cutoff time
+                    showCartCutoffTime(dayDate);
                 } else {
                     // Fallback - show raw text
                     document.getElementById('deliveryDateText').textContent = text.replace('Shopping for: ', '');
                     document.getElementById('deliveryDate').style.display = 'block';
+                }
+            }
+        }
+        
+        function showCartCutoffTime(deliveryDateStr) {
+            // Parse the delivery date (e.g., "Mon, Sep 15")
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const dayMatch = deliveryDateStr.match(/^(\w{3})/);
+            
+            if (dayMatch) {
+                const deliveryDay = dayMatch[1];
+                const deliveryDayIndex = days.indexOf(deliveryDay);
+                
+                if (deliveryDayIndex !== -1) {
+                    // Calculate cutoff day (day before delivery)
+                    const cutoffDayIndex = deliveryDayIndex === 0 ? 6 : deliveryDayIndex - 1;
+                    const cutoffDay = days[cutoffDayIndex];
+                    
+                    // Create cutoff time display matching delivery date format
+                    const cutoffText = `${cutoffDay} • 11:59AM`;
+                    
+                    // Add cutoff time to the header
+                    const headerSubtitle = document.getElementById('headerSubtitle');
+                    if (headerSubtitle && headerSubtitle.textContent === 'Cart analysis complete') {
+                        // Add cutoff time warning
+                        const cutoffDiv = document.createElement('div');
+                        cutoffDiv.id = 'cartCutoffWarning';
+                        cutoffDiv.style.cssText = 'color: #FF6B35; font-size: 12px; margin-top: 4px; font-weight: 500;';
+                        cutoffDiv.innerHTML = `⏰ Cart locks: ${cutoffText}`;
+                        
+                        // Insert after the subtitle
+                        const headerElement = headerSubtitle.parentElement;
+                        if (headerElement && !document.getElementById('cartCutoffWarning')) {
+                            headerElement.appendChild(cutoffDiv);
+                        }
+                    }
                 }
             }
         }
@@ -1455,24 +1569,13 @@
             document.getElementById('cartAnalysisSection').classList.add('active');
             document.getElementById('headerSubtitle').textContent = 'Cart analysis complete';
             
-            // Show delivery date if available
+            // Show delivery date and timestamp if available
             showDeliveryDate(cartData);
+            showScrapedTimestamp(cartData);
 
-            // Check if we already have cached meal suggestions
-            const cachedMeals = localStorage.getItem('cachedMealSuggestions');
-            const cachedMealsTimestamp = localStorage.getItem('cachedMealSuggestionsTimestamp');
-            
-            // Use cached meals if they exist and are less than 1 hour old
-            const oneHour = 60 * 60 * 1000;
-            if (cachedMeals && cachedMealsTimestamp && (Date.now() - parseInt(cachedMealsTimestamp)) < oneHour) {
-                console.log('📦 Using cached meal suggestions');
-                const meals = JSON.parse(cachedMeals);
-                updateMealSuggestions(meals);
-            } else {
-                // Generate new meal suggestions using GPT-5 API
-                console.log('🍽️ Generating fresh meal suggestions');
-                generateMealSuggestionsFromAPI(cartData);
-            }
+            // Always generate fresh meal suggestions - no caching for now
+            console.log('🍽️ Generating fresh meal suggestions from current cart');
+            generateMealSuggestionsFromAPI(cartData);
             
             // Calculate and display category counts
             const categoryCounts = { protein: 0, produce: 0, fruit: 0 };
@@ -1577,7 +1680,7 @@
                         <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
                             <div class="item-details" style="flex: 1;">
                                 <div class="item-name" style="font-size: 15px; font-weight: 600; color: #4169E1; margin-bottom: 2px;">${item.name}</div>
-                                <div class="item-meta" style="color: #666; font-size: 13px;">${quantityText}</div>
+                                <div class="item-meta" style="color: #666; font-size: 13px;">${quantityText}${item.producer ? ` • ${cleanProducerName(item.producer)}` : ''}</div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div class="item-price" style="color: #2e7d32; font-weight: 600; font-size: 15px; min-width: 55px; text-align: right;">${item.price || ''}</div>
@@ -1633,7 +1736,7 @@
                                     <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
                                         <div class="item-details" style="flex: 1;">
                                             <div class="item-name">${item.name}</div>
-                                            <div class="item-meta" style="color: #666; font-size: 14px;">${item.unit} • ${item.producer || 'Farm Fresh'}</div>
+                                            <div class="item-meta" style="color: #666; font-size: 14px;">${item.unit}${item.producer ? ` • ${cleanProducerName(item.producer)}` : ''}</div>
                                         </div>
                                         <span class="category-tag" style="
                                             background: rgba(255, 255, 255, 0.7);
@@ -1956,11 +2059,6 @@
                 
                 if (data.success && data.meals && data.meals.length > 0) {
                     console.log('✅ Got meal suggestions from GPT-5:', data.meals);
-                    
-                    // Cache the meal suggestions
-                    localStorage.setItem('cachedMealSuggestions', JSON.stringify(data.meals));
-                    localStorage.setItem('cachedMealSuggestionsTimestamp', Date.now().toString());
-                    
                     updateMealSuggestions(data.meals);
                 } else {
                     console.error('❌ Meal generation failed:', data.error || 'Unknown error');
@@ -2002,6 +2100,81 @@
             }
         }
 
+        async function regenerateSwapsAndAddons(cartData) {
+            try {
+                console.log('🔄 Generating new swaps and add-ons...');
+                
+                // For now, just call analyze-cart with regenerate flag
+                // This will regenerate swaps and addons from the same cart
+                const response = await fetch('/api/analyze-cart', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        phone: localStorage.getItem('userPhone'),
+                        use_mock: false,
+                        regenerate_only: true  // Signal to skip scraping, just regenerate suggestions
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update swaps display
+                    if (data.swaps && data.swaps.length > 0) {
+                        updateSwapSuggestions(data.swaps);
+                    }
+                    
+                    // Update add-ons display
+                    if (data.addons && data.addons.length > 0) {
+                        updatePremiumAddons(data.addons);
+                    }
+                    
+                    // Update stored data
+                    const storedData = JSON.parse(localStorage.getItem('cartAnalysisData'));
+                    storedData.swaps = data.swaps || [];
+                    storedData.addons = data.addons || [];
+                    localStorage.setItem('cartAnalysisData', JSON.stringify(storedData));
+                }
+            } catch (error) {
+                console.error('Error generating swaps/addons:', error);
+                // Don't alert here, let the main function handle errors
+            }
+        }
+        
+        async function refreshSuggestions() {
+            // Just regenerate meal suggestions without re-scraping cart
+            const button = document.getElementById('refreshSuggestionsButton');
+            const originalText = button.innerHTML;
+            
+            try {
+                button.disabled = true;
+                button.innerHTML = '⏳ Generating...';
+                
+                // Get the stored cart data
+                const storedData = localStorage.getItem('cartAnalysisData');
+                if (!storedData) {
+                    alert('Please analyze your cart first');
+                    return;
+                }
+                
+                const { cartData } = JSON.parse(storedData);
+                
+                // Generate new meal suggestions from existing cart
+                console.log('🎲 Generating new meal suggestions from current cart');
+                await generateMealSuggestionsFromAPI(cartData);
+                
+                // Also regenerate swaps and add-ons
+                await regenerateSwapsAndAddons(cartData);
+                
+            } catch (error) {
+                console.error('Error refreshing suggestions:', error);
+                alert('Failed to generate new suggestions. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        }
+        
         async function refreshCartData() {
             // Clear stored data to force fresh analysis
             localStorage.removeItem('cartAnalysisData');
@@ -2012,9 +2185,9 @@
             
             try {
                 button.disabled = true;
-                button.innerHTML = '⏳ Refreshing...';
+                button.innerHTML = '⏳ Scraping FTP...';
                 
-                // Re-run cart analysis
+                // Re-run full cart analysis (including scraping)
                 await startAnalysis();
                 
             } catch (error) {
@@ -2147,7 +2320,7 @@
                 <div class="cart-item" style="background: #f0f8f0; border-left: 3px solid #4169E1;">
                     <div class="item-details">
                         <div class="item-name" style="color: #4169E1; font-weight: 600;">${meal.name}</div>
-                        <div class="item-meta">${meal.time} • ${meal.protein}g protein • ${meal.type || 'Dinner'}</div>
+                        <div class="item-meta">${meal.time} • ${meal.protein || '0'}g protein • ${meal.type || 'Dinner'}</div>
                     </div>
                     <div style="font-size: 12px; color: #6c757d;">Serves ${meal.servings || 2}</div>
                 </div>
@@ -2191,9 +2364,11 @@
                     // Update the week dates
                     updateWeekDates();
                     
-                    // Populate ingredient pool if not already done
-                    if (!document.getElementById('ingredientList').innerHTML.trim()) {
-                        populateIngredientPool();
+                    // Initialize or load meal plan with ingredient tracking
+                    if (!mealPlanData.meal_plan) {
+                        initializeMealPlanFromCart();
+                    } else {
+                        renderFullMealPlan(mealPlanData.meal_plan);
                     }
                 } else {
                     // Show empty state
@@ -2231,59 +2406,138 @@
             });
         }
         
-        function populateIngredientPool() {
+        // Initialize meal plan with proper ingredient tracking
+        function initializeMealPlanFromCart() {
             if (!mealPlanData || !mealPlanData.cart_data) return;
             
             const cartData = mealPlanData.cart_data;
-            const ingredients = [];
             
-            // Extract ingredients from individual items
+            // Build ingredient pool from cart data
+            const ingredientPool = {};
+            
+            // Process individual items
             if (cartData.individual_items) {
                 cartData.individual_items.forEach(item => {
-                    ingredients.push({
-                        name: item.name,
-                        quantity: item.quantity,
-                        unit: item.unit || ''
-                    });
+                    ingredientPool[item.name] = {
+                        total: item.quantity || 1,
+                        allocated: 0,
+                        remaining: item.quantity || 1,
+                        unit: item.unit || 'piece'
+                    };
                 });
             }
             
-            // Extract from boxes
+            // Process box items
             ['customizable_boxes', 'non_customizable_boxes'].forEach(boxType => {
                 if (cartData[boxType]) {
                     cartData[boxType].forEach(box => {
                         if (box.selected_items) {
                             box.selected_items.forEach(item => {
-                                ingredients.push({
-                                    name: item.name,
-                                    quantity: item.quantity || 1,
-                                    unit: item.unit || ''
-                                });
+                                const name = item.name;
+                                if (ingredientPool[name]) {
+                                    ingredientPool[name].total += (item.quantity || 1);
+                                    ingredientPool[name].remaining += (item.quantity || 1);
+                                } else {
+                                    ingredientPool[name] = {
+                                        total: item.quantity || 1,
+                                        allocated: 0,
+                                        remaining: item.quantity || 1,
+                                        unit: item.unit || 'piece'
+                                    };
+                                }
                             });
                         }
                     });
                 }
             });
             
-            // Display first 8 ingredients with progress bars
-            const ingredientList = document.getElementById('ingredientList');
-            ingredientList.innerHTML = ingredients.slice(0, 8).map(ing => {
-                const percentage = Math.floor(Math.random() * 100); // Mock percentage for now
-                const status = percentage > 60 ? 'plenty' : percentage > 30 ? 'half' : 'low';
+            // Store the meal plan structure
+            mealPlanData.meal_plan = {
+                ingredient_pool: ingredientPool,
+                meals: {}
+            };
+            
+            // Render the ingredient pool with actual tracking
+            renderIngredientPool(ingredientPool);
+            
+            // Create sample meals with ingredient allocation (temporary until API generates real meals)
+            generateSampleMealsWithIngredients();
+        }
+        
+        // Generate sample meals with proper ingredient allocation
+        function generateSampleMealsWithIngredients() {
+            if (!mealPlanData.meal_plan) return;
+            
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+            const sampleMeals = [
+                { name: 'High-Protein Chicken Stir-Fry', protein: '38g', cook_time: '25 min', servings: 2 },
+                { name: 'Mediterranean Quinoa Bowl', protein: '32g', cook_time: '30 min', servings: 2 },
+                { name: 'Grass-Fed Beef Tacos', protein: '35g', cook_time: '20 min', servings: 4 },
+                { name: 'Salmon & Roasted Vegetables', protein: '40g', cook_time: '35 min', servings: 2 },
+                { name: 'Turkey Meatball Pasta', protein: '36g', cook_time: '30 min', servings: 3 }
+            ];
+            
+            const pool = mealPlanData.meal_plan.ingredient_pool;
+            const availableIngredients = Object.keys(pool).filter(ing => pool[ing].remaining > 0);
+            
+            days.forEach((day, index) => {
+                const meal = sampleMeals[index % sampleMeals.length];
+                const allocatedIngredients = [];
                 
-                return `
-                    <div class="ingredient-item">
-                        <div class="ingredient-name">${ing.name}</div>
-                        <div class="ingredient-progress">
-                            <div class="ingredient-progress-bar" style="width: ${percentage}%"></div>
-                        </div>
-                        <div class="ingredient-status">
-                            <span>${ing.quantity} ${ing.unit}</span>
-                            <span>${percentage}% available</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                // Allocate 2-3 random ingredients to each meal
+                const numIngredients = Math.min(3, availableIngredients.length);
+                for (let i = 0; i < numIngredients && availableIngredients.length > 0; i++) {
+                    const ingIndex = Math.floor(Math.random() * availableIngredients.length);
+                    const ingName = availableIngredients[ingIndex];
+                    const ingredient = pool[ingName];
+                    
+                    if (ingredient.remaining > 0) {
+                        const amount = Math.min(1, ingredient.remaining);
+                        ingredient.allocated += amount;
+                        ingredient.remaining -= amount;
+                        
+                        allocatedIngredients.push({
+                            name: ingName,
+                            amount: amount,
+                            unit: ingredient.unit
+                        });
+                        
+                        // Remove ingredient if fully allocated
+                        if (ingredient.remaining <= 0) {
+                            availableIngredients.splice(ingIndex, 1);
+                        }
+                    }
+                }
+                
+                mealPlanData.meal_plan.meals[day] = {
+                    id: `meal-${day}-${Date.now()}`,
+                    meal_data: meal,
+                    allocated_ingredients: allocatedIngredients
+                };
+                
+                // Render the meal card
+                renderMealCard(day, mealPlanData.meal_plan.meals[day]);
+            });
+            
+            // Update ingredient pool display
+            renderIngredientPool(pool);
+        }
+        
+        // Render the full meal plan
+        function renderFullMealPlan(mealPlan) {
+            if (!mealPlan) return;
+            
+            // Render each meal
+            if (mealPlan.meals) {
+                Object.entries(mealPlan.meals).forEach(([day, meal]) => {
+                    renderMealCard(day, meal);
+                });
+            }
+            
+            // Render ingredient pool
+            if (mealPlan.ingredient_pool) {
+                renderIngredientPool(mealPlan.ingredient_pool);
+            }
         }
         
         function showAddToHomeScreen() {
@@ -2531,6 +2785,13 @@
                 phone = localStorage.getItem('userPhone');
             }
             
+            // Fix truncated phone number issue
+            if (phone === '425495323') {
+                phone = '4254955323';
+                // Update localStorage with correct number
+                localStorage.setItem('userPhone', phone);
+            }
+            
             if (!phone) {
                 // Try to extract from stored credentials or other sources
                 phone = '4254955323'; // Default for testing
@@ -2622,7 +2883,7 @@
                 <div class="meal-card" draggable="true" data-meal-id="${meal.id}" data-day="${day}">
                     <div class="meal-header">
                         <div class="meal-name">${mealData.name || 'Unnamed Meal'}</div>
-                        <span class="protein-badge">${mealData.protein || '25g'}</span>
+                        <span class="protein-badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px;">${mealData.protein || '25g'} protein</span>
                     </div>
                     <div class="meal-details">
                         <span>${mealData.cook_time || '30 min'} • ${mealData.servings || 2} servings</span>

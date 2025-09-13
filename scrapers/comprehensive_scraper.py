@@ -209,7 +209,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
         # Navigate to home where header/cart lives
         await page.goto("https://farmtopeople.com/home")
         await page.wait_for_load_state("domcontentloaded")
-        await page.wait_for_timeout(2000)  # Give page time to settle
+        await page.wait_for_timeout(1500)  # Give page time to settle (optimized from 2000ms)
 
         # Check if we're on a login page or if login elements are visible
         current_url = page.url
@@ -246,7 +246,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
                     login_btn = page.locator("button:has-text('LOG IN')").first
                     if await login_btn.count() > 0:
                         await login_btn.click()
-                        await page.wait_for_timeout(2000)
+                        await page.wait_for_timeout(1500)  # Reduced from 2000ms after login click
                         
                         # Now fill password
                         password_input = page.locator("input[type='password']").first
@@ -259,7 +259,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
                             if await final_login_btn.count() > 0:
                                 await final_login_btn.click()
                                 print("✅ Login submitted, waiting for navigation...")
-                                await page.wait_for_timeout(5000)
+                                await page.wait_for_timeout(3000)  # Reduced from 5000ms for zipcode modal
                                 
                                 # Verify we're logged in
                                 if "login" not in page.url:
@@ -283,11 +283,11 @@ async def main(credentials=None, return_data=False, phone_number=None):
         if await cart_btn.is_visible():
             print("✅ Cart button is visible and not in a modal. Clicking it.")
             await cart_btn.click()
-            await page.wait_for_timeout(3000) # Wait for cart to open
+            await page.wait_for_timeout(2000) # Wait for cart to open (reduced from 3000ms)
         else:
             print("❌ Cart button not found or not visible. Trying direct navigation.")
             await page.goto("https://farmtopeople.com/cart")
-            await page.wait_for_timeout(3000)
+            await page.wait_for_timeout(2000)  # Reduced from 3000ms for direct nav
 
         # First, get individual cart items (non-customizable items like eggs, avocados, etc.)
         print("🔍 Checking for individual cart items...")
@@ -337,23 +337,25 @@ async def main(credentials=None, return_data=False, phone_number=None):
                         except:
                             quantity = 1
                 
-                # Try to get unit info
+                # Try to get unit info and producer/farm name
                 unit_info = ""
+                producer = ""
                 unit_elements = await article.locator("p").all()
                 for unit_elem in unit_elements:
                     unit_text = (await unit_elem.text_content()).strip()
-                    # Skip price and farm name elements
-                    if (unit_text and 
-                        not unit_text.startswith("$") and 
-                        "farm" not in unit_text.lower() and
-                        "people" not in unit_text.lower() and
-                        len(unit_text) < 50):  # Avoid long descriptions
-                        unit_info = unit_text
-                        break
+                    if unit_text and not unit_text.startswith("$"):
+                        # Check if this is a farm/producer name
+                        if any(word in unit_text for word in ['Farm', 'Farms', 'Acres', 'Ranch', 'Creamery', 'Dairy', 'Orchard', 'Grove']):
+                            producer = unit_text
+                        # Otherwise it might be unit info (like "1 dozen" or "2 pieces")
+                        elif ("people" not in unit_text.lower() and 
+                              len(unit_text) < 50 and 
+                              not producer):  # Only set unit if we haven't found it yet
+                            unit_info = unit_text
                 
                 individual_item = {
                     "name": item_name,
-                    "producer": "",  # Individual items don't have producer info in this context
+                    "producer": producer,  # Now includes farm name if found
                     "unit": unit_info,
                     "quantity": quantity,
                     "selected": True,
@@ -534,7 +536,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
                             raise Exception("All click methods failed")
                         
                         # Wait for modal to appear and verify it loaded
-                        await page.wait_for_timeout(3000)
+                        await page.wait_for_timeout(2000)  # Reduced from 3000ms - modal should be fast
                         
                         # Check if modal actually opened
                         modal_present = await page.locator("aside[aria-label*='Customize']").count() > 0
@@ -544,7 +546,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
                             break  # Success, exit retry loop
                         else:
                             print("⚠️ Modal didn't open, retrying...")
-                            await page.wait_for_timeout(2000)  # Wait before retry
+                            await page.wait_for_timeout(1500)  # Wait before retry (reduced from 2000ms)
                             
                     except Exception as e:
                         print(f"❌ Attempt {attempt + 1} failed: {e}")
@@ -580,11 +582,11 @@ async def main(credentials=None, return_data=False, phone_number=None):
                 close_btn = page.locator("button:has-text('Close')").first
                 if await close_btn.count() > 0:
                     await close_btn.click()
-                    await page.wait_for_timeout(1000)
+                    await page.wait_for_timeout(500)  # Reduced from 1000ms - modal close is quick
                 else:
                     # Try ESC key
                     await page.keyboard.press("Escape")
-                    await page.wait_for_timeout(1000)
+                    await page.wait_for_timeout(500)  # Reduced from 1000ms - ESC close is quick
                 
             except Exception as e:
                 print(f"❌ Error processing box {i+1}: {e}")
@@ -643,7 +645,8 @@ async def main(credentials=None, return_data=False, phone_number=None):
         complete_results = {
             "individual_items": individual_items,
             "non_customizable_boxes": non_customizable_boxes,
-            "customizable_boxes": all_box_data
+            "customizable_boxes": all_box_data,
+            "scraped_timestamp": datetime.now().isoformat()  # Add timestamp
         }
         
         # Add delivery info if found

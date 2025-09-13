@@ -217,6 +217,11 @@ async def generate_meals(cart_data: Dict[str, Any], preferences: Dict[str, Any] 
         # Parse JSON
         meals = json.loads(gpt_response)
         
+        # Map protein_per_serving to protein for frontend compatibility
+        for meal in meals:
+            if 'protein_per_serving' in meal and 'protein' not in meal:
+                meal['protein'] = meal['protein_per_serving']
+        
         print(f"✅ Generated {len(meals)} meal suggestions")
         
         return {
