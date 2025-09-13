@@ -1,289 +1,345 @@
-# 🏗️ System Architecture
+# 🏗️ Farm to People Architecture Documentation
 
-**Last Updated:** August 26, 2025  
-**Status:** Development Phase - Core complete, shipping this week
+## System Overview
 
-## Overview
+Farm to People AI Assistant is a modular web application that transforms weekly produce boxes into personalized meal plans. The system uses a service-oriented architecture on the backend and a modular JavaScript architecture on the frontend.
 
-Farm to People AI Assistant transforms weekly produce boxes into personalized meal plans through SMS conversations, using GPT-5 for intelligent recipe generation and Playwright for real-time cart analysis.
+**Last Updated:** September 4, 2025  
+**Version:** 5.0.0
 
-## Architecture Diagram
+## Architecture Principles
+
+1. **Separation of Concerns**: Each module handles a specific domain
+2. **Event-Driven Communication**: Modules communicate via event bus, not direct coupling
+3. **Data Isolation**: Complete user data isolation to prevent cross-contamination
+4. **Cache-First Strategy**: Redis caching with 1-hour TTL reduces API load
+5. **Security by Design**: Fernet encryption, phone normalization, ownership verification
+
+## System Components
+
+### Frontend Architecture
 
 ```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   ONBOARDING │────▶│   SMS FLOW   │────▶│   DELIVERY   │
-│   (6 steps)  │     │  (Vonage)    │     │  (HTML/PDF)  │
-└──────────────┘     └──────────────┘     └──────────────┘
-        │                    │                     │
-        ▼                    ▼                     ▼
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   SUPABASE   │◀────│   SCRAPER    │────▶│   GPT-5      │
-│ (Preferences)│     │ (Playwright) │     │   (Meals)    │
-└──────────────┘     └──────────────┘     └──────────────┘
+dashboard_refactored.html (750 lines)
+    ├── HTML Structure
+    ├── CSS Styles
+    └── Module Initialization
+    
+/static/js/modules/
+    ├── shared.js (140 lines)
+    │   ├── Global State Management (AppState)
+    │   ├── Event Bus
+    │   ├── API Utilities
+    │   └── Common Helpers
+    │
+    ├── cart-manager.js (450 lines)
+    │   ├── Cart Analysis
+    │   ├── Scraping Orchestration
+    │   ├── Category Counting
+    │   └── Meal Suggestions
+    │
+    ├── meal-planner.js (650 lines)
+    │   ├── Weekly Calendar
+    │   ├── Drag & Drop
+    │   ├── Ingredient Pool Tracking
+    │   └── Meal Generation
+    │
+    └── settings.js (430 lines)
+        ├── User Preferences
+        ├── Modal Management
+        └── Database Sync
 ```
 
-## Core Components
+### Backend Services Architecture
 
-### 1. **Web Scraper** (`scrapers/comprehensive_scraper.py`)
-- **Technology:** Playwright (headless Chrome)
-- **Authentication:** Email/password with zipcode modal handling
-- **Captures:** Individual items, customizable boxes, non-customizable boxes
-- **Output:** JSON with complete cart structure
-- **Thread-safe:** Accepts credentials dict, returns data directly
-
-### 2. **Meal Planner** (`server/meal_planner.py`)
-- **Model:** GPT-5 (production ready, JSON response format)
-- **Input:** Cart data + user preferences
-- **Features:**
-  - High-protein optimization (30g+ per meal)
-  - Quick dinner prioritization (<30 min)
-  - Dietary restriction filtering
-  - Smart ingredient substitutions
-- **Output:** 5 meals with nutrition, timing, ingredients
-
-### 3. **SMS Interface** (`server/server.py`)
-- **Provider:** Vonage (webhook-based)
-- **Flow:** Stateless request/response
-- **Commands:**
-  - "plan" → Triggers full meal planning flow
-  - "hello" → Welcome message
-  - "new" → Registration link
-- **Background:** Uses FastAPI BackgroundTasks for async processing
-
-### 4. **User Data** (`server/supabase_client.py`)
-- **Database:** Supabase (PostgreSQL)
-- **Tables:**
-  - `users`: Phone, email, FTP credentials
-  - `preferences`: Dietary restrictions, goals, household size
-- **Security:** Encrypted credential storage
-
-### 5. **Preference Engine** (`server/onboarding.py`)
-- **Collection:** 6-step web form
-- **Analysis:** 20-30 preference signals extracted
-- **Categories:**
-  - Dietary restrictions (vegetarian, no-pork, etc.)
-  - Goals (high-protein, quick-dinners, budget-friendly)
-  - Cooking methods (grill, stir-fry, one-pot)
-  - Cuisine preferences (Mediterranean, Asian, comfort)
-
-### 6. **PDF Generation** (`generators/`)
-- **Approach:** HTML → PDF (better than direct ReportLab)
-- **Best Design:** Penny-inspired minimal (`meal_plan_minimal.html`)
-- **Features:**
-  - Single-page layout
-  - No emojis, subtle typography
-  - Blue accent colors (#4169E1)
-  - Compact information density
-  - **Protein-prominent format** - "38g protein" displayed under each meal title
-- **Sections:**
-  - Current selections (what's in cart)
-  - Suggested meals (5 recipes with protein/time/servings)
-  - Smart swaps (based on preferences)
-  - Premium additions (upsell opportunities)
-- **Meal Title Format:**
-  ```
-  Salmon + Roasted Vegetables
-  20 min    38g protein    serves 2
-  ```
+```
+server.py (1647 lines, down from 2000+)
+    ├── FastAPI Application
+    ├── Route Handlers
+    └── Service Delegation
+    
+/services/
+    ├── phone_service.py
+    │   └── normalize_phone() → E.164 format
+    │
+    ├── sms_handler.py
+    │   └── route_sms_message() → (response, should_trigger_task)
+    │
+    ├── account_service.py
+    │   └── lookup_user_account() → user_data with isolation
+    │
+    ├── scraper_service.py
+    │   └── scrape_user_cart() → cart_data with caching
+    │
+    ├── meal_generator.py
+    │   └── generate_meals_from_cart() → meal suggestions
+    │
+    ├── cart_service.py
+    │   └── analyze_cart() → analysis with force_refresh
+    │
+    ├── cache_service.py
+    │   ├── get_cart() → cached data
+    │   └── set_cart() → 1hr TTL
+    │
+    ├── encryption_service.py
+    │   ├── encrypt_password() → Fernet encrypted
+    │   └── decrypt_password() → Plain text
+    │
+    ├── data_isolation_service.py
+    │   ├── create_isolated_context()
+    │   └── verify_cart_ownership()
+    │
+    └── meal_flow_service.py
+        └── run_full_meal_plan_flow() → Complete orchestration
+```
 
 ## Data Flow
 
-### Happy Path:
-1. **User texts "plan"** to system phone
-2. **Webhook receives** message at `/sms`
-3. **System fetches** user credentials from Supabase
-4. **Scraper logs in** to Farm to People with credentials
-5. **Scraper extracts** complete cart contents
-6. **GPT-5 generates** personalized meal plan
-7. **System sends** SMS with meal summary
-8. **PDF generated** with full details
-9. **Link sent** for detailed viewing
+### 1. Cart Analysis Flow
+```
+User clicks "Analyze Cart"
+    ↓
+cart-manager.js → POST /api/analyze-cart
+    ↓
+server.py → cart_service.py
+    ↓
+Check Redis cache (1hr TTL)
+    ↓ (cache miss)
+scraper_service.py → Farm to People
+    ↓
+Store in Redis & Supabase
+    ↓
+Return cart_data
+    ↓
+eventBus.emit('cart-analyzed', cartData)
+    ↓
+meal-planner.js receives event → Initialize meal plan
+```
 
-### Preference Integration:
+### 2. Ingredient Allocation Flow
+```
+Cart Data Received
+    ↓
+Build Ingredient Pool
+    {
+        "Chicken Breast": {
+            total: 4,
+            allocated: 0,
+            remaining: 4,
+            unit: "lbs"
+        }
+    }
+    ↓
+Generate Meal for Monday
+    ↓
+Allocate 1lb Chicken to Monday
+    {
+        allocated: 1,
+        remaining: 3
+    }
+    ↓
+Update Progress Bar (25% used)
+    ↓
+Drag Monday meal to Tuesday
+    ↓
+Move allocation with meal
+```
+
+### 3. Cross-Module Communication
+```javascript
+// Cart module completes analysis
+cartManager.analyze() 
+    → eventBus.emit('cart-analyzed', cartData)
+
+// Meal module receives data
+mealPlanner.on('cart-analyzed', (cartData) => {
+    this.initializeMealPlan(cartData);
+});
+
+// Settings module updates preferences
+settingsManager.save()
+    → eventBus.emit('preferences-updated', prefs)
+
+// Meal module regenerates with new preferences
+mealPlanner.on('preferences-updated', (prefs) => {
+    this.regenerateWithPreferences(prefs);
+});
+```
+
+## Security Architecture
+
+### Phone Normalization (Prevents Data Bleeding)
 ```python
-# From onboarding → meal planner
-preferences = {
-    'dietary_restrictions': ['no-pork', 'gluten-free'],
-    'goals': ['high-protein', 'quick-dinners'],
-    'household_size': 2,
-    'cooking_methods': ['grill', 'stir-fry']
-}
-
-# Applied in GPT prompt
-if 'high-protein' in goals:
-    prompt += "Ensure each meal has 30g+ protein"
-if 'quick-dinners' in goals:
-    meals = sorted(meals, key=lambda x: x['time'])
+# All phone formats resolve to same E.164
+normalize_phone("2125551234")     → "+12125551234"
+normalize_phone("(212) 555-1234") → "+12125551234"
+normalize_phone("+12125551234")   → "+12125551234"
 ```
 
-## Technical Decisions
-
-### Why These Choices:
-
-**Playwright over Selenium:**
-- Better modal handling
-- More reliable wait conditions
-- Built-in retry mechanisms
-- Faster execution
-
-**GPT-5 over GPT-4:**
-- JSON response format support
-- Better instruction following
-- More consistent outputs
-- Actually in production (despite documentation)
-
-**Vonage over Twilio:**
-- Simpler webhook setup
-- Better international support
-- More reliable delivery
-
-**Supabase over Local DB:**
-- Built-in authentication
-- Real-time capabilities
-- Automatic backups
-- REST API included
-
-**HTML→PDF over ReportLab:**
-- Better visual control
-- Easier responsive design
-- Standard web technologies
-- Preview in browser
-
-## State Management Strategy
-
-### Current: Stateless
-- Each SMS is independent
-- No conversation memory
-- Simple but limited
-
-### Planned: Redis Sessions
+### Data Isolation Pattern
 ```python
-# Proposed structure
-session = {
-    'phone': '+1234567890',
-    'state': 'AWAITING_SWAP_CONFIRMATION',
-    'context': {
-        'current_meal_plan': {...},
-        'pending_swaps': [...],
-        'message_count': 3
-    },
-    'expires_at': timestamp
-}
+# Every request creates isolated context
+context = UserDataIsolation.create_isolated_context(phone)
+# Unique session key per user
+session_key = hashlib.sha256(f"{phone}{timestamp}".encode()).hexdigest()
+
+# Verify ownership before returning data
+if not verify_cart_ownership(requested_phone, cart_data):
+    return {}  # Block contaminated data
 ```
 
-### State Machine:
+### Password Encryption Migration
+```python
+# Old: Base64 (insecure)
+encoded = base64.b64encode(password.encode()).decode()
+
+# New: Fernet (symmetric encryption)
+cipher = Fernet(encryption_key)
+encrypted = cipher.encrypt(password.encode())
 ```
-IDLE → PLANNING → CONFIRMING → MODIFYING → COMPLETE
-         ↓           ↓            ↓
-      FAILED     CANCELLED    TIMEOUT
+
+## Caching Strategy
+
+### Redis Configuration
+- **TTL**: 1 hour for cart data
+- **Force Refresh**: User can bypass cache
+- **Graceful Fallback**: Works without Redis
+
+```python
+class CacheService:
+    @staticmethod
+    def get_cart(phone: str):
+        if not redis_client:
+            return None  # Graceful degradation
+        
+        cached = redis_client.get(f"cart:{phone}")
+        if cached and not expired:
+            return json.loads(cached)
+        return None
+    
+    @staticmethod
+    def set_cart(phone: str, data: dict, ttl: int = 3600):
+        if redis_client:
+            redis_client.setex(
+                f"cart:{phone}",
+                ttl,
+                json.dumps(data)
+            )
 ```
+
+## State Management
+
+### Global State Object
+```javascript
+window.AppState = {
+    currentState: 'initial',  // initial|loading|complete|error
+    mealPlanData: null,        // Cart and meal data
+    userSettings: null,        // User preferences
+    phoneNumber: null          // Cached phone
+};
+```
+
+### Local Storage Strategy
+- Cart analysis: 1-hour cache
+- Meal plans: Per-week storage
+- User settings: Persistent
+- Credentials: Never stored in JS
+
+## API Endpoints
+
+### Cart Management
+- `POST /api/analyze-cart`
+  - Body: `{ phone_number, force_refresh }`
+  - Returns: `{ success, cart_data }`
+
+### Meal Planning
+- `POST /api/generate-weekly-meals`
+  - Body: `{ phone_number, ingredient_pool, preferences }`
+  - Returns: `{ meals: [...] }`
+
+- `POST /api/regenerate-meal`
+  - Body: `{ phone_number, day, available_ingredients }`
+  - Returns: `{ meal }`
+
+- `POST /api/generate-recipe`
+  - Body: `{ phone_number, meal, ingredients }`
+  - Returns: `{ recipe_url }`
+
+### User Management
+- `GET /api/user-settings?phone={phone}`
+  - Returns: `{ success, user_data }`
+
+- `POST /api/update-preferences`
+  - Body: `{ phone_number, preferences }`
+  - Returns: `{ success }`
 
 ## Performance Optimizations
 
-### Implemented:
-1. **Direct data passing** - Scraper returns data, no file I/O
-2. **Credential threading** - Pass creds directly, not through ENV
-3. **Background processing** - SMS responds immediately
-4. **Caching** - Reuse scraped data for 15 minutes
-
-### Planned:
-1. **Connection pooling** - Reuse Playwright browsers
-2. **Parallel scraping** - Multiple boxes simultaneously
-3. **GPT streaming** - Send partial results
-4. **CDN for PDFs** - Cache generated meal plans
-
-## Security Considerations
-
-1. **Credentials:** Encrypted in Supabase
-2. **SMS:** Phone number validation
-3. **Rate limiting:** Max 10 requests/hour per phone
-4. **Input sanitization:** All user inputs cleaned
-5. **No sensitive data in logs**
-
-## Monitoring & Analytics
-
-### Current Metrics:
-- Scraper success rate
-- GPT response time
-- SMS delivery rate
-- User engagement
-
-### Planned Metrics:
-- Meal completion rate
-- Swap acceptance rate
-- Recipe ratings
-- Cart value optimization
+1. **Code Splitting**: 2954 lines → 5 files averaging 400 lines
+2. **Lazy Loading**: Modules load only when tab activated
+3. **Event Debouncing**: Prevents rapid API calls
+4. **Cache-First**: Reduces Farm to People server load
+5. **Batch Operations**: Multiple tool calls in parallel
 
 ## Deployment Architecture
 
-### Development:
-- Local server on port 8000
-- Ngrok for SMS webhooks
-- SQLite for quick testing
+### Railway Configuration
+- **Auto-deploy**: From GitHub main branch
+- **Python**: 3.8 (compatibility requirement)
+- **Redis**: Add-on service for caching
+- **Environment Variables**: Stored in Railway
 
-### Production (Railway):
-```yaml
-services:
-  - web: python server/server.py
-  - worker: python scrapers/weekly_health_check.py
-  - redis: redis:alpine
-environment:
-  - PORT: $PORT
-  - DATABASE_URL: $DATABASE_URL
-  - REDIS_URL: $REDIS_URL
+### Static File Serving
+```python
+app.mount("/static", StaticFiles(directory="server/static"), name="static")
 ```
 
-## Critical Gaps & Technical Debt
+## Monitoring & Debugging
 
-### Must Fix Before Launch:
-1. **Cart total calculations** - Show pricing
-2. **Confirmation flow** - User approval before generating
-3. **Error recovery** - Handle scraper failures gracefully
-4. **Help text** - Add to all SMS responses
+### Key Metrics
+- Cart analysis time: Target <30 seconds
+- Cache hit rate: Target >70%
+- Phone normalization success: >99%
+- Data isolation verification: 100%
 
-### Technical Debt:
-1. **No conversation state** - Can't handle multi-turn
-2. **Hardcoded preferences** - Some still in code
-3. **Limited swap logic** - Basic replacement only
-4. **No modification handlers** - Can't edit after generation
+### Debug Points
+```javascript
+// Frontend debugging
+console.log('Cart analyzed:', cartData);
+console.log('Event emitted:', eventName, data);
+console.log('State updated:', window.AppState);
 
-## Next Architecture Steps
+// Backend debugging
+print(f"📞 Phone normalized: {original} → {normalized}")
+print(f"🔍 Cache {'hit' if cached else 'miss'} for {phone}")
+print(f"✅ Data ownership verified for {phone}")
+```
 
-### Week 1 (This Week):
-- ✅ Connect scraper to planner
-- ✅ Add preferences to prompts
-- ✅ Create Penny-style PDF
-- ⏳ Add help text to SMS
-- ⏳ Implement Redis sessions
+## Future Improvements
 
-### Week 2:
-- Instant acknowledgments
-- Modification handlers (swap/skip/remove)
-- Cart value calculations
-- Confirmation flow
+1. **WebSocket Communication**: Real-time updates during scraping
+2. **Service Workers**: Offline meal planning
+3. **GraphQL API**: More efficient data fetching
+4. **React Migration**: When team scales beyond 1
+5. **Kubernetes**: When scaling beyond Railway
 
-### Week 3:
-- Production deployment
-- Monitoring setup
-- A/B testing framework
-- Analytics pipeline
+## Migration Guide
 
-## Design Patterns Used
+### From Monolithic to Modular
+1. Backup original: `cp dashboard.html dashboard_backup.html`
+2. Deploy modules: Ensure `/static/js/modules/` accessible
+3. Update imports: Switch to dashboard_refactored.html
+4. Test locally: All features working
+5. Deploy: Git push triggers Railway
 
-### 1. **Factory Pattern** - Scraper creation
-### 2. **Strategy Pattern** - PDF generation styles
-### 3. **Observer Pattern** - SMS webhook handling
-### 4. **Repository Pattern** - Data access layer
-### 5. **Builder Pattern** - Meal plan construction
-
-## Key Insights from Development
-
-1. **Less is more** - Single-page PDFs > multi-page
-2. **Typography > Graphics** - No emojis, clean text
-3. **Direct > Indirect** - Pass data, don't use files
-4. **Explicit > Implicit** - Show all cart contents
-5. **Fast > Perfect** - 20-second recipes win
+### Rollback Procedure
+```bash
+# If issues arise
+cp dashboard_backup.html dashboard.html
+git commit -m "Rollback to monolithic dashboard"
+git push
+```
 
 ---
 
-*This architecture supports 100+ concurrent users with <30 second response times and 95%+ success rates.*
+*This architecture supports the current scale while remaining simple enough for a single developer to maintain. The modular design allows for incremental improvements without system-wide refactoring.*

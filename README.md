@@ -1,124 +1,240 @@
 # 🌱 Farm to People AI Assistant
 
-Transform weekly produce deliveries into personalized meal plans via SMS. Learn preferences, reduce waste, increase satisfaction.
+Transform weekly produce boxes into personalized meal plans with intelligent cart analysis and meal planning.
 
-## What It Does
+**Version:** 5.0.0 (Modular Architecture)  
+**Status:** Production Ready  
+**Live:** https://farmtopeople-production.up.railway.app
 
-1. **Texts customers** after cart closes: "Your meal plan is ready!"
-2. **Analyzes their cart** using web scraping (Playwright)
-3. **Generates 5 meals** with GPT-5 based on preferences
-4. **Delivers recipes** as clean, single-page PDFs
+## 🚀 Quick Start
 
-## Quick Start
+### Prerequisites
+- Python 3.8+ (Railway uses 3.8)
+- Redis (optional, for caching)
+- Supabase account
+- Farm to People account
+
+### Local Development
 
 ```bash
-# Setup
-git clone https://github.com/farmtopeople/ai-assistant.git
+# 1. Clone repository
+git clone https://github.com/yourusername/farmtopeople.git
 cd farmtopeople
-git checkout feature/customer-automation
-python -m venv venv
-source venv/bin/activate  # ALWAYS DO THIS FIRST!
+
+# 2. Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
-playwright install chromium
 
-# Configure
+# 4. Set environment variables
 cp .env.example .env
-# Edit .env with your API keys
+# Edit .env with your credentials
 
-# Run
+# 5. Run server
 python server/server.py
+
+# 6. Open browser
+open http://localhost:8000/dashboard
 ```
 
-## Key Features
-
-✅ **Smart Scraping** - Captures all cart types (individual items, boxes)  
-✅ **Preference Learning** - 6-step onboarding collects dietary needs  
-✅ **GPT-5 Powered** - Yes, GPT-5 works (model="gpt-5")  
-✅ **SMS Simple** - No app needed, just text messaging  
-✅ **Penny-Style PDFs** - Clean typography, no emojis  
-
-## Architecture
+## 📁 Project Structure
 
 ```
-SMS (Vonage) → Server (FastAPI) → Scraper (Playwright)
-                    ↓
-              GPT-5 Meal Plan
-                    ↓
-              HTML/PDF Output
+farmtopeople/
+├── server/
+│   ├── server.py                    # Main FastAPI application
+│   ├── templates/
+│   │   └── dashboard_refactored.html # Modular dashboard (750 lines)
+│   ├── static/js/modules/           # JavaScript modules
+│   │   ├── shared.js                # Global state & utilities
+│   │   ├── cart-manager.js          # Cart analysis logic
+│   │   ├── meal-planner.js          # Meal calendar & ingredients
+│   │   └── settings.js              # User preferences
+│   └── services/                    # Backend services
+│       ├── phone_service.py         # Phone normalization
+│       ├── cache_service.py         # Redis caching
+│       ├── encryption_service.py    # Fernet encryption
+│       └── ...                      # 8 more services
+├── scrapers/                        # Farm to People scrapers
+├── generators/                      # PDF generation
+└── docs/                           # Documentation
 ```
 
-## This Week's Schedule
+## 🔑 Environment Variables
 
-- ✅ **Monday**: Connected scraper→planner, added preferences to GPT
-- ✅ **Tuesday AM**: Created Penny-style PDF design
-- ⏳ **Tuesday PM**: Add help text to SMS
-- ⏳ **Wednesday**: Redis conversation state
-- ⏳ **Thursday**: Instant acknowledgments & modifications
-- ⏳ **Friday**: Production deployment
+Create a `.env` file with:
 
-## Project Structure
+```bash
+# Farm to People Credentials
+FTP_EMAIL=your@email.com
+FTP_PASSWORD=yourpassword
 
+# Vonage SMS (optional)
+VONAGE_API_KEY=xxx
+VONAGE_API_SECRET=xxx
+VONAGE_PHONE_NUMBER=18334391183
+
+# OpenAI
+OPENAI_API_KEY=xxx
+
+# Supabase
+SUPABASE_URL=xxx
+SUPABASE_KEY=xxx
+
+# Redis (optional)
+REDIS_URL=redis://localhost:6379
+
+# Encryption
+ENCRYPTION_KEY=xxx  # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
-/server         # Backend (FastAPI, meal planner)
-/scrapers       # Web scraping (Playwright)
-/generators     # PDF/HTML generation
-/tests          # Test suite
-/docs           # Documentation
-    ├── ARCHITECTURE.md    # System design
-    ├── BUSINESS_FLOW.md   # User journey
-    └── DEVELOPMENT.md     # Setup guide
+
+## 🏗️ Architecture
+
+### Frontend Modules
+- **cart-manager.js**: Handles cart analysis and display
+- **meal-planner.js**: Weekly calendar with drag-and-drop
+- **settings.js**: User preferences management
+- **shared.js**: Event bus and global state
+
+### Backend Services
+- **Phone normalization**: Prevents cross-user data contamination
+- **Redis caching**: 1-hour TTL with force refresh
+- **Fernet encryption**: Secure password storage
+- **Data isolation**: User data protection
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture documentation.
+
+## 🚢 Deployment
+
+### Railway Deployment
+
+1. **Connect GitHub repository**
+   ```bash
+   git remote add origin https://github.com/yourusername/farmtopeople.git
+   git push -u origin main
+   ```
+
+2. **Configure Railway**
+   - Add Redis service
+   - Set environment variables
+   - Python 3.8 runtime
+
+3. **Auto-deploy on push**
+   ```bash
+   git add .
+   git commit -m "Deploy updates"
+   git push
+   ```
+
+### Migration from Monolithic Dashboard
+
+```bash
+# 1. Backup original
+cp server/templates/dashboard.html server/templates/dashboard_backup.html
+
+# 2. Switch to refactored version
+mv server/templates/dashboard_refactored.html server/templates/dashboard.html
+
+# 3. Test locally
+python server/server.py
+
+# 4. Deploy
+git commit -am "Switch to modular dashboard"
+git push
 ```
 
-## Testing
+## 📊 Key Features
+
+- **Cart Analysis**: Real-time Farm to People cart scraping
+- **Meal Planning**: Weekly calendar with ingredient tracking
+- **Drag & Drop**: Reorganize meals between days
+- **Ingredient Pool**: Track allocation and availability
+- **User Preferences**: Dietary restrictions and goals
+- **PDF Generation**: Full recipes on demand
+- **SMS Integration**: Text-based meal planning (optional)
+
+## 🔒 Security
+
+- **E.164 Phone Normalization**: Prevents data bleeding between users
+- **Fernet Encryption**: Secure password storage (not base64!)
+- **Data Isolation**: Complete user data separation
+- **Redis Caching**: Reduces scraping load with 1hr TTL
+
+## 📖 Documentation
+
+- [CLAUDE.md](CLAUDE.md) - Development guide and best practices
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - System architecture
+- [docs/ONBOARDING_SYSTEM.md](docs/ONBOARDING_SYSTEM.md) - User onboarding flow
+- [DEBUGGING_PROTOCOL.md](DEBUGGING_PROTOCOL.md) - Troubleshooting guide
+
+## 🧪 Testing
 
 ```bash
 # Test scraper
-cd scrapers && python comprehensive_scraper.py
+cd scrapers
+python comprehensive_scraper.py
 
-# Test full flow
-curl -X POST http://localhost:8000/test-full-flow
+# Test services
+python tests/test_refactored_services.py
 
-# Run tests
-pytest tests/
+# Test meal planner
+python server/meal_planner.py
 ```
 
-## Key Technical Decisions
+## 🐛 Common Issues
 
-- **Playwright > Selenium** - Better modal handling
-- **GPT-5 > GPT-4** - Works in production!
-- **Vonage > Twilio** - Simpler webhooks
-- **HTML→PDF > ReportLab** - More control
-- **No emojis** - Professional aesthetic
-
-## Environment Variables
-
+### Module not found errors
 ```bash
-OPENAI_API_KEY=sk-...      # Must have GPT-5 access
-SUPABASE_URL=...            # Database
-SUPABASE_KEY=...
-VONAGE_API_KEY=...          # SMS service
-VONAGE_API_SECRET=...
-VONAGE_PHONE_NUMBER=18334391183
-FTP_EMAIL=...               # Test account
-FTP_PASSWORD=...
+# Ensure static files are served
+ls -la server/static/js/modules/
 ```
 
-## Documentation
+### Redis connection failed
+```bash
+# System works without Redis (graceful degradation)
+# Or install locally: brew install redis
+```
 
-- **[Architecture](docs/ARCHITECTURE.md)** - System design & technical details
-- **[Business Flow](docs/BUSINESS_FLOW.md)** - User journey & requirements  
-- **[Development](docs/DEVELOPMENT.md)** - Setup, deployment, debugging
-- **[Claude Guide](CLAUDE.md)** - AI assistant instructions
+### Python version mismatch
+```bash
+# Railway uses Python 3.8, avoid 3.9+ features
+# Check: python --version
+```
 
-## Support
+## 📈 Performance
 
-- **Issues**: GitHub issues
-- **Docs**: See `/docs` folder
-- **AI Assistant**: Read CLAUDE.md
+- **Cart Analysis**: <30 seconds
+- **Cache Hit Rate**: >70%
+- **Dashboard Load**: <3 seconds
+- **Module Sizes**: ~400 lines average (down from 2954)
+
+## 🤝 Contributing
+
+1. Read [CLAUDE.md](CLAUDE.md) for development guidelines
+2. Follow the modular architecture pattern
+3. Test locally before pushing
+4. Document API changes
+
+## 📝 License
+
+Private project - All rights reserved
+
+## 🆘 Support
+
+- GitHub Issues: Report bugs
+- Documentation: Check `/docs` folder
+- Logs: `tail -f server.log`
 
 ---
 
-**Status**: Core complete, shipping Friday  
-**Version**: 2.2.0  
-**Branch**: `feature/customer-automation`  
-**Updated**: August 26, 2025
+**Current Focus:** Real ingredient tracking with proper allocation in meal calendar
+
+**Recent Updates (Sept 4, 2025):**
+- Dashboard modularized (2954 → 750 lines + modules)
+- Real ingredient tracking replacing mock percentages
+- Event-driven architecture for module communication
+- Fernet encryption replacing base64
+
+*Built with FastAPI, JavaScript modules, and Farm to People integration*

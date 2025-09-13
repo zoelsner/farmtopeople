@@ -110,18 +110,37 @@ def upsert_user_credentials(
 
 def get_user_by_phone(phone_number: str) -> Optional[Dict[str, Any]]:
     client = get_client()
-    res = (
-        client.table("users")
-        .select("id, phone_number, ftp_email, ftp_password_encrypted, preferences")
-        .eq("phone_number", phone_number)
-        .limit(1)
-        .execute()
-    )
-    if not res.data:
-        return None
-    row = res.data[0]
-    row["ftp_password"] = _decode_password(row.get("ftp_password_encrypted", ""))
-    return row
+    
+    # Try multiple phone formats to handle inconsistencies
+    phone_formats = []
+    
+    # If it starts with +1, also try without it
+    if phone_number.startswith('+1'):
+        phone_formats.append(phone_number)  # +14254955323
+        phone_formats.append(phone_number[2:])  # 4254955323
+    # If it doesn't start with +1, also try with it  
+    elif len(phone_number) == 10 and phone_number[0] != '1':
+        phone_formats.append(phone_number)  # 4254955323
+        phone_formats.append(f'+1{phone_number}')  # +14254955323
+    else:
+        phone_formats.append(phone_number)
+    
+    # Try each format
+    for phone_format in phone_formats:
+        res = (
+            client.table("users")
+            .select("id, phone_number, ftp_email, ftp_password_encrypted, preferences")
+            .eq("phone_number", phone_format)
+            .limit(1)
+            .execute()
+        )
+        if res.data:
+            row = res.data[0]
+            row["ftp_password"] = _decode_password(row.get("ftp_password_encrypted", ""))
+            return row
+    
+    # No user found with any format
+    return None
 
 
 def get_user_by_email(ftp_email: str) -> Optional[Dict[str, Any]]:
@@ -270,15 +289,33 @@ def get_latest_cart_data(phone_number: str) -> Optional[Dict[str, Any]]:
     """
     try:
         client = get_client()
-        result = client.table("latest_cart_data").select("*").eq("phone_number", phone_number).execute()
         
-        if result.data:
-            stored_data = result.data[0]
-            print(f"📦 Retrieved stored cart data for {phone_number} (scraped: {stored_data.get('scraped_at')})")
-            return stored_data
+        # Try multiple phone formats to handle inconsistencies
+        phone_formats = []
+        
+        # If it starts with +1, also try without it
+        if phone_number.startswith('+1'):
+            phone_formats.append(phone_number)  # +14254955323
+            phone_formats.append(phone_number[2:])  # 4254955323
+        # If it doesn't start with +1, also try with it
+        elif len(phone_number) == 10 and phone_number[0] != '1':
+            phone_formats.append(phone_number)  # 4254955323
+            phone_formats.append(f'+1{phone_number}')  # +14254955323
         else:
-            print(f"⚠️ No stored cart data found for {phone_number}")
-            return None
+            phone_formats.append(phone_number)
+        
+        # Try each format
+        for phone_format in phone_formats:
+            result = client.table("latest_cart_data").select("*").eq("phone_number", phone_format).execute()
+            
+            if result.data:
+                stored_data = result.data[0]
+                print(f"📦 Retrieved stored cart data for {phone_format} (scraped: {stored_data.get('scraped_at')})")
+                return stored_data
+        
+        # No data found with any format
+        print(f"⚠️ No stored cart data found for {phone_number} (tried: {', '.join(phone_formats)})")
+        return None
             
     except Exception as e:
         print(f"❌ Failed to retrieve cart data: {e}")

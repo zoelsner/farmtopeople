@@ -4,9 +4,9 @@
 
 **Farm to People AI Assistant** transforms weekly produce boxes into personalized meal plans through intelligent SMS conversations. The system learns user preferences, analyzes cart contents, and delivers actionable cooking guidance.
 
-**Current Status:** Major Refactor Complete - Services architecture, data isolation, Redis caching ready  
-**Last Updated:** September 3, 2025  
-**Version:** 4.0.0 (Services Architecture + Security)  
+**Current Status:** Dashboard Modularized - Clean JS modules, real ingredient tracking, proper state management  
+**Last Updated:** September 4, 2025  
+**Version:** 5.0.0 (Modular Dashboard + Real Ingredient Tracking)  
 **Branch:** `feature/customer-automation`  
 **Primary Contact:** SMS `18334391183` (Vonage)  
 **Live URL:** https://farmtopeople-production.up.railway.app
@@ -353,31 +353,49 @@ await storage.get_ingredient_pool(plan_id)  # Real-time availability
 
 ## 💻 KEY CODE COMPONENTS
 
-### **Core Files (Reorganized 8/26)**
+### **Core Files (Modularized Sept 4, 2025)**
 ```
 server/
-├── server.py                 # FastAPI webhook & orchestration ✅
-├── meal_planner.py          # GPT-5 integration ✅
-├── onboarding.py            # Preference analysis engine ✅
-├── supabase_client.py       # Database operations ✅
-└── templates/               # HTML templates
+├── server.py                # FastAPI main app (1647 lines, down from 2000+) ✅
+├── templates/
+│   ├── dashboard.html       # LEGACY: 2954 lines monolith (backup)
+│   └── dashboard_refactored.html # NEW: Clean HTML only (750 lines) ✅
+├── static/js/modules/       # NEW: Modular JavaScript architecture
+│   ├── shared.js           # Global state, utilities, event bus (140 lines) ✅
+│   ├── cart-manager.js     # Cart analysis & display (450 lines) ✅
+│   ├── meal-planner.js     # Meal calendar & ingredients (650 lines) ✅
+│   └── settings.js         # User preferences (430 lines) ✅
+└── services/               # NEW: Backend services (Sept 3)
+    ├── phone_service.py     # Phone normalization ✅
+    ├── sms_handler.py       # SMS routing ✅
+    ├── account_service.py   # User account lookup ✅
+    ├── scraper_service.py   # Cart scraping orchestration ✅
+    ├── meal_generator.py    # Meal plan generation ✅
+    ├── cart_service.py      # Cart analysis with caching ✅
+    ├── cache_service.py     # Redis integration (1hr TTL) ✅
+    ├── encryption_service.py # Fernet encryption (replacing base64) ✅
+    ├── data_isolation_service.py # User data isolation ✅
+    └── meal_flow_service.py # Complete flow orchestration ✅
 
-generators/                  # NEW: PDF/HTML generation
+generators/                  # PDF/HTML generation
 ├── pdf_minimal.py           # Penny-style PDF generator ✅
-├── html_meal_plan_generator.py # HTML meal plans ✅
 └── templates/
-    └── meal_plan_minimal.html # BEST DESIGN: Clean, no emojis ✅
+    └── meal_plan_minimal.html # Clean design, no emojis ✅
 
 scrapers/
 ├── comprehensive_scraper.py  # PRIMARY: Full cart extraction ✅
 └── auth_helper.py           # Authentication handling ✅
-
-tests/                       # NEW: All test files moved here
-docs/                        # Consolidated documentation
-├── ARCHITECTURE.md          # System design
-├── BUSINESS_FLOW.md         # User journey
-└── DEVELOPMENT.md           # Setup & deployment
 ```
+
+### **Architecture Improvements (Sept 3-4, 2025)**
+1. **Services Architecture**: Extracted 11 services from monolithic server.py
+2. **Phone Normalization**: Centralized E.164 format prevents cross-user data contamination
+3. **Redis Caching**: 1-hour TTL with force refresh option
+4. **Fernet Encryption**: Replaced insecure base64 password storage
+5. **Dashboard Modularization**: Split 2954-line file into clean modules
+6. **Real Ingredient Tracking**: Replaced mock percentages with actual allocation
+7. **Event-Driven Communication**: Modules communicate via event bus
+8. **Proper State Management**: Global AppState object for cross-module data
 
 ---
 
@@ -483,7 +501,67 @@ SUPABASE_KEY=xxx                 # Database key
 
 ---
 
+## 🎯 MODULAR DASHBOARD SYSTEM (NEW - Sept 4, 2025)
+
+### **Why We Refactored**
+The original dashboard.html had grown to 2954 lines - unmaintainable and prone to bugs. The new modular system:
+- **Separates concerns**: Each feature in its own file
+- **Enables real ingredient tracking**: No more mock percentages
+- **Improves maintainability**: Update features independently
+- **Adds proper state management**: Cross-module communication via event bus
+
+### **Module Communication**
+```javascript
+// Example: Cart module notifies Meal module
+eventBus.emit('cart-analyzed', cartData);
+
+// Meal module listens and responds
+eventBus.on('cart-analyzed', (cartData) => {
+    this.initializeMealPlan(cartData);
+});
+```
+
+### **Key API Endpoints Used by Modules**
+- `POST /api/analyze-cart` - Cart analysis with force refresh
+- `GET /api/user-settings` - Load user preferences
+- `POST /api/update-preferences` - Save preference changes
+- `POST /api/generate-weekly-meals` - Generate meal plan from ingredients
+- `POST /api/regenerate-meal` - Replace single meal
+- `POST /api/generate-recipe` - Create full recipe PDF
+
+### **Deployment Steps**
+1. **Test locally first**: `python server/server.py`
+2. **Replace dashboard**: `mv dashboard.html dashboard_backup.html && mv dashboard_refactored.html dashboard.html`
+3. **Verify static files**: Check `/static/js/modules/` accessible
+4. **Push to production**: Git commit and Railway auto-deploys
+
 ## 🆘 TROUBLESHOOTING
+
+### 🔴 **CRITICAL: Phone Number Format Issues - HAPPENS FREQUENTLY!**
+**If cart shows old data or "user not found" - CHECK THIS FIRST:**
+```bash
+# THE PROBLEM: Phone stored as 4254955323 but queried as +14254955323
+# SYMPTOMS: Old cart data, failed analysis, "user not found"
+
+# QUICK DIAGNOSTIC:
+source venv/bin/activate
+python -c "
+import sys; sys.path.insert(0, 'server')
+import supabase_client as db
+phone = '4254955323'  # <-- YOUR PHONE NUMBER
+user = db.get_user_by_phone(phone)
+cart = db.get_latest_cart_data(phone)
+print(f'✅ User found: {bool(user)}')
+print(f'✅ Cart found: {bool(cart)}')
+if cart: 
+    data = cart.get('cart_data', {})
+    if data.get('customizable_boxes'):
+        print('Cart items:', [i['name'][:20] for i in data['customizable_boxes'][0]['selected_items'][:3]])
+"
+
+# PERMANENT FIX: See docs/PHONE_NUMBER_CRITICAL.md
+# QUICK DEBUG: See DEBUGGING_PHONE_ISSUES.md
+```
 
 ### **Common Issues**
 ```bash

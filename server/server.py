@@ -1105,7 +1105,17 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                         # Decrypt password (it's base64 encoded)
                         import base64
                         encoded_pwd = user_record.get('ftp_password_encrypted', '')
-                        password = base64.b64decode(encoded_pwd).decode('utf-8') if encoded_pwd else None
+                        
+                        # Try to decode password with better error handling
+                        password = None
+                        if encoded_pwd:
+                            try:
+                                password = base64.b64decode(encoded_pwd).decode('utf-8')
+                                print(f"✅ Successfully decoded password for {email}")
+                            except Exception as decode_error:
+                                print(f"⚠️ Failed to decode password: {decode_error}")
+                                print(f"⚠️ Encoded password length: {len(encoded_pwd)}")
+                                # Don't fail completely - maybe stored cart has data
                         
                         if email and password:
                             print(f"🛒 Running live scraper for {email}")

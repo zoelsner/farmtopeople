@@ -22,6 +22,19 @@ except ImportError:
 project_root = Path(__file__).resolve().parent.parent
 load_dotenv(dotenv_path=project_root / '.env', override=True)
 
+# Detect if we're running in production (Railway) or local
+IS_PRODUCTION = os.getenv('RAILWAY_ENVIRONMENT', '').lower() == 'production' or os.getenv('RAILWAY_PROJECT_ID', None) is not None
+
+# Adjust timeouts based on environment (production needs longer waits)
+TIMEOUT_MULTIPLIER = 1.5 if IS_PRODUCTION else 1.0
+
+def get_timeout(base_ms):
+    """Get adjusted timeout based on environment"""
+    adjusted = int(base_ms * TIMEOUT_MULTIPLIER)
+    if IS_PRODUCTION and adjusted != base_ms:
+        print(f"⏱️ Timeout adjusted for production: {base_ms}ms → {adjusted}ms")
+    return adjusted
+
 def parse_delivery_date(delivery_text: str) -> datetime:
     """Parse delivery date from text and return as datetime object."""
     if not delivery_text:
@@ -209,7 +222,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
         # Navigate to home where header/cart lives
         await page.goto("https://farmtopeople.com/home")
         await page.wait_for_load_state("domcontentloaded")
-        await page.wait_for_timeout(1500)  # Give page time to settle (optimized from 2000ms)
+        await page.wait_for_timeout(get_timeout(1500))  # Give page time to settle
 
         # Check if we're on a login page or if login elements are visible
         current_url = page.url
@@ -246,7 +259,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
                     login_btn = page.locator("button:has-text('LOG IN')").first
                     if await login_btn.count() > 0:
                         await login_btn.click()
-                        await page.wait_for_timeout(1500)  # Reduced from 2000ms after login click
+                        await page.wait_for_timeout(get_timeout(1500))  # Wait after login click
                         
                         # Now fill password
                         password_input = page.locator("input[type='password']").first
@@ -259,7 +272,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
                             if await final_login_btn.count() > 0:
                                 await final_login_btn.click()
                                 print("✅ Login submitted, waiting for navigation...")
-                                await page.wait_for_timeout(3000)  # Reduced from 5000ms for zipcode modal
+                                await page.wait_for_timeout(get_timeout(3000))  # Wait for zipcode modal
                                 
                                 # Verify we're logged in
                                 if "login" not in page.url:
@@ -283,11 +296,11 @@ async def main(credentials=None, return_data=False, phone_number=None):
         if await cart_btn.is_visible():
             print("✅ Cart button is visible and not in a modal. Clicking it.")
             await cart_btn.click()
-            await page.wait_for_timeout(2000) # Wait for cart to open (reduced from 3000ms)
+            await page.wait_for_timeout(get_timeout(2000))  # Wait for cart to open
         else:
             print("❌ Cart button not found or not visible. Trying direct navigation.")
             await page.goto("https://farmtopeople.com/cart")
-            await page.wait_for_timeout(2000)  # Reduced from 3000ms for direct nav
+            await page.wait_for_timeout(get_timeout(2000))  # Wait after direct nav
 
         # First, get individual cart items (non-customizable items like eggs, avocados, etc.)
         print("🔍 Checking for individual cart items...")
@@ -498,7 +511,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
                         
                         # Ensure button is in viewport and ready
                         await customize_btn.scroll_into_view_if_needed()
-                        await page.wait_for_timeout(1000)  # Longer wait for page stability
+                        await page.wait_for_timeout(get_timeout(1000))  # Wait for page stability
                         
                         # Wait for button to be visible and enabled
                         await customize_btn.wait_for(state="visible", timeout=5000)
@@ -536,7 +549,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
                             raise Exception("All click methods failed")
                         
                         # Wait for modal to appear and verify it loaded
-                        await page.wait_for_timeout(2000)  # Reduced from 3000ms - modal should be fast
+                        await page.wait_for_timeout(get_timeout(2000))  # Wait for modal
                         
                         # Check if modal actually opened
                         modal_present = await page.locator("aside[aria-label*='Customize']").count() > 0
@@ -546,13 +559,13 @@ async def main(credentials=None, return_data=False, phone_number=None):
                             break  # Success, exit retry loop
                         else:
                             print("⚠️ Modal didn't open, retrying...")
-                            await page.wait_for_timeout(1500)  # Wait before retry (reduced from 2000ms)
+                            await page.wait_for_timeout(get_timeout(1500))  # Wait before retry
                             
                     except Exception as e:
                         print(f"❌ Attempt {attempt + 1} failed: {e}")
                         if attempt < max_retries - 1:
                             print(f"🔄 Retrying in 3 seconds...")
-                            await page.wait_for_timeout(3000)
+                            await page.wait_for_timeout(get_timeout(3000))  # Wait after failed attempt
                         else:
                             print(f"❌ All {max_retries} attempts failed for {box_name}")
                 
@@ -582,11 +595,11 @@ async def main(credentials=None, return_data=False, phone_number=None):
                 close_btn = page.locator("button:has-text('Close')").first
                 if await close_btn.count() > 0:
                     await close_btn.click()
-                    await page.wait_for_timeout(500)  # Reduced from 1000ms - modal close is quick
+                    await page.wait_for_timeout(get_timeout(500))  # Wait for modal close
                 else:
                     # Try ESC key
                     await page.keyboard.press("Escape")
-                    await page.wait_for_timeout(500)  # Reduced from 1000ms - ESC close is quick
+                    await page.wait_for_timeout(get_timeout(500))  # Wait for ESC close
                 
             except Exception as e:
                 print(f"❌ Error processing box {i+1}: {e}")
