@@ -1,4 +1,70 @@
 <!DOCTYPE html>
+<!--
+    =========================================================================
+    FARM TO PEOPLE DASHBOARD - MAIN USER INTERFACE
+    =========================================================================
+
+    FILE STRUCTURE:
+    ---------------
+    1. HEAD (Lines 1-1050)
+       - Meta tags for PWA support
+       - CSS imports (fitbod_meal_planning.css)
+       - Inline styles for light theme overrides
+       - Navigation tabs and loading states
+
+    2. HTML STRUCTURE (Lines 1050-1450)
+       - Header with title and delivery date
+       - Bottom navigation tabs (Cart, Meals, Settings)
+       - Cart Tab: Analysis screen, loading states, results display
+       - Meals Tab: Weekly calendar, drag-and-drop meal planning
+       - Settings Tab: User preferences (NOW OPENS AS MODAL - PWA FIX)
+
+    3. JAVASCRIPT SECTIONS (Lines 1450-3500+)
+       - Cart Analysis Functions (Lines 1450-2000)
+         * analyzeCart() - Main cart scraping function
+         * showCartAnalysis() - Display cart results
+         * generateMealSuggestions() - AI meal recommendations
+
+       - Tab Navigation (Lines 2448-2515)
+         * switchTab() - Handle tab switching (Settings → Modal)
+         * openSettingsModal() - NEW: Open settings in overlay (Line 2516)
+         * closeSettingsModal() - NEW: Close settings overlay (Line 2708)
+
+       - Meal Calendar (Lines 2680-3000)
+         * initMealCalendar() - Setup weekly view
+         * Drag and drop handlers
+         * Meal regeneration
+
+       - Settings Management (Lines 3340-3500)
+         * loadUserSettings() - Fetch user preferences
+         * displaySettings() - Render settings UI
+         * savePreferences() - Update user data
+
+    RECENT CHANGES (Sept 2025):
+    ---------------------------
+    - Settings tab now opens as modal overlay (PWA navigation fix)
+    - Added openSettingsModal() and closeSettingsModal() functions
+    - Settings no longer causes page refresh in PWA mode
+
+    KEY FEATURES:
+    -------------
+    - Progressive Web App (PWA) compatible
+    - Real-time cart analysis from Farm to People
+    - AI-powered meal suggestions based on cart contents
+    - Drag-and-drop meal calendar for weekly planning
+    - User preference management
+    - Offline-capable with localStorage fallbacks
+
+    API ENDPOINTS USED:
+    -------------------
+    - POST /api/analyze-cart - Scrape and analyze FTP cart
+    - GET /api/settings/{phone} - Load user preferences
+    - POST /api/update-preferences - Save preference changes
+    - POST /api/generate-weekly-meals - Create meal plan
+    - GET /api/meal-plans/{phone}/{week} - Load saved meal plans
+
+    =========================================================================
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -485,26 +551,46 @@
             margin-bottom: 8px;
         }
         
-        /* Meal Cards */
+        /* Meal Cards - Loveable Inspired Clean Design */
         .meal-card {
             background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            border-radius: 16px;
+            padding: 16px;
             cursor: move;
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .meal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            opacity: 0;
+            transition: opacity 0.25s ease;
         }
         
         .meal-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transform: translateY(-3px);
+            border-color: rgba(40, 167, 69, 0.15);
+        }
+        
+        .meal-card:hover::before {
+            opacity: 1;
         }
         
         .meal-card.dragging {
             opacity: 0.5;
             transform: rotate(3deg);
             z-index: 1000;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         }
         
         .meal-header {
@@ -730,6 +816,98 @@
             margin-top: 12px;
         }
         
+        /* Bottom Navigation Tabs - Mobile-first Design */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .nav-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #6c757d;
+            position: relative;
+        }
+        
+        .nav-tab-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-tab svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .nav-tab-label {
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-tab.active {
+            color: #007AFF;
+        }
+        
+        .nav-tab.active .nav-tab-icon {
+            transform: scale(1.1);
+        }
+        
+        .nav-tab::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: #007AFF;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-tab.active::before {
+            opacity: 1;
+            left: 10%;
+            right: 10%;
+        }
+        
+        /* Tab Content Areas */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Adjust main content for bottom nav */
+        .content {
+            padding-bottom: 80px; /* Space for bottom nav */
+        }
+        
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .calendar-container {
@@ -778,8 +956,10 @@
     </div>
 
     <div class="content">
-        <!-- Start Screen - Shows First -->
-        <div class="start-screen section active" id="startSection">
+        <!-- Box Tab Content -->
+        <div class="tab-content active" id="boxTab">
+            <!-- Start Screen - Shows First -->
+            <div class="start-screen section active" id="startSection">
             <div class="start-icon">📦</div>
             <h2 class="start-title">Cart Analysis</h2>
             <p class="start-description">
@@ -880,9 +1060,12 @@
                 </div>
             </div>
         </div>
+        </div> <!-- End Box Tab -->
 
-        <!-- Meals View - Weekly Meal Calendar -->
-        <div class="meals-view section" id="mealsSection">
+        <!-- Plan Tab Content -->
+        <div class="tab-content" id="planTab">
+            <!-- Meals View - Weekly Meal Calendar -->
+            <div class="meals-view section active" id="mealsSection">
             <div class="calendar-header">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <div>
@@ -1003,138 +1186,7 @@
         </div>
 
         <!-- Settings -->
-        <div class="settings-view section" id="settingsSection">
-            <div class="cart-section">
-                <h3 class="section-header">Account Information</h3>
-                <div class="item-grid">
-                    <div class="cart-item">
-                        <div>
-                            <span style="font-weight: 600; color: #212529;">Farm to People Account</span>
-                            <div style="font-size: 14px; color: #6c757d;" id="userEmailDisplay">Loading...</div>
-                        </div>
-                        <div style="color: #28a745; font-size: 14px; font-weight: 600;">
-                            ✓ Connected
-                        </div>
-                    </div>
-                    <div class="cart-item">
-                        <div>
-                            <span style="font-weight: 600; color: #212529;">Phone Number</span>
-                            <div style="font-size: 14px; color: #6c757d;" id="userPhoneDisplay">Loading...</div>
-                        </div>
-                        <div style="color: #28a745; font-size: 14px; font-weight: 600;">
-                            ✓ Verified
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Household & Timing -->
-            <div class="cart-section">
-                <h3 class="section-header">Household Information</h3>
-                <div class="item-grid">
-                    <div class="cart-item">
-                        <div>
-                            <span style="font-weight: 600; color: #212529;">Household Size</span>
-                            <div style="font-size: 14px; color: #6c757d;" id="householdSizeDisplay">Loading...</div>
-                        </div>
-                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
-                            Edit →
-                        </div>
-                    </div>
-                    <div class="cart-item">
-                        <div>
-                            <span style="font-weight: 600; color: #212529;">Meal Timing</span>
-                            <div style="font-size: 14px; color: #6c757d;" id="mealTimingDisplay">Loading...</div>
-                        </div>
-                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
-                            Edit →
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Meal Preferences -->
-            <div class="cart-section">
-                <h3 class="section-header">Meal Preferences</h3>
-                <div class="item-grid">
-                    <div class="cart-item">
-                        <div>
-                            <span style="font-weight: 600; color: #212529;">Favorite Dishes</span>
-                            <div style="font-size: 14px; color: #6c757d; margin-top: 4px;" id="favoriteMealsDisplay">Loading...</div>
-                        </div>
-                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
-                            Edit →
-                        </div>
-                    </div>
-                    <div class="cart-item">
-                        <div>
-                            <span style="font-weight: 600; color: #212529;">Cooking Methods</span>
-                            <div style="font-size: 14px; color: #6c757d; margin-top: 4px;" id="cookingMethodsDisplay">Loading...</div>
-                        </div>
-                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
-                            Edit →
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Dietary Requirements -->
-            <div class="cart-section">
-                <h3 class="section-header">Dietary Requirements</h3>
-                <div class="item-grid">
-                    <div class="cart-item">
-                        <div>
-                            <span style="font-weight: 600; color: #212529;">Dietary Restrictions</span>
-                            <div style="font-size: 14px; color: #6c757d; margin-top: 4px;" id="dietaryRestrictionsDisplay">Loading...</div>
-                        </div>
-                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
-                            Edit →
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Health Goals -->
-            <div class="cart-section">
-                <h3 class="section-header">Health Goals</h3>
-                <div class="item-grid">
-                    <div class="cart-item">
-                        <div>
-                            <span style="font-weight: 600; color: #212529;">Current Goals</span>
-                            <div style="font-size: 14px; color: #6c757d; margin-top: 4px;" id="healthGoalsDisplay">Loading...</div>
-                        </div>
-                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
-                            Edit →
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Account Actions -->
-            <div class="cart-section">
-                <h3 class="section-header">Account Actions</h3>
-                <div class="item-grid">
-                    <div class="cart-item" onclick="refreshUserPreferences()">
-                        <div>
-                            <span style="font-weight: 600; color: #212529;">Refresh Settings</span>
-                            <div style="font-size: 14px; color: #6c757d;">Sync latest preferences from your account</div>
-                        </div>
-                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
-                            🔄 Sync
-                        </div>
-                    </div>
-                    <div class="cart-item" onclick="updateAccountCredentials()">
-                        <div>
-                            <span style="font-weight: 600; color: #212529;">Update Login</span>
-                            <div style="font-size: 14px; color: #6c757d;">Change Farm to People account credentials</div>
-                        </div>
-                        <div style="color: #007AFF; font-size: 12px; cursor: pointer;">
-                            Edit →
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Settings are now handled via modal overlay - no longer need section here -->
     </div>
 
     <!-- Bottom Tab Navigation -->
@@ -1153,7 +1205,7 @@
             </svg>
             <span class="tab-label">Meals</span>
         </a>
-        <a href="/settings" class="tab">
+        <a href="#settings" class="tab" onclick="switchTab('settings', this); return false;">
             <svg class="tab-icon icon-settings" viewBox="0 0 24 24">
                 <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
             </svg>
@@ -2329,6 +2381,12 @@
         }
 
         function switchTab(tab, element) {
+            // Special handling for settings - open modal instead
+            if (tab === 'settings') {
+                openSettingsModal();
+                return; // Don't do normal tab switching
+            }
+
             // Update active tab
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             element.classList.add('active');
@@ -2355,15 +2413,15 @@
             } else if (tab === 'meals') {
                 // Meals tab shows meal suggestions
                 document.getElementById('mealsSection').classList.add('active');
-                
+
                 // Show the meal calendar if we have data
                 if (mealPlanData && mealPlanData.cart_data) {
                     document.getElementById('mealPlanEmpty').style.display = 'none';
                     document.getElementById('mealCalendarGrid').style.display = 'grid';
-                    
+
                     // Update the week dates
                     updateWeekDates();
-                    
+
                     // Initialize or load meal plan with ingredient tracking
                     if (!mealPlanData.meal_plan) {
                         initializeMealPlanFromCart();
@@ -2375,18 +2433,140 @@
                     document.getElementById('mealPlanEmpty').style.display = 'block';
                     document.getElementById('mealCalendarGrid').style.display = 'none';
                 }
-            } else if (tab === 'settings') {
-                // Settings section
-                document.getElementById('settingsSection').classList.add('active');
-                // Hide the header banner for settings
-                document.querySelector('.header').style.display = 'none';
-                // Load user settings
-                loadUserSettings();
             }
             
             // Show header banner for cart and meals tabs
             if (tab === 'cart' || tab === 'meals') {
                 document.querySelector('.header').style.display = 'block';
+            }
+        }
+
+        // New function to open settings as modal with iframe
+        function openSettingsModal() {
+            console.log('🔧 openSettingsModal called - using iframe approach');
+
+            // Remove existing modal if it exists
+            const existingModal = document.getElementById('settingsModalOverlay');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'settingsModalOverlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.7);
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            `;
+
+            // Create modal container
+            const modal = document.createElement('div');
+            modal.id = 'settingsModalWrapper';
+            modal.style.cssText = `
+                background: white;
+                width: 100%;
+                max-width: 800px;
+                height: 90vh;
+                border-radius: 16px;
+                position: relative;
+                overflow: hidden;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            `;
+
+            // Add close button
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '×';
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 15px;
+                right: 20px;
+                background: rgba(255,255,255,0.9);
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                color: #666;
+                line-height: 1;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background-color 0.2s ease;
+            `;
+            closeBtn.onmouseover = () => closeBtn.style.backgroundColor = 'rgba(255,255,255,1)';
+            closeBtn.onmouseout = () => closeBtn.style.backgroundColor = 'rgba(255,255,255,0.9)';
+            closeBtn.onclick = closeSettingsModal;
+
+            // Create iframe for settings page
+            const iframe = document.createElement('iframe');
+            const phone = localStorage.getItem('userPhone') || getPhoneNumber();
+            iframe.src = `/settings?phone=${phone}&iframe=true`;
+            iframe.style.cssText = `
+                width: 100%;
+                height: 100%;
+                border: none;
+                border-radius: 16px;
+            `;
+
+            // Add loading message while iframe loads
+            const loadingDiv = document.createElement('div');
+            loadingDiv.innerHTML = `
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                    <div style="margin-bottom: 16px; font-size: 18px; color: #666;">Loading Settings...</div>
+                    <div style="width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #007AFF; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+
+            modal.appendChild(loadingDiv);
+            modal.appendChild(iframe);
+            modal.appendChild(closeBtn);
+
+            // Hide loading message once iframe loads
+            iframe.onload = () => {
+                console.log('🔧 Settings iframe loaded successfully');
+                loadingDiv.style.display = 'none';
+            };
+
+            overlay.appendChild(modal);
+
+            // Close on overlay click (but not on modal click)
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    closeSettingsModal();
+                }
+            };
+
+            // Prevent modal clicks from closing
+            modal.onclick = (e) => {
+                e.stopPropagation();
+            };
+
+            document.body.appendChild(overlay);
+            console.log('🔧 Settings modal with iframe created');
+        }
+
+        function closeSettingsModal() {
+            console.log('🔧 Closing settings modal');
+            const overlay = document.getElementById('settingsModalOverlay');
+            if (overlay) {
+                overlay.remove();
             }
         }
 
@@ -3130,6 +3310,103 @@
                 }, 100);
             }
         };
+        
+        // Settings Management
+        let currentUserSettings = {};
+        let settingsOptions = {};
+        let currentEditCategory = null;
+        
+        async function loadUserSettings() {
+            const phone = localStorage.getItem('userPhone') || '4254955323';
+            document.getElementById('settingsLoading').style.display = 'block';
+            document.getElementById('settingsCategories').style.display = 'none';
+            
+            try {
+                // Load user preferences
+                const userResponse = await fetch(`/api/settings/${phone}`);
+                const userData = await userResponse.json();
+                currentUserSettings = userData;
+                
+                // Load available options
+                const optionsResponse = await fetch('/api/settings/options');
+                settingsOptions = await optionsResponse.json();
+                
+                // Display settings
+                displaySettings();
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                document.getElementById('settingsCategories').innerHTML = '<p style="text-align: center; color: #dc3545;">Failed to load settings</p>';
+            } finally {
+                document.getElementById('settingsLoading').style.display = 'none';
+                document.getElementById('settingsCategories').style.display = 'grid';
+            }
+        }
+        
+        function displaySettings() {
+            const categories = [
+                {
+                    key: 'household_size',
+                    icon: '👥',
+                    title: 'Household Size',
+                    getValue: () => currentUserSettings.household_size || '1-2 people'
+                },
+                {
+                    key: 'meal_timing',
+                    icon: '🍴',
+                    title: 'Meal Preferences',
+                    getValue: () => {
+                        const timing = currentUserSettings.meal_timing;
+                        if (Array.isArray(timing)) return timing.join(', ');
+                        return timing || 'Dinner';
+                    }
+                },
+                {
+                    key: 'cooking_methods',
+                    icon: '👨‍🍳',
+                    title: 'Cooking Style',
+                    getValue: () => {
+                        const methods = currentUserSettings.cooking_methods || [];
+                        return methods.length ? `${methods.length} preferences` : 'Not set';
+                    }
+                },
+                {
+                    key: 'dietary_restrictions',
+                    icon: '🥗',
+                    title: 'Dietary Restrictions',
+                    getValue: () => {
+                        const restrictions = currentUserSettings.dietary_restrictions || [];
+                        return restrictions.length ? restrictions.join(', ') : 'None';
+                    }
+                },
+                {
+                    key: 'goals',
+                    icon: '🎯',
+                    title: 'Health Goals',
+                    getValue: () => {
+                        const goals = currentUserSettings.goals || [];
+                        return goals.length ? goals.join(', ') : 'Not set';
+                    }
+                }
+            ];
+            
+            const html = categories.map(cat => `
+                <div class="category-card" style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #e9ecef; transition: all 0.2s ease;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 24px;">${cat.icon}</span>
+                            <div>
+                                <div style="font-size: 18px; font-weight: 600;">${cat.title}</div>
+                                <div style="color: #6c757d; font-size: 14px;">${cat.getValue()}</div>
+                            </div>
+                        </div>
+                        <span style="color: #adb5bd; font-size: 20px;">›</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('settingsCategories').innerHTML = html;
+        }
     </script>
+
 </body>
 </html>

@@ -542,5 +542,25 @@
 
     <!-- JavaScript for Settings Functionality -->
     <script src="/static/settings.js"></script>
+
+    <!-- Hide navigation when loaded in iframe -->
+    <script>
+        // Check if page is loaded in iframe or with iframe parameter
+        const isInIframe = window.self !== window.top;
+        const urlParams = new URLSearchParams(window.location.search);
+        const iframeParam = urlParams.get('iframe') === 'true';
+
+        if (isInIframe || iframeParam) {
+            console.log('Settings page loaded in iframe - hiding bottom navigation');
+            // Wait for DOM to be ready
+            document.addEventListener('DOMContentLoaded', function() {
+                const bottomTabs = document.querySelector('.bottom-tabs');
+                if (bottomTabs) {
+                    bottomTabs.style.display = 'none';
+                    console.log('Bottom navigation hidden');
+                }
+            });
+        }
+    </script>
 </body>
 </html>

@@ -4,9 +4,9 @@
 
 **Farm to People AI Assistant** transforms weekly produce boxes into personalized meal plans through intelligent SMS conversations. The system learns user preferences, analyzes cart contents, and delivers actionable cooking guidance.
 
-**Current Status:** Dashboard Modularized - Clean JS modules, real ingredient tracking, proper state management  
-**Last Updated:** September 4, 2025  
-**Version:** 5.0.0 (Modular Dashboard + Real Ingredient Tracking)  
+**Current Status:** Dashboard PWA Navigation Fixed - iframe-based Settings modal approach
+**Last Updated:** September 14, 2025
+**Version:** 5.1.0 (Dashboard PWA Fixed - Settings iframe modal)  
 **Branch:** `feature/customer-automation`  
 **Primary Contact:** SMS `18334391183` (Vonage)  
 **Live URL:** https://farmtopeople-production.up.railway.app
@@ -30,6 +30,9 @@ cd scrapers && python comprehensive_scraper.py
 
 # 4. Dashboard testing (requires onboarding first)
 open http://localhost:8000/dashboard
+
+# 5. Test dashboard variants (experimental)
+open http://localhost:8000/dashboard-v3.html
 ```
 
 ### **Critical Development Rules**
@@ -52,9 +55,12 @@ open http://localhost:8000/dashboard
 - [`docs/ONBOARDING_SYSTEM.md`](docs/ONBOARDING_SYSTEM.md) - Preference collection implementation
 
 ### **Technical Documentation**
-- [`docs/MEAL_CALENDAR_IMPLEMENTATION_PLAN.md`](docs/MEAL_CALENDAR_IMPLEMENTATION_PLAN.md) - **NEW:** Complete meal planning system design
-- [`docs/CODEBASE_AUDIT_REPORT_AUG31.md`](docs/CODEBASE_AUDIT_REPORT_AUG31.md) - **NEW:** Comprehensive architecture audit
-- [`database/meal_planning_schema.sql`](database/meal_planning_schema.sql) - **NEW:** Database schema for meal planning
+- [`docs/dashboard-v3-status.md`](docs/dashboard-v3-status.md) - **NEW:** Dashboard v3 modularization status
+- [`docs/dashboard-refactoring-plan.md`](docs/dashboard-refactoring-plan.md) - **NEW:** Complete refactoring architecture
+- [`DEPLOYMENT_INSTRUCTIONS.md`](DEPLOYMENT_INSTRUCTIONS.md) - **NEW:** Dashboard v3 deployment guide
+- [`docs/MEAL_CALENDAR_IMPLEMENTATION_PLAN.md`](docs/MEAL_CALENDAR_IMPLEMENTATION_PLAN.md) - Complete meal planning system design
+- [`docs/CODEBASE_AUDIT_REPORT_AUG31.md`](docs/CODEBASE_AUDIT_REPORT_AUG31.md) - Comprehensive architecture audit
+- [`database/meal_planning_schema.sql`](database/meal_planning_schema.sql) - Database schema for meal planning
 - [`docs/refactoring_opportunities.md`](docs/refactoring_opportunities.md) - Architecture improvements & conversation state management
 - [`docs/conversational_ai_architecture.md`](docs/conversational_ai_architecture.md) - AI system design patterns
 - [`DEBUGGING_PROTOCOL.md`](DEBUGGING_PROTOCOL.md) - Scraper troubleshooting guide
@@ -101,10 +107,10 @@ Step 6: Health Goals (up to 2 outcomes)
 Step 7: FTP Account Credentials → Dashboard
 ```
 
-### **Dashboard Navigation**
+### **Dashboard Navigation (PWA Fixed with iframe approach!)**
 - **Cart Tab:** Live cart analysis with delivery date
 - **Meals Tab:** Weekly meal calendar with drag-and-drop (Monday-Friday)
-- **Settings Tab:** Update any preferences via modal editing
+- **Settings Tab:** iframe modal (loads settings.html in modal - NO page refresh!) ✅ PWA navigation fixed
 
 ### **Important Business Rules**
 - **Cart Lock Time:** Carts lock at 11:59 AM ET the day before delivery
@@ -293,7 +299,15 @@ await storage.get_ingredient_pool(plan_id)  # Real-time availability
 - **✅ Cart Analysis Fixes** - Proper cart detection, delivery date display, box categorization
 - **✅ Date Navigation Fixes** - Stable week navigation without erratic date jumping
 
-### ✅ **COMPLETED THIS WEEK (8/31 - MEAL CALENDAR & DEBUG FIXES)**
+### ✅ **COMPLETED THIS WEEK (Sept 14 - Dashboard PWA Navigation Fix)**
+- **✅ Friday:** Fix PWA navigation issue - Settings now uses iframe modal approach
+- **✅ Friday:** Resolve JavaScript conflicts causing blank Settings modal
+- **✅ Friday:** Implement iframe-based Settings loading with production UI
+- **✅ Friday:** Add iframe detection to hide duplicate navigation
+- **✅ Friday:** Create stable PWA experience without page refreshes
+- **✅ Friday:** Update comprehensive documentation
+
+### ✅ **PREVIOUS WEEK (8/31 - MEAL CALENDAR & DEBUG FIXES)**
 - **✅ Saturday PM:** Complete meal planning database schema with ingredient allocation
 - **✅ Saturday PM:** Meal planning API with CRUD operations and conflict detection
 - **✅ Saturday PM:** User preference integration in meal generation algorithms
@@ -318,12 +332,63 @@ await storage.get_ingredient_pool(plan_id)  # Real-time availability
 - **✅ Thursday:** Onboarding flow refactor - phone number first with user detection
 - **✅ Thursday:** Production deployment with full end-to-end testing
 
-### 📝 **FUTURE FEATURES**
-- **Confirmation Flow** - User approval before recipe generation
-- **Cart Total Calculation** - Pricing transparency
-- **Weekly Feedback Loop** - Recipe rating system
-- **Seasonal Intelligence** - Produce availability awareness
-- **Preference Evolution** - Learning from user behavior
+### 📝 **PRIORITY FEATURES TO BUILD**
+
+#### 🔴 **High Priority (Next Sprint)**
+1. **Complete meals-v3.js Module**
+   - Implement drag & drop meal calendar
+   - Ingredient pool tracking with visual progress bars
+   - Meal regeneration with constraints
+   - Conflict detection when moving meals
+   - PDF recipe generation integration
+
+2. **Confirmation Flow**
+   - User approval modal before recipe generation
+   - Preview of what will be created
+   - Option to adjust preferences first
+
+3. **Cart Total Calculation**
+   - Show total cost in cart analysis
+   - Individual item pricing
+   - Box pricing breakdown
+
+#### 🟡 **Medium Priority**
+4. **Weekly Feedback Loop**
+   - Star rating for each meal
+   - Quick feedback options (too spicy, perfect, needs more time)
+   - Learn from ratings to improve future suggestions
+
+5. **Recipe PDF Generation**
+   - Full cooking instructions
+   - Shopping list for additional ingredients
+   - Nutritional information
+   - Print-friendly format
+
+6. **SMS Integration Enhancement**
+   - Weekly meal plan delivery via SMS
+   - Quick recipe lookup by texting meal name
+   - Cooking timer reminders
+
+#### 🟢 **Nice to Have**
+7. **Seasonal Intelligence**
+   - Know what's in season locally
+   - Suggest recipes based on seasonal availability
+   - Weather-based meal suggestions
+
+8. **Preference Evolution**
+   - Machine learning from user choices
+   - Automatically adjust spice levels, cooking times
+   - Family member preference profiles
+
+9. **Social Features**
+   - Share recipes with friends
+   - Community recipe ratings
+   - Chef tips and tricks
+
+10. **Advanced Analytics**
+    - Nutritional tracking over time
+    - Cost per meal analysis
+    - Waste reduction metrics
 
 ---
 
@@ -339,32 +404,40 @@ await storage.get_ingredient_pool(plan_id)  # Real-time availability
 ~~**Impact**: Recommendations don't reflect actual purchased ingredients~~  
 **Status**: ✅ **FIXED** - System now properly uses stored cart data with phone format lookup
 
-### **Gap 3: Goals → Ranking Logic**
-**Issue**: Goal weights defined but not implemented  
-**Impact**: "Quick dinners" goal doesn't prioritize fast recipes  
-**Solution**: Implement ranking adjustments based on goals
+### ~~**Gap 3: PWA Navigation Breaking** ✅ RESOLVED~~
+~~**Issue**: Settings tab caused page refresh, breaking PWA experience~~
+~~**Impact**: Users lost context when switching tabs~~
+**Status**: ✅ **FIXED** - Settings now uses iframe modal approach
 
-### **NEW: Cart Data Structure Mismatch**
-**Issue**: Customizable boxes sometimes stored in `non_customizable_boxes` array  
-**Impact**: Frontend logic fails to detect customizable features  
+### **Gap 4: Goals → Ranking Logic** 🚧 PENDING
+**Issue**: Goal weights defined but not implemented
+**Impact**: "Quick dinners" goal doesn't prioritize fast recipes
+**Solution**: Implement ranking adjustments in meal generation API
+
+### ~~**Gap 5: Cart Data Structure Mismatch** ✅ RESOLVED~~
+~~**Issue**: Customizable boxes sometimes stored in wrong array~~
+~~**Impact**: Frontend logic failed to detect customizable features~~
 **Status**: ✅ **FIXED** - Now uses `customizable` flag regardless of storage array
 
 ---
 
 ## 💻 KEY CODE COMPONENTS
 
-### **Core Files (Modularized Sept 4, 2025)**
+### **Core Files (Dashboard PWA Fixed - Sept 14, 2025)**
 ```
 server/
-├── server.py                # FastAPI main app (1647 lines, down from 2000+) ✅
+├── server.py                # FastAPI main app with iframe Settings route ✅
 ├── templates/
-│   ├── dashboard.html       # LEGACY: 2954 lines monolith (backup)
-│   └── dashboard_refactored.html # NEW: Clean HTML only (750 lines) ✅
-├── static/js/modules/       # NEW: Modular JavaScript architecture
-│   ├── shared.js           # Global state, utilities, event bus (140 lines) ✅
-│   ├── cart-manager.js     # Cart analysis & display (450 lines) ✅
-│   ├── meal-planner.js     # Meal calendar & ingredients (650 lines) ✅
-│   └── settings.js         # User preferences (430 lines) ✅
+│   ├── dashboard.html       # PRIMARY: Main dashboard (3652 lines) with iframe Settings ✅
+│   ├── settings.html        # Settings page loaded in iframe (566 lines) ✅
+│   ├── dashboard-v3.html    # EXPERIMENTAL: Modular attempt (unused)
+│   └── dashboard-modular*.html # EXPERIMENTAL: Various attempts (unused)
+├── static/js/modules/       # Various JavaScript modules (mixed usage)
+│   ├── Various .js files   # Some used, some experimental
+├── static/css/
+│   ├── dashboard-base.css      # Core styles (existing) ✅
+│   ├── dashboard-components.css # Reusable UI (new) ✅
+│   └── dashboard-modules.css    # Module-specific (new) ✅
 └── services/               # NEW: Backend services (Sept 3)
     ├── phone_service.py     # Phone normalization ✅
     ├── sms_handler.py       # SMS routing ✅
@@ -387,15 +460,17 @@ scrapers/
 └── auth_helper.py           # Authentication handling ✅
 ```
 
-### **Architecture Improvements (Sept 3-4, 2025)**
-1. **Services Architecture**: Extracted 11 services from monolithic server.py
-2. **Phone Normalization**: Centralized E.164 format prevents cross-user data contamination
-3. **Redis Caching**: 1-hour TTL with force refresh option
-4. **Fernet Encryption**: Replaced insecure base64 password storage
-5. **Dashboard Modularization**: Split 2954-line file into clean modules
-6. **Real Ingredient Tracking**: Replaced mock percentages with actual allocation
-7. **Event-Driven Communication**: Modules communicate via event bus
-8. **Proper State Management**: Global AppState object for cross-module data
+### **Architecture Improvements (Sept 14, 2025 - PWA Navigation Fixed)**
+1. **PWA Navigation Fixed**: Settings uses iframe modal, no page refreshes!
+2. **iframe-based Settings**: Loads production settings.html in modal overlay
+3. **Duplicate Navigation Hidden**: Automatically detects iframe context and hides navigation
+4. **JavaScript Conflict Resolution**: Fixed duplicate function conflicts causing blank modals
+5. **Services Architecture**: Extracted 11 services from monolithic server.py
+6. **Phone Normalization**: Centralized E.164 format prevents cross-user data contamination
+7. **Redis Caching**: 1-hour TTL with force refresh option
+8. **Fernet Encryption**: Replaced insecure base64 password storage
+9. **Real Ingredient Tracking**: Replaced mock percentages with actual allocation
+10. **Production UI Quality**: Maintains beautiful card-based settings UI in iframe
 
 ---
 
@@ -501,39 +576,71 @@ SUPABASE_KEY=xxx                 # Database key
 
 ---
 
-## 🎯 MODULAR DASHBOARD SYSTEM (NEW - Sept 4, 2025)
+## 🎯 DASHBOARD PWA NAVIGATION SYSTEM (FIXED - Sept 14, 2025)
 
-### **Why We Refactored**
-The original dashboard.html had grown to 2954 lines - unmaintainable and prone to bugs. The new modular system:
-- **Separates concerns**: Each feature in its own file
-- **Enables real ingredient tracking**: No more mock percentages
-- **Improves maintainability**: Update features independently
-- **Adds proper state management**: Cross-module communication via event bus
+### **The iframe Settings Modal Solution**
+The dashboard.html had critical PWA issues where Settings caused page refreshes. Our solution:
+- **PWA Navigation Fixed**: Settings loads in iframe modal, no page refresh!
+- **Preserves Production UI**: Uses existing beautiful settings.html interface
+- **Automatic Navigation Hiding**: Detects iframe context and hides duplicate navigation
+- **Maintains User Context**: Users never lose their place in the dashboard
+- **Simple Implementation**: Minimal code changes, maximum compatibility
 
-### **Module Communication**
+### **Implementation Details**
 ```javascript
-// Example: Cart module notifies Meal module
-eventBus.emit('cart-analyzed', cartData);
+// iframe-based openSettingsModal function in dashboard.html (lines 2445-2563)
+function openSettingsModal() {
+    console.log('🔧 openSettingsModal called - using iframe approach');
+    const iframe = document.createElement('iframe');
+    const phone = localStorage.getItem('userPhone') || getPhoneNumber();
+    iframe.src = `/settings?phone=${phone}&iframe=true`;
+    // ... create modal overlay and insert iframe
+}
 
-// Meal module listens and responds
-eventBus.on('cart-analyzed', (cartData) => {
-    this.initializeMealPlan(cartData);
-});
+// iframe detection in settings.html (lines 547-564)
+const isInIframe = window.self !== window.top;
+const iframeParam = urlParams.get('iframe') === 'true';
+if (isInIframe || iframeParam) {
+    // Hide bottom navigation when loaded in iframe
+    const bottomTabs = document.querySelector('.bottom-tabs');
+    if (bottomTabs) bottomTabs.style.display = 'none';
+}
 ```
 
-### **Key API Endpoints Used by Modules**
-- `POST /api/analyze-cart` - Cart analysis with force refresh
-- `GET /api/user-settings` - Load user preferences
-- `POST /api/update-preferences` - Save preference changes
-- `POST /api/generate-weekly-meals` - Generate meal plan from ingredients
-- `POST /api/regenerate-meal` - Replace single meal
-- `POST /api/generate-recipe` - Create full recipe PDF
+### **Key Benefits of iframe Approach**
+- **Zero Page Refreshes**: Maintains PWA experience
+- **Production UI Quality**: Full settings.html functionality
+- **Easy Maintenance**: Settings page remains independent
+- **Cross-Device Compatible**: Works on mobile and desktop
+- **Backwards Compatible**: Original settings route still works
 
-### **Deployment Steps**
-1. **Test locally first**: `python server/server.py`
-2. **Replace dashboard**: `mv dashboard.html dashboard_backup.html && mv dashboard_refactored.html dashboard.html`
-3. **Verify static files**: Check `/static/js/modules/` accessible
-4. **Push to production**: Git commit and Railway auto-deploys
+## ⚠️ IMPORTANT: Features to Preserve
+
+When making changes, ensure these working features are NOT broken:
+
+### **Critical Functionality**
+1. **Phone-first onboarding** - Existing users skip to step 7
+2. **Cart scraping** - comprehensive_scraper.py captures all box types
+3. **Delivery date display** - Green text in top-right corner
+4. **Refresh limit** - 3x per day for cart analysis
+5. **Phone format handling** - Try multiple formats when querying
+6. **Customizable box detection** - Check `customizable` flag, not array location
+7. **PWA navigation** - NO page refreshes when switching tabs (dashboard v3)
+8. **Settings modals** - Edit preferences without navigation
+9. **Cart lock time** - 11:59 AM ET day before delivery
+
+### **Data Persistence**
+- User preferences saved to Supabase
+- Cart data cached for 1 hour
+- Settings persist across sessions
+- Phone number drives all lookups
+
+### **User Experience**
+- Smooth tab transitions
+- Loading states for all async operations
+- Error messages are user-friendly
+- Mobile-responsive design
+- PWA installable
 
 ## 🆘 TROUBLESHOOTING
 
@@ -561,6 +668,24 @@ if cart:
 
 # PERMANENT FIX: See docs/PHONE_NUMBER_CRITICAL.md
 # QUICK DEBUG: See DEBUGGING_PHONE_ISSUES.md
+```
+
+### **Settings Modal Issues (Fixed Sept 14, 2025)**
+```bash
+# Settings tab shows blank modal
+# CAUSE: Duplicate openSettingsModal functions with ID conflicts
+# SYMPTOM: "Cannot set properties of null (setting 'textContent')" at line 3575
+# Fix: Remove duplicate function, rename modal wrapper ID from 'settingsModalContent' to 'settingsModalWrapper'
+
+# Settings modal shows duplicate bottom navigation
+# CAUSE: iframe loads settings.html which has its own navigation
+# SYMPTOM: Two sets of bottom tabs visible
+# Fix: Add iframe detection script to settings.html that hides bottom navigation
+
+# Settings tab causes page refresh (breaks PWA)
+# CAUSE: Original Settings implementation navigated to new page
+# SYMPTOM: User loses context, app refreshes
+# Fix: Use iframe approach - load settings.html?iframe=true in modal overlay
 ```
 
 ### **Common Issues**
@@ -612,23 +737,38 @@ Box has customizable=true but appears as non-customizable
 
 ## 🚀 DEPLOYMENT CHECKLIST
 
-- [ ] All tests passing
-- [ ] Environment variables configured
-- [ ] Database migrations complete
-- [ ] Vonage webhook configured
-- [ ] SSL certificates ready
+### **For Dashboard PWA Navigation**
+- [x] Test all tabs - NO page refreshes
+- [x] Settings iframe modal opens/closes properly
+- [x] Settings shows production UI without duplicate navigation
+- [x] Cart analysis completes
+- [x] Delivery date displays
+- [x] Phone format handling works
+- [x] Mobile PWA tested
+- [x] Browser back/forward works
+
+### **General Deployment**
+- [x] Environment variables configured
+- [x] Database schema complete
+- [x] Vonage webhook configured (SMS: 18334391183)
+- [x] Railway deployment working
+- [x] SSL certificates active
 - [ ] Monitoring enabled (Sentry/DataDog)
-- [ ] Error tracking setup
-- [ ] Documentation updated
-- [ ] Conversation state management tested
+- [x] Error tracking via console logs
+- [x] Documentation updated (CLAUDE.md current)
 - [ ] Rate limiting configured
+- [ ] Load testing completed
 
 ---
 
-**Last Updated:** August 31, 2025  
-**Version:** 3.1.0  
-**Status:** Core System Complete - Cart analysis, meal calendar, debugging fixes deployed  
-**Recent Fixes:** Phone format lookup, cart detection, delivery date display, date navigation stability  
-**Next Sprint:** Week of September 2 - Advanced meal planning features
+**Last Updated:** September 14, 2025
+**Version:** 5.1.0 (Dashboard PWA Navigation Fixed)
+**Status:** Dashboard PWA Navigation Fixed - iframe-based Settings modal approach
+**Recent Updates:**
+- PWA navigation fixed - Settings uses iframe modal, no page refreshes
+- Resolved JavaScript conflicts causing blank Settings modal
+- Implemented iframe detection to hide duplicate navigation
+- Maintained production-quality Settings UI in modal format
+**Next Sprint:** Complete meals-v3.js module, implement drag-and-drop meal calendar
 
 *This guide provides the essential information for developing and maintaining the Farm to People AI Assistant. For detailed implementation specifics, refer to the documentation index above.*
