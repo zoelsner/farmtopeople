@@ -999,6 +999,37 @@ async def test_page(request: Request):
     """
     return templates.TemplateResponse("test_meal_integration.html", {"request": request})
 
+@app.get("/dashboard-modular")
+async def dashboard_modular_page(request: Request):
+    """
+    Serve the new modular dashboard (cleaner architecture).
+    
+    This version splits functionality into separate JS modules for better maintainability.
+    """
+    return templates.TemplateResponse("dashboard-modular.html", {"request": request})
+
+@app.get("/dashboard-v2")
+async def dashboard_v2_page(request: Request):
+    """
+    Serve the fixed modular dashboard that maintains all functionality.
+
+    This version keeps all features but in a more organized structure.
+    """
+    return templates.TemplateResponse("dashboard-modular-fixed.html", {"request": request})
+
+@app.get("/dashboard-v3")
+async def dashboard_v3_page(request: Request):
+    """
+    Serve the new dashboard v3 with complete modularization and PWA fixes.
+
+    Key improvements:
+    - Settings uses modals (no page refresh!)
+    - Event-driven architecture with AppState
+    - 3546 lines → ~2000 lines across 8 modules
+    - Smooth tab transitions
+    """
+    return templates.TemplateResponse("dashboard-v3.html", {"request": request})
+
 @app.get("/api/get-saved-cart")
 async def get_saved_cart():
     """Retrieve saved cart data from database"""
@@ -1102,19 +1133,22 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                     if user_record and user_record.get('ftp_email'):
                         # Get user credentials from database (only if we don't already have cart_data)
                         email = user_record['ftp_email']
-                        # Decrypt password (it's base64 encoded)
-                        import base64
+                        # Decrypt password using proper encryption service
+                        from services.encryption_service import PasswordEncryption
                         encoded_pwd = user_record.get('ftp_password_encrypted', '')
-                        
-                        # Try to decode password with better error handling
+
+                        # Try to decrypt password with proper decryption service
                         password = None
                         if encoded_pwd:
                             try:
-                                password = base64.b64decode(encoded_pwd).decode('utf-8')
-                                print(f"✅ Successfully decoded password for {email}")
-                            except Exception as decode_error:
-                                print(f"⚠️ Failed to decode password: {decode_error}")
-                                print(f"⚠️ Encoded password length: {len(encoded_pwd)}")
+                                password = PasswordEncryption.decrypt_password(encoded_pwd)
+                                if password:
+                                    print(f"✅ Successfully decrypted password for {email}")
+                                else:
+                                    print(f"⚠️ Password decryption returned None for {email}")
+                            except Exception as decrypt_error:
+                                print(f"⚠️ Failed to decrypt password: {decrypt_error}")
+                                print(f"⚠️ Encrypted password length: {len(encoded_pwd)}")
                                 # Don't fail completely - maybe stored cart has data
                         
                         if email and password:
@@ -1532,6 +1566,7 @@ async def get_user_preferences(phone: str):
         settings_data = {
             "household_size": preferences.get('household_size', '1-2'),
             "meal_timing": preferences.get('meal_timing', []),
+            "selected_meal_ids": preferences.get('selected_meal_ids', []),  # Add dish preferences
             "dietary_restrictions": preferences.get('dietary_restrictions', []),
             "goals": preferences.get('goals', []),
             # Extract cooking style from derived preferences (try multiple keys)
@@ -1620,6 +1655,8 @@ async def update_user_preferences(phone: str, request: Request):
             current_preferences['household_size'] = value
         elif category == "meals":
             current_preferences['meal_timing'] = value
+        elif category == "dishes":
+            current_preferences['selected_meal_ids'] = value
         elif category == "dietary":
             current_preferences['dietary_restrictions'] = value
         elif category == "goals":
@@ -1634,30 +1671,22 @@ async def update_user_preferences(phone: str, request: Request):
         else:
             return {"success": False, "error": f"Unknown category: {category}"}
         
-        # Update the database record
-        # Note: We need to handle the password properly - it's already encrypted
-        try:
-            # If password is encrypted (base64), decode it for the upsert function
-            import base64
-            encrypted_pwd = user_record.get('ftp_password_encrypted', '')
-            if encrypted_pwd:
-                # The upsert function expects plain password and encrypts it
-                plain_password = base64.b64decode(encrypted_pwd).decode('utf-8')
-            else:
-                plain_password = ''
-            
-            updated_record = db.upsert_user_credentials(
-                phone_number=phone,
-                ftp_email=user_record.get('ftp_email', ''),
-                ftp_password=plain_password,  # Pass plain password - upsert will encrypt it
-                preferences=current_preferences
-            )
+        # Update the database record using the new preferences-only function
+        updated_record = db.update_user_preferences(
+            phone_number=phone,
+            preferences=current_preferences
+        )
+
+        if updated_record:
             print(f"✅ Successfully updated preferences for {phone}")
-        except Exception as e:
-            print(f"❌ Database update error: {e}")
-            raise
-        
-        return {"success": True, "message": "Preferences updated successfully"}
+            return {
+                "success": True,
+                "message": "Preferences updated successfully",
+                "preferences": current_preferences
+            }
+        else:
+            print(f"❌ Failed to update preferences for {phone}")
+            return {"success": False, "error": "Failed to update preferences in database"}
         
     except Exception as e:
         return {"success": False, "error": str(e)}

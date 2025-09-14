@@ -22,7 +22,11 @@ class SettingsManager {
         this.userPreferences = {};
         this.availableOptions = {};
         this.currentCategory = null;
-        
+
+        // Detect if we're in iframe mode
+        this.isInIframe = window.self !== window.top || new URLSearchParams(window.location.search).has('iframe');
+        console.log('🐛 [DEBUG] iframe mode detected:', this.isInIframe);
+
         // Initialize the settings page
         this.init();
     }
@@ -38,11 +42,35 @@ class SettingsManager {
             // Load user's current preferences
             await this.loadUserPreferences();
             
-            // Setup event listeners for category cards and modals
-            this.setupEventListeners();
+            // Setup event listeners for category cards and modals (defensive approach)
+            try {
+                this.setupEventListeners();
+            } catch (error) {
+                console.log('🐛 [DEBUG] Error setting up event listeners:', error);
+            }
             
             // Update preview text for all categories
             this.updateAllPreviews();
+
+            // Force update dish preferences if it's still showing loading
+            console.log('🐛 [DEBUG] Force checking dish preferences preview');
+            const dishPreview = document.getElementById('dishesPreview');
+            if (dishPreview) {
+                console.log('🐛 [DEBUG] Current dish preview text:', dishPreview.textContent);
+                console.log('🐛 [DEBUG] Selected meal IDs:', this.userPreferences.selected_meal_ids);
+
+                // Always try to update dish preferences
+                this.updatePreview('dishes', this.userPreferences.selected_meal_ids);
+
+                // If still showing loading after update, show a more helpful message
+                setTimeout(() => {
+                    if (dishPreview.textContent === 'Loading...' || dishPreview.classList.contains('loading')) {
+                        dishPreview.classList.remove('loading');
+                        dishPreview.textContent = 'Complete onboarding to select dish preferences';
+                        console.log('🐛 [DEBUG] Set fallback text for dish preferences');
+                    }
+                }, 100);
+            }
             
         } catch (error) {
             console.error('Failed to initialize settings:', error);
@@ -99,6 +127,9 @@ class SettingsManager {
             
             if (result.success) {
                 this.userPreferences = result.preferences;
+                console.log('🐛 [DEBUG] Full API response:', result);
+                console.log('🐛 [DEBUG] User preferences loaded:', this.userPreferences);
+                console.log('🐛 [DEBUG] selected_meal_ids:', this.userPreferences.selected_meal_ids);
             } else {
                 throw new Error(result.error || 'Failed to load preferences');
             }
@@ -112,36 +143,79 @@ class SettingsManager {
         // Category card click handlers
         document.querySelectorAll('.category-card').forEach(card => {
             card.addEventListener('click', (e) => {
-                const category = card.dataset.category;
-                this.openCategoryModal(category);
+                try {
+                    const category = card.dataset.category;
+                    console.log('🐛 [DEBUG] Category card clicked:', category);
+                    this.openCategoryModal(category);
+                } catch (error) {
+                    console.error('🐛 [ERROR] Error in category card click handler:', error);
+                    // Provide graceful fallback - prevent the error from breaking the whole page
+                }
             });
         });
         
-        // Modal close handlers
-        document.getElementById('modalClose').addEventListener('click', () => {
-            this.closeModal();
-        });
-        
-        document.getElementById('modalCancel').addEventListener('click', () => {
-            this.closeModal();
-        });
-        
-        // Modal save handler
-        document.getElementById('modalSave').addEventListener('click', () => {
-            this.saveCategoryChanges();
-        });
-        
-        // Close modal when clicking outside
-        document.getElementById('modalOverlay').addEventListener('click', (e) => {
-            if (e.target.id === 'modalOverlay') {
-                this.closeModal();
-            }
+        // Modal close handlers (only if elements exist)
+        const modalClose = document.getElementById('modalClose');
+        const modalCancel = document.getElementById('modalCancel');
+        const modalSave = document.getElementById('modalSave');
+        const modalOverlay = document.getElementById('modalOverlay');
+
+        if (modalClose) {
+            modalClose.addEventListener('click', () => {
+                try {
+                    this.closeModal();
+                } catch (error) {
+                    console.error('🐛 [ERROR] Error in modal close handler:', error);
+                }
+            });
+        }
+
+        if (modalCancel) {
+            modalCancel.addEventListener('click', () => {
+                try {
+                    this.closeModal();
+                } catch (error) {
+                    console.error('🐛 [ERROR] Error in modal cancel handler:', error);
+                }
+            });
+        }
+
+        if (modalSave) {
+            modalSave.addEventListener('click', () => {
+                try {
+                    this.saveCategoryChanges();
+                } catch (error) {
+                    console.error('🐛 [ERROR] Error in modal save handler:', error);
+                }
+            });
+        }
+
+        if (modalOverlay) {
+            // Close modal when clicking outside
+            modalOverlay.addEventListener('click', (e) => {
+                try {
+                    if (e.target.id === 'modalOverlay') {
+                        this.closeModal();
+                    }
+                } catch (error) {
+                    console.error('🐛 [ERROR] Error in modal overlay click handler:', error);
+                }
+            });
+        }
+
+        console.log('🐛 [DEBUG] Modal elements found:', {
+            modalClose: !!modalClose,
+            modalCancel: !!modalCancel,
+            modalSave: !!modalSave,
+            modalOverlay: !!modalOverlay
         });
     }
     
     updateAllPreviews() {
         this.updatePreview('household', this.userPreferences.household_size);
         this.updatePreview('meals', this.userPreferences.meal_timing);
+        console.log('🐛 [DEBUG] About to update dishes preview with:', this.userPreferences.selected_meal_ids);
+        this.updatePreview('dishes', this.userPreferences.selected_meal_ids);
         this.updatePreview('cooking', {
             methods: this.userPreferences.cooking_methods,
             time: this.userPreferences.time_preferences
@@ -175,16 +249,40 @@ class SettingsManager {
                     previewText = 'No meals selected';
                 }
                 break;
-                
+
+            case 'dishes':
+                console.log('🐛 [DEBUG] updatePreview for dishes called with value:', value);
+                console.log('🐛 [DEBUG] Value type:', typeof value, 'Array?', Array.isArray(value));
+
+                if (value && Array.isArray(value) && value.length > 0) {
+                    // Show names of selected dishes
+                    const dishNames = value.map(mealId => {
+                        // Convert meal IDs to readable names
+                        return mealId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    }).slice(0, 2); // Show first 2
+                    previewText = dishNames.join(', ');
+                    if (value.length > 2) {
+                        previewText += ` and ${value.length - 2} more`;
+                    }
+                    console.log('🐛 [DEBUG] Generated dish preview text:', previewText);
+                } else {
+                    previewText = 'No dishes selected from onboarding';
+                    console.log('🐛 [DEBUG] No dishes - using fallback text:', previewText);
+                }
+                break;
+
             case 'cooking':
                 const methods = value?.methods || [];
                 const timePrefs = value?.time || [];
-                const allCooking = [...methods, ...timePrefs];
-                
-                if (allCooking.length > 0) {
-                    previewText = `${allCooking.length} cooking preferences`;
+
+                if (methods.length > 0) {
+                    const methodLabels = methods.map(methodId => {
+                        const method = this.availableOptions.cooking_methods?.find(m => m.id === methodId);
+                        return method ? method.label : methodId;
+                    });
+                    previewText = methodLabels.join(', ');
                 } else {
-                    previewText = 'No cooking style set';
+                    previewText = 'No cooking methods selected';
                 }
                 break;
                 
@@ -217,26 +315,59 @@ class SettingsManager {
     }
     
     openCategoryModal(category) {
+        console.log('🐛 [DEBUG] openCategoryModal called with category:', category);
         this.currentCategory = category;
-        
+
         // Set modal title and subtitle
         const titles = {
             household: { title: 'Household Size', subtitle: 'How many people are in your household?' },
-            meals: { title: 'Meal Preferences', subtitle: 'Which meals do you want help with?' },
+            meals: { title: 'Meal Timing', subtitle: 'Which meals do you want help with?' },
+            dishes: { title: 'Dish Preferences', subtitle: 'What meals sound delicious to you? (Pick at least 3)' },
             cooking: { title: 'Cooking Style', subtitle: 'What cooking methods do you prefer?' },
             dietary: { title: 'Dietary Restrictions', subtitle: 'Any foods to avoid or dietary needs?' },
             goals: { title: 'Health Goals', subtitle: 'What are your meal planning goals? (Pick up to 2)' }
         };
-        
+
         const categoryInfo = titles[category];
-        document.getElementById('modalTitle').textContent = categoryInfo.title;
-        document.getElementById('modalSubtitle').textContent = categoryInfo.subtitle;
+        console.log('🐛 [DEBUG] categoryInfo:', categoryInfo);
+
+        // Check if categoryInfo exists
+        if (!categoryInfo) {
+            console.log('🐛 [DEBUG] CategoryInfo not found for category:', category);
+            return;
+        }
+
+        // Check if modal elements exist (they may not in iframe context)
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSubtitle = document.getElementById('modalSubtitle');
+
+        if (modalTitle && modalSubtitle && categoryInfo) {
+            modalTitle.textContent = categoryInfo.title;
+            modalSubtitle.textContent = categoryInfo.subtitle;
+            console.log('🐛 [DEBUG] Modal title and subtitle set successfully');
+        } else {
+            console.log('🐛 [DEBUG] Modal elements not found');
+            console.log('🐛 [DEBUG] modalTitle:', !!modalTitle, 'modalSubtitle:', !!modalSubtitle, 'categoryInfo:', !!categoryInfo);
+
+            // Don't exit early - try to generate content anyway in case modal elements load later
+            console.log('🐛 [DEBUG] Continuing with modal generation despite missing title elements');
+        }
         
         // Generate modal content based on category
-        this.generateModalContent(category);
+        try {
+            this.generateModalContent(category);
+        } catch (error) {
+            console.log('🐛 [DEBUG] Error generating modal content:', error);
+        }
         
-        // Show the modal
-        document.getElementById('modalOverlay').classList.add('show');
+        // Show the modal (check if it exists first)
+        const modalOverlay = document.getElementById('modalOverlay');
+        if (modalOverlay) {
+            modalOverlay.classList.add('show');
+            console.log('🐛 [DEBUG] Modal overlay shown successfully');
+        } else {
+            console.log('🐛 [DEBUG] modalOverlay not found - cannot show modal');
+        }
     }
     
     generateModalContent(category) {
@@ -249,6 +380,9 @@ class SettingsManager {
                 break;
             case 'meals':
                 this.generateMealsContent(modalBody);
+                break;
+            case 'dishes':
+                this.generateDishesContent(modalBody);
                 break;
             case 'cooking':
                 this.generateCookingContent(modalBody);
@@ -310,7 +444,43 @@ class SettingsManager {
             });
         });
     }
-    
+
+    generateDishesContent(container) {
+        const currentDishes = this.userPreferences.selected_meal_ids || [];
+
+        // Simple meal options for now - we can enhance this later with images
+        const dishes = [
+            { id: 'lemon-herb-roast-chicken', name: 'Lemon Herb Roast Chicken' },
+            { id: 'mediterranean-chickpea-bowl', name: 'Mediterranean Chickpea Bowl' },
+            { id: 'turkey-meatballs-farro', name: 'Turkey Meatballs with Farro' },
+            { id: '15-minute-chicken-stir-fry', name: '15-Minute Chicken Stir-Fry' },
+            { id: 'grilled-salmon-greens', name: 'Grilled Salmon with Greens' },
+            { id: 'beef-tacos-skillet', name: 'Beef Tacos Skillet' },
+            { id: 'vegetarian-curry-bowl', name: 'Vegetarian Curry Bowl' },
+            { id: 'pasta-with-seasonal-vegetables', name: 'Pasta with Seasonal Vegetables' }
+        ];
+
+        const dishesHtml = `
+            <div class="modal-options">
+                ${dishes.map(dish => `
+                    <div class="option-item ${currentDishes.includes(dish.id) ? 'selected' : ''}" data-dish="${dish.id}">
+                        <span class="option-text">${dish.name}</span>
+                        <span class="option-check">✓</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        container.innerHTML = dishesHtml;
+
+        // Add click handlers for dish options
+        container.querySelectorAll('.option-item').forEach(option => {
+            option.addEventListener('click', () => {
+                option.classList.toggle('selected');
+            });
+        });
+    }
+
     generateCookingContent(container) {
         const currentMethods = this.userPreferences.cooking_methods || [];
         
@@ -457,7 +627,11 @@ class SettingsManager {
             case 'meals':
                 const selectedMeals = modalBody.querySelectorAll('.option-item.selected');
                 return Array.from(selectedMeals).map(item => item.dataset.meal);
-                
+
+            case 'dishes':
+                const selectedDishes = modalBody.querySelectorAll('.option-item.selected');
+                return Array.from(selectedDishes).map(item => item.dataset.dish);
+
             case 'cooking':
                 const selectedMethods = modalBody.querySelectorAll('.option-item.selected');
                 return {
@@ -485,6 +659,9 @@ class SettingsManager {
                 break;
             case 'meals':
                 this.userPreferences.meal_timing = value;
+                break;
+            case 'dishes':
+                this.userPreferences.selected_meal_ids = value;
                 break;
             case 'cooking':
                 this.userPreferences.cooking_methods = value.methods;
