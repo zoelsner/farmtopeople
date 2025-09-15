@@ -222,7 +222,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
         # Navigate to home where header/cart lives
         await page.goto("https://farmtopeople.com/home")
         await page.wait_for_load_state("domcontentloaded")
-        await page.wait_for_timeout(get_timeout(1500))  # Give page time to settle
+        await page.wait_for_timeout(get_timeout(2500))  # Give page time to settle (increased for reliability)
 
         # Check if we're on a login page or if login elements are visible
         current_url = page.url
@@ -259,7 +259,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
                     login_btn = page.locator("button:has-text('LOG IN')").first
                     if await login_btn.count() > 0:
                         await login_btn.click()
-                        await page.wait_for_timeout(get_timeout(1500))  # Wait after login click
+                        await page.wait_for_timeout(get_timeout(2500))  # Wait after login click (increased for reliability)
                         
                         # Now fill password
                         password_input = page.locator("input[type='password']").first
@@ -272,7 +272,10 @@ async def main(credentials=None, return_data=False, phone_number=None):
                             if await final_login_btn.count() > 0:
                                 await final_login_btn.click()
                                 print("✅ Login submitted, waiting for navigation...")
-                                await page.wait_for_timeout(get_timeout(3000))  # Wait for zipcode modal
+                                await page.wait_for_timeout(get_timeout(4000))  # Wait for zipcode modal (increased for reliability)
+
+                                # Add additional wait for login to fully settle
+                                await page.wait_for_load_state("networkidle", timeout=10000)
                                 
                                 # Verify we're logged in
                                 if "login" not in page.url:
@@ -296,11 +299,11 @@ async def main(credentials=None, return_data=False, phone_number=None):
         if await cart_btn.is_visible():
             print("✅ Cart button is visible and not in a modal. Clicking it.")
             await cart_btn.click()
-            await page.wait_for_timeout(get_timeout(2000))  # Wait for cart to open
+            await page.wait_for_timeout(get_timeout(3000))  # Wait for cart to open (increased for reliability)
         else:
             print("❌ Cart button not found or not visible. Trying direct navigation.")
             await page.goto("https://farmtopeople.com/cart")
-            await page.wait_for_timeout(get_timeout(2000))  # Wait after direct nav
+            await page.wait_for_timeout(get_timeout(3000))  # Wait after direct nav (increased for reliability)
 
         # First, get individual cart items (non-customizable items like eggs, avocados, etc.)
         print("🔍 Checking for individual cart items...")
@@ -511,7 +514,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
                         
                         # Ensure button is in viewport and ready
                         await customize_btn.scroll_into_view_if_needed()
-                        await page.wait_for_timeout(get_timeout(1000))  # Wait for page stability
+                        await page.wait_for_timeout(get_timeout(1500))  # Wait for page stability (increased for reliability)
                         
                         # Wait for button to be visible and enabled
                         await customize_btn.wait_for(state="visible", timeout=5000)
@@ -530,7 +533,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
                         # Method 2: Force click if regular click failed
                         if not click_success:
                             try:
-                                customize_btn.click(force=True)
+                                await customize_btn.click(force=True)
                                 click_success = True
                                 print("✅ Force click succeeded")
                             except Exception as e:
@@ -549,7 +552,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
                             raise Exception("All click methods failed")
                         
                         # Wait for modal to appear and verify it loaded
-                        await page.wait_for_timeout(get_timeout(2000))  # Wait for modal
+                        await page.wait_for_timeout(get_timeout(2500))  # Wait for modal (increased for reliability)
                         
                         # Check if modal actually opened
                         modal_present = await page.locator("aside[aria-label*='Customize']").count() > 0
@@ -559,13 +562,13 @@ async def main(credentials=None, return_data=False, phone_number=None):
                             break  # Success, exit retry loop
                         else:
                             print("⚠️ Modal didn't open, retrying...")
-                            await page.wait_for_timeout(get_timeout(1500))  # Wait before retry
+                            await page.wait_for_timeout(get_timeout(2000))  # Wait before retry (increased for reliability)
                             
                     except Exception as e:
                         print(f"❌ Attempt {attempt + 1} failed: {e}")
                         if attempt < max_retries - 1:
                             print(f"🔄 Retrying in 3 seconds...")
-                            await page.wait_for_timeout(get_timeout(3000))  # Wait after failed attempt
+                            await page.wait_for_timeout(get_timeout(3500))  # Wait after failed attempt (increased for reliability)
                         else:
                             print(f"❌ All {max_retries} attempts failed for {box_name}")
                 
@@ -736,6 +739,19 @@ async def main(credentials=None, return_data=False, phone_number=None):
                     success = supabase_client.save_latest_cart_data(phone_number, complete_results, delivery_date_text)
                     if success:
                         print(f"💾 Cart data saved to database for {phone_number}")
+
+                        # CRITICAL: Cache fresh data to Redis immediately
+                        try:
+                            import sys
+                            import os
+                            sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+                            from server.services.cache_service import CacheService
+
+                            # Cache for 2 hours (7200 seconds)
+                            CacheService.set_cart(phone_number, complete_results, ttl=7200)
+                            print(f"🔥 Cart data cached to Redis for {phone_number} (2hr TTL)")
+                        except Exception as cache_error:
+                            print(f"⚠️ Redis cache failed (non-critical): {cache_error}")
                     else:
                         print(f"⚠️ Failed to save cart data to database")
                 else:

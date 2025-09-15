@@ -198,11 +198,19 @@
             border-top: 4px solid #28a745;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            -webkit-animation: spin 1s linear infinite; /* Safari support */
+            will-change: transform; /* Optimize for animation */
+            transform: translateZ(0); /* Force hardware acceleration */
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
         }
 
         .loading-title {
@@ -886,11 +894,6 @@
             margin: 0 auto 20px;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
         .error-icon, .empty-icon {
             font-size: 48px;
             margin-bottom: 16px;
@@ -1030,6 +1033,198 @@
                 align-items: flex-start;
             }
         }
+
+        /* Meal Locking Interface Styles */
+        .meal-locking-container {
+            padding: 20px;
+        }
+
+        .meal-suggestions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .meal-suggestions-header h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .meal-suggestions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .meal-suggestion-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .meal-suggestion-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .meal-suggestion-card.locked {
+            background: #FFF8DC; /* Yellow background like swap cards */
+            border-color: #f59e0b;
+            cursor: default;
+        }
+
+        .meal-suggestion-card.locked:hover {
+            transform: none;
+        }
+
+        .meal-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0 0 8px 0;
+            line-height: 1.3;
+        }
+
+        .meal-card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .meal-card-protein {
+            font-weight: 600;
+            color: #059669;
+        }
+
+        .meal-card-ingredients {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .meal-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .lock-button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+
+        .lock-button:hover {
+            background: #059669;
+        }
+
+        .unlock-button {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+
+        .unlock-button:hover {
+            background: #d97706;
+        }
+
+        .locked-meals-section {
+            border-top: 2px solid #f1f5f9;
+            padding-top: 24px;
+            margin-bottom: 32px;
+        }
+
+        .locked-meals-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .locked-meals-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .locked-count {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .locked-meals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .meal-plan-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 32px;
+        }
+
+        .secondary-button {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .secondary-button:hover {
+            background: #4b5563;
+        }
+
+        /* Mobile responsive for meal locking */
+        @media (max-width: 768px) {
+            .meal-suggestions-grid,
+            .locked-meals-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .meal-suggestions-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+
+            .meal-plan-actions {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1083,11 +1278,11 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <h3 class="section-header" style="margin: 0;">Suggested Meals</h3>
                     <div style="display: flex; gap: 8px;">
-                        <button id="refreshSuggestionsButton" onclick="refreshSuggestions()" 
+                        <button id="refreshSuggestionsButton" onclick="refreshSuggestions()"
                                 style="background: #34C759; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer;">
                             ✨ New Suggestions
                         </button>
-                        <button id="refreshCartButton" onclick="refreshCartData()" 
+                        <button id="refreshCartButton" onclick="refreshCartData()"
                                 style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer;">
                             🔄 Refresh Cart
                         </button>
@@ -1185,29 +1380,40 @@
                 <button id="retryLoad" class="retry-button">Try Again</button>
             </div>
 
-            <!-- Simple Meal Card - dedicated container -->
-            <div id="simpleMealCardContainer" class="meal-card-container" style="display: block;">
-                <div id="simpleMealCard" class="simple-meal-card">
-                    <div class="meal-card-header">
-                        <h3 id="mealTitle">🍗 Suggested Meal</h3>
-                        <span id="mealTime">20 mins</span>
+            <!-- Meal Locking Interface - NEW -->
+            <div id="simpleMealCardContainer" class="meal-locking-container" style="display: block;">
+                <!-- Meal Suggestions (4 cards that can be locked) -->
+                <div class="meal-suggestions-header">
+                    <h3>🍽️ Suggested Meals</h3>
+                    <button id="generateMealsButton" class="regenerate-button" onclick="generateMealSuggestions()">
+                        🔄 New Suggestions
+                    </button>
+                </div>
+
+                <div id="mealSuggestionsGrid" class="meal-suggestions-grid">
+                    <!-- 4 meal suggestion cards will be populated here -->
+                </div>
+
+                <!-- Locked Meals Section -->
+                <div id="lockedMealsSection" class="locked-meals-section" style="display: none;">
+                    <div class="locked-meals-header">
+                        <h3>🔒 Locked Meals</h3>
+                        <span class="locked-count">(<span id="lockedCount">0</span>/4 locked)</span>
                     </div>
 
-                    <div class="meal-ingredients">
-                        <h4>Using from your cart:</h4>
-                        <div id="simpleMealIngredients" class="ingredients-list">
-                            <!-- Ingredients will be populated dynamically -->
-                        </div>
+                    <div id="lockedMealsGrid" class="locked-meals-grid">
+                        <!-- Locked meals will appear here -->
                     </div>
+                </div>
 
-                    <div class="meal-actions">
-                        <button id="regenerateMeal" class="regenerate-button" onclick="regenerateSimpleMeal()">
-                            🔄 Try Another Recipe
-                        </button>
-                        <button id="createFullPlan" class="analyze-button" onclick="startAnalysis(); switchTab('cart', document.getElementById('cartTab'));">
-                            Create Full Week Plan
-                        </button>
-                    </div>
+                <!-- Action buttons -->
+                <div class="meal-plan-actions">
+                    <button id="createFullPlan" class="analyze-button" onclick="startAnalysis(); switchTab('cart', document.getElementById('cartTab'));">
+                        Create Full Week Plan
+                    </button>
+                    <button id="clearAllLocks" class="secondary-button" onclick="clearAllLockedMeals()" style="display: none;">
+                        Clear All Locks
+                    </button>
                 </div>
             </div>
 
@@ -1336,6 +1542,17 @@
         let mealPlanData = null;
         let refreshesLeft = 3;  // Track refresh count
 
+        // Debouncing variables to prevent multiple API calls
+        let mealGenerationInProgress = false;
+
+        // Global timer variables to prevent duplicate progress timers
+        let statusInterval = null;
+        let analysisTimeout = null;
+        let isAnalyzing = false;
+        let lastMealGenerationTime = 0;
+        const MEAL_DEBOUNCE_TIMEOUT = 500; // 500ms debounce
+        let mealGenerationTimeoutId = null;
+
         // Clear stale cache data to prevent cross-user contamination
         const currentUser = localStorage.getItem('ftpEmail');
         const lastUser = localStorage.getItem('lastLoggedInUser');
@@ -1357,44 +1574,43 @@
             document.querySelector('.subtitle').textContent = userEmail;
         }
         
-        // Function to load saved cart data from the server
+        // Function to load saved cart data from the server (PRIORITY: Redis > Database > localStorage)
         async function loadSavedCartData() {
+            console.log('🔍 Loading cart data with priority: Redis > Database > localStorage');
+
+            // PRIORITY 1: Always check server first (Redis > Database)
             try {
-                const response = await fetch('/api/get-saved-cart');
+                console.log('📡 Fetching fresh data from server (Redis/Database)...');
+                const response = await fetch('/api/get-saved-cart?force_refresh=false');
                 if (response.ok) {
                     const data = await response.json();
-                    if (data && data.cart_data) {
-                        // We have saved cart data from the database
+                    if (data && data.cart_data && Object.keys(data.cart_data).length > 0) {
+                        const cacheSource = data.from_cache ? `${data.cache_type} cache` : 'database';
+                        console.log(`✅ Loaded fresh cart from server: ${cacheSource}`);
+
+                        // Clear any stale localStorage data when we get fresh server data
+                        if (data.from_cache && data.cache_type && data.cache_type.includes('redis')) {
+                            console.log('🗑️ Clearing stale localStorage - using fresh Redis data');
+                            localStorage.removeItem('cartAnalysisData');
+                            localStorage.removeItem('cartAnalysisState');
+                        }
+
+                        // Show delivery date if available from server
+                        if (data.delivery_date) {
+                            console.log(`📅 Delivery date from server: ${data.delivery_date}`);
+                        }
+
                         currentState = 'complete';
-                        showCartAnalysis(data.cart_data, data.swaps || [], data.addons || []);
+                        showCartAnalysis(data.cart_data, data.swaps || [], data.addons || [], false, data.meals || null);
                         return true;
                     }
                 }
             } catch (error) {
-                console.error('Error loading saved cart:', error);
+                console.error('⚠️ Error loading from server:', error);
             }
-            
-            // Fallback to localStorage if server data not available
-            const savedState = localStorage.getItem('cartAnalysisState');
-            const savedAnalysis = localStorage.getItem('cartAnalysisData');
-            if (savedState === 'complete' && savedAnalysis) {
-                try {
-                    const { cartData, swaps, addons, timestamp } = JSON.parse(savedAnalysis);
-                    // Only restore if data is less than 1 hour old
-                    const oneHour = 60 * 60 * 1000;
-                    if (Date.now() - timestamp < oneHour) {
-                        currentState = 'complete';
-                        showCartAnalysis(cartData, swaps, addons);
-                        return true;
-                    } else {
-                        // Clear old data
-                        localStorage.removeItem('cartAnalysisData');
-                        localStorage.removeItem('cartAnalysisState');
-                    }
-                } catch (e) {
-                    console.error('Error restoring cart analysis:', e);
-                }
-            }
+
+            // No localStorage fallback - Redis only
+            console.log('❌ No valid cart data found in Redis/Database - no localStorage fallback');
             return false;
         }
         
@@ -1402,32 +1618,104 @@
         loadSavedCartData();
 
         async function startAnalysis() {
-            // Clear any previous analysis data
+            // Prevent overlapping analysis calls
+            if (isAnalyzing) {
+                console.log('⚠️ Analysis already in progress, ignoring duplicate call');
+                return;
+            }
+
+            // Clear any existing timers to prevent duplicates
+            clearAnalysisTimers();
+
+            // Set analyzing flag
+            isAnalyzing = true;
+
+            // Clear ALL previous analysis data to prevent stale cache issues
             localStorage.removeItem('cartAnalysisData');
             localStorage.removeItem('cartAnalysisState');
-            
+            localStorage.removeItem('cachedMealSuggestions');
+            localStorage.removeItem('cachedMealSuggestionsTimestamp');
+
             // Switch to loading state
             currentState = 'loading';
             document.getElementById('startSection').classList.remove('active');
             document.getElementById('loadingSection').classList.add('active');
             document.getElementById('headerSubtitle').textContent = 'Analyzing...';
 
-            // Update loading status messages
+            // Update loading status messages with progress bar and timer
             const statuses = [
-                'Logging into Farm to People...',
-                'Found your account! Loading cart...',
-                'Analyzing your produce selections...',
-                'Creating personalized meal plans...',
-                'Almost done...'
+                { text: '🔐 Logging into Farm to People...', progress: 15 },
+                { text: '📦 Loading your cart items...', progress: 30 },
+                { text: '🎯 Analyzing customizable boxes...', progress: 50 },
+                { text: '🤖 Generating meal suggestions with GPT-5...', progress: 75 },
+                { text: '✨ Almost done...', progress: 90 }
             ];
 
             let statusIndex = 0;
-            const statusInterval = setInterval(() => {
-                if (statusIndex < statuses.length) {
-                    document.getElementById('loadingStatus').textContent = statuses[statusIndex];
+            const startTime = Date.now();
+
+            // Add progress bar to loading status
+            function updateLoadingStatus() {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const status = statuses[Math.min(statusIndex, statuses.length - 1)];
+
+                // Create smooth progress updates without affecting spinner
+                const loadingEl = document.getElementById('loadingStatus');
+
+                // Use requestAnimationFrame for smoother updates
+                requestAnimationFrame(() => {
+                    loadingEl.innerHTML = `
+                        <div style="margin-bottom: 12px;">${status.text}</div>
+                        <div style="background: #f0f0f0; border-radius: 8px; height: 6px; margin-bottom: 8px; overflow: hidden;">
+                            <div style="background: #4169E1; height: 100%; width: ${status.progress}%; transition: width 0.8s ease;"></div>
+                        </div>
+                        <div style="font-size: 12px; color: #666;">Elapsed: ${elapsed}s</div>
+                    `;
+                });
+            }
+
+            updateLoadingStatus();
+            statusInterval = setInterval(() => {
+                if (statusIndex < statuses.length - 1) {
                     statusIndex++;
                 }
-            }, 3000);
+                updateLoadingStatus();
+            }, 8000); // Slower updates for longer processes
+
+            // Add cancel button to loading status
+            setTimeout(() => {
+                const loadingEl = document.getElementById('loadingStatus');
+                if (loadingEl && currentState === 'loading') {
+                    const currentHTML = loadingEl.innerHTML;
+                    loadingEl.innerHTML = currentHTML + `
+                        <br>
+                        <button onclick="cancelAnalysis()" style="padding: 6px 12px; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 8px;">
+                            Cancel
+                        </button>
+                    `;
+                }
+            }, 10000); // Show cancel after 10 seconds
+
+            // Add timeout for scraping (PWA recovery mechanism)
+            analysisTimeout = setTimeout(() => {
+                clearAnalysisTimers();
+                if (currentState === 'loading') {
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    // Show error with retry option
+                    document.getElementById('loadingStatus').innerHTML = `
+                        <div style="color: #ff6b6b; margin-bottom: 12px;">⚠️ Analysis taking longer than expected (${elapsed}s)</div>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 12px;">
+                            This usually means the Farm to People website is slow or experiencing issues.
+                        </div>
+                        <button onclick="retryAnalysis()" style="padding: 8px 16px; background: #4169E1; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px;">
+                            Try Again
+                        </button>
+                        <button onclick="goBackToStart()" style="padding: 8px 16px; background: #666; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Go Back
+                        </button>
+                    `;
+                }
+            }, 60000); // 60 second timeout
 
             try {
                 // Get user phone (from localStorage or prompt)
@@ -1462,7 +1750,7 @@
                 });
 
                 const data = await response.json();
-                clearInterval(statusInterval);
+                clearAnalysisTimers();
 
                 if (data.success) {
                     // CRITICAL: Clear localStorage if fresh data was scraped
@@ -1473,16 +1761,55 @@
                         localStorage.removeItem('lastCartAnalysis');
                     }
 
-                    showCartAnalysis(data.cart_data, data.swaps, data.addons);
+                    isAnalyzing = false; // Reset analyzing flag on success
+                    showCartAnalysis(data.cart_data, data.swaps, data.addons, data.fresh_scrape, data.meals);
                 } else {
                     // Show error message instead of mock data
+                    isAnalyzing = false; // Reset analyzing flag on error
                     showError(data.error || 'Failed to analyze cart', data.debug_info);
                 }
             } catch (error) {
-                clearInterval(statusInterval);
+                clearAnalysisTimers();
+                isAnalyzing = false; // Reset analyzing flag on network error
                 // Show error message instead of mock data
                 showError('Network error: ' + error.message);
             }
+        }
+
+        // Retry function for stuck scraping (PWA recovery)
+        function retryAnalysis() {
+            location.reload(); // Safe reload for retry
+        }
+
+        // Helper function to clear all analysis timers
+        function clearAnalysisTimers() {
+            if (statusInterval) {
+                clearInterval(statusInterval);
+                statusInterval = null;
+            }
+            if (analysisTimeout) {
+                clearTimeout(analysisTimeout);
+                analysisTimeout = null;
+            }
+        }
+
+        // Cancel analysis and go back to start
+        function cancelAnalysis() {
+            // Clear all timers to prevent duplicates
+            clearAnalysisTimers();
+
+            // Reset analyzing flag
+            isAnalyzing = false;
+
+            currentState = 'start';
+            document.getElementById('loadingSection').classList.remove('active');
+            document.getElementById('startSection').classList.add('active');
+            document.getElementById('headerSubtitle').textContent = 'Ready to analyze';
+        }
+
+        // Go back to start from error state
+        function goBackToStart() {
+            cancelAnalysis();
         }
 
         function showScrapedTimestamp(cartData) {
@@ -1748,27 +2075,41 @@
             return colors[category] || colors['produce'];
         }
         
-        function showCartAnalysis(cartData, swaps = [], addons = []) {
+        function showCartAnalysis(cartData, swaps = [], addons = [], freshScrape = false, cachedMeals = null) {
             currentState = 'complete';
-            
+
             // Set global mealPlanData so meal calendar can access cart data
             mealPlanData = { cart_data: cartData };
-            
-            // Store cart analysis data in localStorage for persistence
-            const analysisData = { cartData, swaps, addons, timestamp: Date.now() };
-            localStorage.setItem('cartAnalysisData', JSON.stringify(analysisData));
-            localStorage.setItem('cartAnalysisState', 'complete');
+
+            // Cart analysis complete (no localStorage caching - using Redis only)
+            console.log('💾 Cart analysis complete - data served from Redis');
             document.getElementById('loadingSection').classList.remove('active');
             document.getElementById('cartAnalysisSection').classList.add('active');
             document.getElementById('headerSubtitle').textContent = 'Cart analysis complete';
-            
+
             // Show delivery date and timestamp if available
             showDeliveryDate(cartData);
             showScrapedTimestamp(cartData);
 
-            // Always generate fresh meal suggestions - no caching for now
-            console.log('🍽️ Generating fresh meal suggestions from current cart');
-            generateMealSuggestionsFromAPI(cartData);
+            // Handle meal suggestions based on context
+            if (freshScrape) {
+                // Fresh scrape - meals should already be generated and included in the response
+                console.log('🔄 Fresh cart data - meals should be included from server');
+                if (cachedMeals && cachedMeals.length > 0) {
+                    displayMealSuggestions(cachedMeals);
+                } else {
+                    console.log('⚠️ Fresh scrape but no meals in response - user can click "New Suggestions"');
+                    showEmptyMealState();
+                }
+            } else if (cachedMeals && cachedMeals.length > 0) {
+                // Page refresh - use cached meals
+                console.log('💾 Using cached meal suggestions from Redis');
+                displayMealSuggestions(cachedMeals);
+            } else {
+                // No cached meals available - show empty state
+                console.log('📦 No meal suggestions yet - click "New Suggestions" to generate');
+                showEmptyMealState();
+            }
 
             // Sync meals from Cart tab to Meals tab
             setTimeout(() => {
@@ -2144,29 +2485,48 @@
         document.addEventListener('DOMContentLoaded', () => {
             const refreshButton = document.getElementById('refreshMeals');
             if (refreshButton) {
-                refreshButton.addEventListener('click', async () => {
+                refreshButton.addEventListener('click', debounceMealGeneration(async () => {
                     if (refreshesLeft > 0) {
                         // Disable button during refresh
                         refreshButton.disabled = true;
                         refreshButton.innerHTML = '⏳ Generating new meals...';
                         
                         try {
+                            const timestamp = new Date().toISOString();
+                            const phone = localStorage.getItem('userPhone');
+                            console.log(`🔄 [${timestamp}] Cart tab regenerating meals...`);
+                            console.log(`📊 [MEAL DEBUG - CART] Request data:`, {
+                                timestamp,
+                                phone: phone,
+                                mealPlanData: mealPlanData,
+                                refreshesLeft: refreshesLeft
+                            });
+
                             // Call API to regenerate meals
+                            const apiRequestStart = Date.now();
                             const response = await fetch('/api/refresh-meals', {
                                 method: 'POST',
                                 headers: {'Content-Type': 'application/json'},
                                 body: JSON.stringify({
                                     cart_data: mealPlanData,
-                                    phone: localStorage.getItem('userPhone')
+                                    phone: phone
                                 })
                             });
-                            
+
+                            const apiRequestTime = Date.now() - apiRequestStart;
+                            console.log(`⏱️ [MEAL DEBUG - CART] API request took: ${apiRequestTime}ms`);
+
                             const data = await response.json();
+                            console.log(`📥 [MEAL DEBUG - CART] API Response:`, {
+                                success: data.success,
+                                mealsCount: data.meals?.length || 0,
+                                hasError: !!data.error,
+                                responseTime: apiRequestTime + 'ms',
+                                rawData: data
+                            });
                             
                             if (data.success) {
-                                // Update meal suggestions and cache them
-                                localStorage.setItem('cachedMealSuggestions', JSON.stringify(data.meals));
-                                localStorage.setItem('cachedMealSuggestionsTimestamp', Date.now().toString());
+                                // Update meal suggestions (no localStorage caching)
                                 updateMealSuggestions(data.meals);
                                 
                                 // Decrement refresh count
@@ -2194,7 +2554,7 @@
                             refreshButton.innerHTML = `🔄 Try Different Meals (${refreshesLeft} left)`;
                         }
                     }
-                });
+                }));
             }
             
             // Load refresh count from localStorage
@@ -2261,7 +2621,7 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         cart_data: cartData,
-                        phone: localStorage.getItem('userPhone')
+                        phone: getPhoneNumber()
                     })
                 });
                 
@@ -2310,6 +2670,23 @@
             }
         }
 
+        function displayMealSuggestions(meals) {
+            console.log(`📋 Displaying ${meals.length} meal suggestions`);
+            updateMealSuggestions(meals);
+        }
+
+        function showEmptyMealState() {
+            const container = document.getElementById('mealSuggestionsContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #666; border: 1px dashed #ddd; border-radius: 8px; margin: 8px 0;">
+                        <div style="font-size: 16px; margin-bottom: 8px;">🍽️</div>
+                        <div>Click "New Suggestions" to generate meal ideas</div>
+                    </div>
+                `;
+            }
+        }
+
         async function regenerateSwapsAndAddons(cartData) {
             try {
                 console.log('🔄 Generating new swaps and add-ons...');
@@ -2320,7 +2697,7 @@
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        phone: localStorage.getItem('userPhone'),
+                        phone: getPhoneNumber(),
                         use_mock: false,
                         regenerate_only: true  // Signal to skip scraping, just regenerate suggestions
                     })
@@ -2329,29 +2706,17 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // CRITICAL: Clear localStorage if fresh data was scraped
-                    if (data.fresh_scrape) {
-                        console.log('🧹 Fresh scrape detected in refresh - clearing localStorage cache');
-                        localStorage.removeItem('cartData');
-                        localStorage.removeItem('cartTimestamp');
-                        localStorage.removeItem('lastCartAnalysis');
-                    }
-
                     // Update swaps display
                     if (data.swaps && data.swaps.length > 0) {
                         updateSwapSuggestions(data.swaps);
                     }
-                    
+
                     // Update add-ons display
                     if (data.addons && data.addons.length > 0) {
                         updatePremiumAddons(data.addons);
                     }
-                    
-                    // Update stored data
-                    const storedData = JSON.parse(localStorage.getItem('cartAnalysisData'));
-                    storedData.swaps = data.swaps || [];
-                    storedData.addons = data.addons || [];
-                    localStorage.setItem('cartAnalysisData', JSON.stringify(storedData));
+
+                    console.log('✅ Regenerated swaps and add-ons successfully');
                 }
             } catch (error) {
                 console.error('Error generating swaps/addons:', error);
@@ -2363,27 +2728,39 @@
             // Just regenerate meal suggestions without re-scraping cart
             const button = document.getElementById('refreshSuggestionsButton');
             const originalText = button.innerHTML;
-            
+
             try {
                 button.disabled = true;
                 button.innerHTML = '⏳ Generating...';
-                
-                // Get the stored cart data
-                const storedData = localStorage.getItem('cartAnalysisData');
-                if (!storedData) {
+
+                // Get cart data from global variable or fallback to API
+                let cartData = null;
+                if (mealPlanData && mealPlanData.cart_data) {
+                    cartData = mealPlanData.cart_data;
+                    console.log('🎲 Using cart data from mealPlanData');
+                } else {
+                    // Fallback: fetch from API
+                    console.log('📦 Fetching cart data from API...');
+                    const response = await fetch('/api/get-saved-cart?force_refresh=false');
+                    const data = await response.json();
+                    if (data.success && data.cart_data) {
+                        cartData = data.cart_data;
+                        console.log('✅ Retrieved cart data from API');
+                    }
+                }
+
+                if (!cartData) {
                     alert('Please analyze your cart first');
                     return;
                 }
-                
-                const { cartData } = JSON.parse(storedData);
-                
+
                 // Generate new meal suggestions from existing cart
                 console.log('🎲 Generating new meal suggestions from current cart');
                 await generateMealSuggestionsFromAPI(cartData);
-                
+
                 // Also regenerate swaps and add-ons
                 await regenerateSwapsAndAddons(cartData);
-                
+
             } catch (error) {
                 console.error('Error refreshing suggestions:', error);
                 alert('Failed to generate new suggestions. Please try again.');
@@ -3502,15 +3879,16 @@
             }
         }
         
-        // Enhanced switchTab function to initialize calendar
+        // Enhanced switchTab function to initialize calendar and meal locking
         const originalSwitchTab = switchTab;
         window.switchTab = function(tab, element) {
             originalSwitchTab(tab, element);
-            
+
             if (tab === 'meals') {
-                // Initialize calendar when switching to meals tab
+                // Initialize calendar and meal locking interface when switching to meals tab
                 setTimeout(() => {
                     initMealCalendar();
+                    initializeMealLockingInterface(); // Initialize our new meal locking UI
                 }, 100);
             }
         };
@@ -3704,8 +4082,45 @@
             if (ingredientsList) ingredientsList.innerHTML = '<div class="ingredient-tag">No meal suggestions yet</div>';
         }
 
-        async function regenerateSimpleMeal() {
-            console.log('🔄 Regenerating simple meal using Cart tab API...');
+        // Debouncing helper function to prevent multiple API calls
+        function debounceMealGeneration(func, timeout = MEAL_DEBOUNCE_TIMEOUT) {
+            return function(...args) {
+                const now = Date.now();
+
+                // Check if generation is already in progress
+                if (mealGenerationInProgress) {
+                    console.log('⏸️ [DEBOUNCE] Meal generation already in progress - ignoring request');
+                    return;
+                }
+
+                // Check time-based debouncing
+                if (now - lastMealGenerationTime < MEAL_DEBOUNCE_TIMEOUT) {
+                    console.log(`⏸️ [DEBOUNCE] Too soon since last generation (${now - lastMealGenerationTime}ms < ${MEAL_DEBOUNCE_TIMEOUT}ms) - ignoring request`);
+                    return;
+                }
+
+                // Clear any existing timeout
+                if (mealGenerationTimeoutId) {
+                    clearTimeout(mealGenerationTimeoutId);
+                }
+
+                // Set up new timeout
+                mealGenerationTimeoutId = setTimeout(async () => {
+                    mealGenerationInProgress = true;
+                    lastMealGenerationTime = Date.now();
+
+                    try {
+                        await func.apply(this, args);
+                    } finally {
+                        mealGenerationInProgress = false;
+                    }
+                }, timeout);
+            };
+        }
+
+        async function regenerateSimpleMealInternal() {
+            const timestamp = new Date().toISOString();
+            console.log(`🔄 [${timestamp}] Regenerating simple meal using Cart tab API...`);
 
             const button = document.getElementById('regenerateMeal');
             if (!button) {
@@ -3725,25 +4140,44 @@
                 }
 
                 const { cartData } = JSON.parse(storedData);
+                const phone = localStorage.getItem('userPhone');
+
+                console.log(`📊 [MEAL DEBUG] Request data:`, {
+                    timestamp,
+                    phone: phone,
+                    hasCartData: !!cartData,
+                    customizableBoxes: cartData?.customizable_boxes?.length || 0,
+                    nonCustomizableBoxes: cartData?.non_customizable_boxes?.length || 0,
+                    individualItems: cartData?.individual_items?.length || 0
+                });
 
                 console.log('🍽️ Calling same API as Cart tab for meal suggestions...');
+                const apiRequestStart = Date.now();
                 const response = await fetch('/api/refresh-meals', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         cart_data: cartData,
-                        phone: localStorage.getItem('userPhone')
+                        phone: phone
                     })
                 });
 
+                const apiRequestTime = Date.now() - apiRequestStart;
+                console.log(`⏱️ [MEAL DEBUG] API request took: ${apiRequestTime}ms`);
+
                 const data = await response.json();
+                console.log(`📥 [MEAL DEBUG] API Response:`, {
+                    success: data.success,
+                    mealsCount: data.meals?.length || 0,
+                    hasError: !!data.error,
+                    responseTime: apiRequestTime + 'ms',
+                    rawData: data
+                });
 
                 if (data.success && data.meals && data.meals.length > 0) {
                     console.log('✅ Got new meal suggestion:', data.meals[0]);
 
-                    // Update localStorage so Cart tab also shows the new meals
-                    localStorage.setItem('cachedMealSuggestions', JSON.stringify(data.meals));
-                    localStorage.setItem('cachedMealSuggestionsTimestamp', Date.now().toString());
+                    // Meals updated (no localStorage caching)
 
                     // Update Meals tab display with first meal
                     populateSimpleMealCard(data.meals[0]);
@@ -3762,6 +4196,259 @@
             } finally {
                 button.textContent = originalText;
                 button.disabled = false;
+            }
+        }
+
+        // Create debounced version of the meal generation function
+        const regenerateSimpleMeal = debounceMealGeneration(regenerateSimpleMealInternal);
+
+        // ===== MEAL LOCKING FUNCTIONALITY =====
+
+        let lockedMeals = []; // Array to store locked meals
+        let currentMealSuggestions = []; // Current meal suggestions from API
+
+        // Generate meal suggestions for the new interface
+        async function generateMealSuggestions() {
+            console.log('🔄 Generating meal suggestions for locking interface...');
+
+            const button = document.getElementById('generateMealsButton');
+            if (!button) return;
+
+            const originalText = button.textContent;
+            button.textContent = '⏳ Generating...';
+            button.disabled = true;
+
+            try {
+                const storedData = localStorage.getItem('cartAnalysisData');
+                if (!storedData) {
+                    throw new Error('No cart data available - analyze cart first');
+                }
+
+                const { cartData } = JSON.parse(storedData);
+                const phone = localStorage.getItem('userPhone');
+
+                console.log('🍽️ [MEAL LOCK DEBUG] Generating 4 meals for locking interface...');
+                const response = await fetch('/api/refresh-meals', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        cart_data: cartData,
+                        phone: phone
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.meals && data.meals.length > 0) {
+                    currentMealSuggestions = data.meals;
+                    console.log(`✅ Got ${data.meals.length} meal suggestions`);
+                    renderMealSuggestions(data.meals);
+
+                    // Meals updated (no localStorage caching)
+                } else {
+                    throw new Error(data.error || 'Failed to generate meal suggestions');
+                }
+
+            } catch (error) {
+                console.error('❌ Error generating meal suggestions:', error);
+                alert('Failed to generate meal suggestions. Please try again.');
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+
+        // Render meal suggestions in the grid
+        function renderMealSuggestions(meals) {
+            const grid = document.getElementById('mealSuggestionsGrid');
+            if (!grid) return;
+
+            console.log('🎨 Rendering meal suggestions grid...');
+            grid.innerHTML = '';
+
+            meals.forEach((meal, index) => {
+                const card = createMealSuggestionCard(meal, index);
+                grid.appendChild(card);
+            });
+        }
+
+        // Create a meal suggestion card
+        function createMealSuggestionCard(meal, index) {
+            const card = document.createElement('div');
+            card.className = 'meal-suggestion-card';
+            card.dataset.mealIndex = index;
+
+            // Extract ingredients used (if available)
+            const ingredientsText = meal.ingredients_used
+                ? meal.ingredients_used.slice(0, 3).join(', ') + (meal.ingredients_used.length > 3 ? '...' : '')
+                : 'Uses ingredients from your cart';
+
+            card.innerHTML = `
+                <div class="meal-card-title">${meal.name}</div>
+                <div class="meal-card-meta">
+                    <span class="meal-card-time">⏱️ ${meal.time}</span>
+                    <span class="meal-card-protein">💪 ${meal.protein}</span>
+                </div>
+                <div class="meal-card-ingredients">${ingredientsText}</div>
+                <div class="meal-card-actions">
+                    <button class="lock-button" onclick="lockMeal(${index})">🔒 Lock This Meal</button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Lock a meal
+        function lockMeal(index) {
+            if (index >= currentMealSuggestions.length) return;
+            if (lockedMeals.length >= 4) {
+                alert('You can only lock up to 4 meals.');
+                return;
+            }
+
+            const meal = currentMealSuggestions[index];
+            console.log(`🔒 Locking meal: ${meal.name}`);
+
+            // Add to locked meals
+            lockedMeals.push({
+                ...meal,
+                lockedAt: Date.now(),
+                originalIndex: index
+            });
+
+            // Remove from current suggestions
+            currentMealSuggestions.splice(index, 1);
+
+            // Re-render both grids
+            renderMealSuggestions(currentMealSuggestions);
+            renderLockedMeals();
+            updateLockedMealCount();
+            showLockedMealsSection();
+
+            console.log(`✅ Meal locked. Total locked: ${lockedMeals.length}`);
+        }
+
+        // Unlock a meal
+        function unlockMeal(index) {
+            if (index >= lockedMeals.length) return;
+
+            const meal = lockedMeals[index];
+            console.log(`🔓 Unlocking meal: ${meal.name}`);
+
+            // Remove from locked meals
+            lockedMeals.splice(index, 1);
+
+            // Add back to suggestions (we'll regenerate suggestions instead)
+            console.log('💡 Unlocked meal - suggest regenerating to get new suggestions');
+
+            // Re-render grids
+            renderLockedMeals();
+            updateLockedMealCount();
+            hideLockedMealsSectionIfEmpty();
+
+            console.log(`✅ Meal unlocked. Total locked: ${lockedMeals.length}`);
+        }
+
+        // Render locked meals
+        function renderLockedMeals() {
+            const grid = document.getElementById('lockedMealsGrid');
+            if (!grid) return;
+
+            console.log('🔒 Rendering locked meals grid...');
+            grid.innerHTML = '';
+
+            lockedMeals.forEach((meal, index) => {
+                const card = createLockedMealCard(meal, index);
+                grid.appendChild(card);
+            });
+        }
+
+        // Create a locked meal card
+        function createLockedMealCard(meal, index) {
+            const card = document.createElement('div');
+            card.className = 'meal-suggestion-card locked';
+            card.dataset.lockedIndex = index;
+
+            const ingredientsText = meal.ingredients_used
+                ? meal.ingredients_used.slice(0, 3).join(', ') + (meal.ingredients_used.length > 3 ? '...' : '')
+                : 'Uses ingredients from your cart';
+
+            card.innerHTML = `
+                <div class="meal-card-title">${meal.name} 🔒</div>
+                <div class="meal-card-meta">
+                    <span class="meal-card-time">⏱️ ${meal.time}</span>
+                    <span class="meal-card-protein">💪 ${meal.protein}</span>
+                </div>
+                <div class="meal-card-ingredients">${ingredientsText}</div>
+                <div class="meal-card-actions">
+                    <button class="unlock-button" onclick="unlockMeal(${index})">🔓 Unlock</button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Update locked meal count
+        function updateLockedMealCount() {
+            const countElement = document.getElementById('lockedCount');
+            if (countElement) {
+                countElement.textContent = lockedMeals.length;
+            }
+
+            const clearButton = document.getElementById('clearAllLocks');
+            if (clearButton) {
+                clearButton.style.display = lockedMeals.length > 0 ? 'block' : 'none';
+            }
+        }
+
+        // Show locked meals section
+        function showLockedMealsSection() {
+            const section = document.getElementById('lockedMealsSection');
+            if (section && lockedMeals.length > 0) {
+                section.style.display = 'block';
+            }
+        }
+
+        // Hide locked meals section if empty
+        function hideLockedMealsSectionIfEmpty() {
+            const section = document.getElementById('lockedMealsSection');
+            if (section && lockedMeals.length === 0) {
+                section.style.display = 'none';
+            }
+        }
+
+        // Clear all locked meals
+        function clearAllLockedMeals() {
+            if (lockedMeals.length === 0) return;
+
+            const confirmed = confirm(`Clear all ${lockedMeals.length} locked meals?`);
+            if (!confirmed) return;
+
+            console.log('🧹 Clearing all locked meals');
+            lockedMeals = [];
+            renderLockedMeals();
+            updateLockedMealCount();
+            hideLockedMealsSectionIfEmpty();
+        }
+
+        // Initialize meal locking interface when meals tab loads
+        function initializeMealLockingInterface() {
+            console.log('🚀 Initializing meal locking interface...');
+
+            // Try to load from cached meal suggestions first
+            const cachedMeals = localStorage.getItem('cachedMealSuggestions');
+            if (cachedMeals) {
+                try {
+                    const meals = JSON.parse(cachedMeals);
+                    currentMealSuggestions = meals;
+                    renderMealSuggestions(meals);
+                    console.log('✅ Loaded cached meal suggestions for locking interface');
+                } catch (e) {
+                    console.error('Error loading cached meals:', e);
+                    generateMealSuggestions(); // Fallback to generate new
+                }
+            } else {
+                generateMealSuggestions(); // Generate fresh suggestions
             }
         }
 
