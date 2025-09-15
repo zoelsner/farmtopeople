@@ -38,9 +38,60 @@ load_dotenv(dotenv_path=project_root / '.env')
 # === CONFIGURATION ===
 # IMPORTANT: Change this single variable to switch between models throughout the app
 # Updated 2025-08-29: Switched from hardcoded models to configurable variable
-# Updated 2025-08-29: Using gpt-4o for production
-AI_MODEL = "gpt-4o"  # Options: "gpt-4o", "gpt-4o-mini", "gpt-4-turbo"
+# Updated 2025-09-15: Support both GPT-4o and GPT-5 via environment variable
+AI_MODEL = os.getenv("AI_MODEL", "gpt-4o")  # Default to gpt-4o for stability
 print(f"🤖 AI Model configured: {AI_MODEL}")
+
+# Function to determine if model needs max_completion_tokens
+def uses_completion_tokens_param(model_name):
+    """
+    Determine if the model uses max_completion_tokens instead of max_tokens.
+    GPT-5 and reasoning models (o1, o3) use max_completion_tokens.
+    """
+    model_lower = model_name.lower()
+    return (
+        model_lower.startswith("gpt-5") or
+        model_lower.startswith("o1") or
+        model_lower.startswith("o3")
+    )
+
+
+def build_api_params(model_name, max_tokens_value, temperature_value=None):
+    """
+    Build OpenAI API parameters based on model capabilities.
+
+    Args:
+        model_name: The OpenAI model name
+        max_tokens_value: Maximum tokens to generate
+        temperature_value: Temperature setting (None means use model default)
+
+    Returns:
+        Dict with appropriate parameters for the model
+    """
+    params = {}
+
+    # Handle token parameter naming
+    if uses_completion_tokens_param(model_name):
+        params["max_completion_tokens"] = max_tokens_value
+        print(f"📝 [MODEL COMPAT] Using max_completion_tokens for {model_name}")
+    else:
+        params["max_tokens"] = max_tokens_value
+        print(f"📝 [MODEL COMPAT] Using max_tokens for {model_name}")
+
+    # Handle temperature (GPT-5 only supports default temperature=1)
+    model_lower = model_name.lower()
+    if model_lower.startswith("gpt-5"):
+        # GPT-5 only supports temperature=1 (default), so don't specify it
+        print(f"📝 [MODEL COMPAT] Skipping temperature for {model_name} (uses default)")
+
+        # GPT-5 REQUIRES reasoning_effort parameter
+        params["reasoning_effort"] = "minimal"  # Use minimal for JSON generation tasks
+        print(f"📝 [MODEL COMPAT] Using reasoning_effort=minimal for {model_name}")
+    elif temperature_value is not None:
+        params["temperature"] = temperature_value
+        print(f"📝 [MODEL COMPAT] Using temperature={temperature_value} for {model_name}")
+
+    return params
 
 app = FastAPI()
 
@@ -1057,6 +1108,13 @@ async def get_saved_cart(force_refresh: bool = False):
                                 break
 
                         if has_valid_items:
+                            # Get cached meals if not already in response
+                            if "meals" not in cached_response or not cached_response["meals"]:
+                                cached_meals = CacheService.get_meals(phone_number)
+                                if cached_meals:
+                                    cached_response["meals"] = cached_meals
+                                    print(f"⚡ Added {len(cached_meals)} cached meals to complete response")
+
                             print(f"⚡ Serving COMPLETE cart response from Redis cache for {phone_number}")
                             # Add cache metadata
                             cached_response["from_cache"] = True
@@ -1073,7 +1131,11 @@ async def get_saved_cart(force_refresh: bool = False):
                 # Fall back to cart-only cache if complete response not available
                 cached_cart = CacheService.get_cart(phone_number)
                 if cached_cart:
-                    print(f"⚡ Serving cart-only from Redis cache for {phone_number}")
+                    # Also get cached meals for cart-only fallback
+                    cached_meals = CacheService.get_meals(phone_number)
+                    meals_msg = f" with {len(cached_meals)} meals" if cached_meals else " (no cached meals)"
+
+                    print(f"⚡ Serving cart-only from Redis cache for {phone_number}{meals_msg}")
                     return {
                         "cart_data": cached_cart,
                         "delivery_date": None,  # Redis doesn't store delivery date yet
@@ -1081,7 +1143,8 @@ async def get_saved_cart(force_refresh: bool = False):
                         "from_cache": True,
                         "cache_type": "redis_cart_only",
                         "swaps": [],
-                        "addons": []
+                        "addons": [],
+                        "meals": cached_meals
                     }
             except Exception as cache_error:
                 print(f"⚠️ Redis cache read failed: {cache_error}")
@@ -1376,12 +1439,18 @@ IMPORTANT CONTEXT FOR ANALYSIS:
   NOTE: Cannot double up on proteins (portions are fixed per package)
 
 TASK:
-1. SWAPS: Suggest 2-3 swaps where an alternative would work better based on:
+First, analyze if the current cart already aligns well with the user's preferences:
+- If liked meals match current cart items closely, consider fewer/no swaps
+- If dietary restrictions are already satisfied, don't suggest unnecessary changes
+- If health goals are already met by current selections, minimize swaps
+
+1. SWAPS: Only suggest 1-3 swaps if they would SIGNIFICANTLY improve the cart based on:
    - What goes better with other items in cart
    - User's meal preferences (if they like chicken dishes but have pork, suggest swapping)
    - Health goals (if eating healthy, suggest leaner proteins)
    - Recipe compatibility
    - Don't suggest swapping something they likely already chose intentionally
+   - IMPORTANT: If the current cart already matches user preferences well, return empty swaps array
 
 2. ADD-ONS: Suggest 2-3 FRESH ingredients that would complete meals:
    - DO NOT suggest items already in the cart (check CURRENT CART above)
@@ -1409,14 +1478,19 @@ IMPORTANT: Each addon MUST have a category field with one of these values:
 - "pantry" (oils, spices - but avoid these per instructions)
 """
 
+                    # Build parameters compatible with the specific model
+                    # Use higher token limit for GPT-5 to account for reasoning tokens
+                    token_limit = 1200 if AI_MODEL.lower().startswith("gpt-5") else 500
+                    api_params = build_api_params(AI_MODEL, max_tokens_value=token_limit, temperature_value=0.7)
+                    print(f"📝 [CART ANALYSIS DEBUG] Using token limit: {token_limit} for {AI_MODEL}")
+
                     response = client.chat.completions.create(
                         model=AI_MODEL,
                         messages=[
                             {"role": "system", "content": "You are a Farm to People meal planning expert. Analyze carts and suggest smart improvements based on user preferences."},
                             {"role": "user", "content": prompt}
                         ],
-                        max_tokens=500,
-                        temperature=0.7
+                        **api_params
                     )
                     
                     # Parse response
@@ -1438,12 +1512,46 @@ IMPORTANT: Each addon MUST have a category field with one of these values:
         # Determine if fresh data was scraped (to trigger localStorage clear)
         fresh_scrape = cart_data is not None and not regenerate_only
 
+        # Handle meal suggestions
+        meals = None
+        if fresh_scrape and cart_data and normalized_phone:
+            # Fresh scrape - generate new meals automatically
+            try:
+                from services.meal_generator import generate_meals
+                user_record = db.get_user_by_phone(normalized_phone)
+                user_preferences = user_record.get('preferences', {}) if user_record else {}
+
+                print(f"🔄 Fresh cart data detected - generating meal suggestions with GPT-5")
+                result = await generate_meals(cart_data, user_preferences)
+                if result['success']:
+                    meals = result['meals']
+                    # Cache the newly generated meals
+                    from services.cache_service import CacheService
+                    CacheService.set_meals(normalized_phone, meals, ttl=7200)
+                    print(f"🔥 Cached {len(meals)} fresh meals to Redis")
+                else:
+                    print(f"⚠️ Failed to generate meals: {result.get('error', 'Unknown error')}")
+            except Exception as meal_error:
+                print(f"⚠️ Error generating meals for fresh cart: {meal_error}")
+        elif not fresh_scrape and normalized_phone:
+            # Page refresh - load cached meals
+            try:
+                from services.cache_service import CacheService
+                meals = CacheService.get_meals(normalized_phone)
+                if meals:
+                    print(f"💾 Loaded {len(meals)} cached meals from Redis")
+                else:
+                    print(f"📦 No cached meals found for {normalized_phone}")
+            except Exception as cache_error:
+                print(f"⚠️ Error loading cached meals: {cache_error}")
+
         # Build complete response
         complete_response = {
             "success": True,
             "cart_data": cart_data,
             "swaps": swaps,
             "addons": addons,
+            "meals": meals,  # Include meals in response
             "fresh_scrape": fresh_scrape,  # Flag for frontend to clear localStorage
             "force_refresh": force_refresh  # Echo back for debugging
         }
@@ -1514,8 +1622,16 @@ async def refresh_meal_suggestions(request: Request):
         
         # Use meal generator service
         result = await generate_meals(cart_data, user_preferences)
-        
+
         if result['success']:
+            # Cache the newly generated meals to Redis
+            try:
+                from services.cache_service import CacheService
+                CacheService.set_meals(normalized_phone, result['meals'], ttl=7200)
+                print(f"🔥 Cached {len(result['meals'])} refreshed meals to Redis")
+            except Exception as cache_error:
+                print(f"⚠️ Failed to cache refreshed meals: {cache_error}")
+
             return {
                 "success": True,
                 "meals": result['meals'],

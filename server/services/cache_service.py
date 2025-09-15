@@ -199,11 +199,39 @@ class CacheService:
             print(f"⚠️ Cache set error: {e}")
     
     @staticmethod
+    def set_meals(phone_number: str, meals: list, ttl: int = 7200) -> bool:
+        """Cache meal suggestions to Redis (convenience method)"""
+        try:
+            CacheService.set_meal_plan(phone_number, meals, ttl)
+            print(f"✅ Cached {len(meals)} meals to Redis for {phone_number}")
+            return True
+        except Exception as e:
+            print(f"❌ Failed to cache meals: {e}")
+            return False
+
+    @staticmethod
+    def get_meals(phone_number: str) -> list:
+        """Get cached meal suggestions from Redis (convenience method)"""
+        try:
+            cached_meals = CacheService.get_meal_plan(phone_number)
+            if cached_meals:
+                # Handle both dict and list formats
+                if isinstance(cached_meals, list):
+                    meals = cached_meals
+                else:
+                    meals = cached_meals.get('meals', cached_meals)
+                print(f"⚡ Retrieved {len(meals)} cached meals from Redis")
+                return meals
+        except Exception as e:
+            print(f"❌ Failed to get cached meals: {e}")
+        return None
+
+    @staticmethod
     def get_stats():
         """Get cache statistics."""
         if not redis_client:
             return {"available": False}
-        
+
         try:
             info = redis_client.info()
             return {

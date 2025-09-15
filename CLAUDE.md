@@ -4,9 +4,9 @@
 
 **Farm to People AI Assistant** transforms weekly produce boxes into personalized meal plans through intelligent SMS conversations. The system learns user preferences, analyzes cart contents, and delivers actionable cooking guidance.
 
-**Current Status:** Dashboard PWA Navigation Fixed - iframe-based Settings modal approach
-**Last Updated:** September 14, 2025
-**Version:** 5.1.0 (Dashboard PWA Fixed - Settings iframe modal)  
+**Current Status:** GPT-5 Integration & Enhanced Loading Experience - Redis caching, timer fixes, smooth UI
+**Last Updated:** September 15, 2025
+**Version:** 5.3.0 (GPT-5 + Redis Caching + Enhanced Loading)  
 **Branch:** `feature/customer-automation`  
 **Primary Contact:** SMS `18334391183` (Vonage)  
 **Live URL:** https://farmtopeople-production.up.railway.app
@@ -88,6 +88,30 @@ open http://localhost:8000/dashboard-v3.html
 │ (Cross-device)│     │  (GPT-5)     │     │  (Future)    │
 └──────────────┘     └──────────────┘     └──────────────┘
 ```
+
+### 🔄 **UNIFIED MEAL DATA FLOW (New - Sept 15, 2025)**
+
+The system now maintains one source of truth for meal data across both Cart and Meals tabs:
+
+```
+Cart Tab Analysis → GPT-5 API → localStorage cache → Meals Tab Sync
+     ↓                              ↓                      ↓
+Meal suggestions        Cache: cachedMealSuggestions    Featured meal display
+"Try Different"    →    updateMealSuggestions()    →    populateSimpleMealCard()
+     ↓                              ↓                      ↓
+Both tabs update simultaneously with same meal data
+```
+
+**Key Functions:**
+- `syncMealsFromCart()` - Pulls GPT meals from localStorage to Meals tab
+- `populateSimpleMealCard(meal)` - Displays actual meal data (name, time, protein)
+- `regenerateSimpleMeal()` - Uses same `/api/refresh-meals` as Cart tab
+- `updateMealSuggestions(meals)` - Updates both tabs when new meals generated
+
+**Data Sources (Priority Order):**
+1. `localStorage.cachedMealSuggestions` - Fresh GPT-generated meals
+2. Cart tab DOM extraction - Fallback from `mealSuggestionsContainer`
+3. Empty state - If no meal data available
 
 ---
 
@@ -299,7 +323,22 @@ await storage.get_ingredient_pool(plan_id)  # Real-time availability
 - **✅ Cart Analysis Fixes** - Proper cart detection, delivery date display, box categorization
 - **✅ Date Navigation Fixes** - Stable week navigation without erratic date jumping
 
-### ✅ **COMPLETED THIS WEEK (Sept 14 - Dashboard PWA Navigation Fix)**
+### ✅ **COMPLETED THIS WEEK (Sept 15 - GPT-5 Integration & Loading Experience)**
+- **✅ Sunday:** Unify meal data between Cart and Meals tabs for consistent experience
+- **✅ Sunday:** Replace ingredient listing with actual GPT-generated meal display in Meals tab
+- **✅ Sunday:** Create syncMealsFromCart() function for seamless data synchronization
+- **✅ Sunday:** Connect Meals tab regeneration to existing /api/refresh-meals endpoint
+- **✅ Sunday:** Add automatic sync when switching between tabs
+- **✅ Sunday:** Implement clean UI design with subtle colors and improved typography
+- **✅ Sunday:** Ensure zero risk to Cart tab functionality (safe implementation)
+- **✅ Sunday:** Create one source of truth for meal data across application
+- **✅ Sunday:** Implement GPT-5 Redis meal caching for persistence across page refreshes
+- **✅ Sunday:** Fix duplicate progress timer issues during cart refresh operations
+- **✅ Sunday:** Repair "New Suggestions" button functionality with Redis integration
+- **✅ Sunday:** Enhance loading experience with progress bar, timer, and cancel button
+- **✅ Sunday:** Optimize spinner animations for smooth performance across browsers
+
+### ✅ **PREVIOUS WEEK (Sept 14 - Dashboard PWA Navigation Fix)**
 - **✅ Friday:** Fix PWA navigation issue - Settings now uses iframe modal approach
 - **✅ Friday:** Resolve JavaScript conflicts causing blank Settings modal
 - **✅ Friday:** Implement iframe-based Settings loading with production UI
@@ -423,7 +462,7 @@ await storage.get_ingredient_pool(plan_id)  # Real-time availability
 
 ## 💻 KEY CODE COMPONENTS
 
-### **Core Files (Dashboard PWA Fixed - Sept 14, 2025)**
+### **Core Files (Unified Meal Data + Clean UI - Sept 15, 2025)**
 ```
 server/
 ├── server.py                # FastAPI main app with iframe Settings route ✅
@@ -761,14 +800,16 @@ Box has customizable=true but appears as non-customizable
 
 ---
 
-**Last Updated:** September 14, 2025
-**Version:** 5.1.0 (Dashboard PWA Navigation Fixed)
-**Status:** Dashboard PWA Navigation Fixed - iframe-based Settings modal approach
+**Last Updated:** September 15, 2025
+**Version:** 5.3.0 (GPT-5 Integration & Enhanced Loading Experience)
+**Status:** GPT-5 Redis Caching & Enhanced Loading Experience Complete
 **Recent Updates:**
-- PWA navigation fixed - Settings uses iframe modal, no page refreshes
-- Resolved JavaScript conflicts causing blank Settings modal
-- Implemented iframe detection to hide duplicate navigation
-- Maintained production-quality Settings UI in modal format
-**Next Sprint:** Complete meals-v3.js module, implement drag-and-drop meal calendar
+- GPT-5 integration with full reasoning_effort compatibility
+- Redis meal caching for persistence across page refreshes
+- Fixed duplicate progress timer issues and "New Suggestions" button
+- Enhanced loading experience with progress bar, timer, and cancel functionality
+- Optimized spinner animations for smooth cross-browser performance
+- Removed localStorage dependencies in favor of Redis caching
+**Next Sprint:** Premium add-ons refresh integration, discuss swaps organization philosophy
 
 *This guide provides the essential information for developing and maintaining the Farm to People AI Assistant. For detailed implementation specifics, refer to the documentation index above.*

@@ -7,6 +7,7 @@ Extracted from server.py to isolate meal generation logic.
 
 import os
 import json
+import time
 from typing import Dict, Any, List, Optional
 import openai
 from dotenv import load_dotenv
@@ -14,57 +15,127 @@ from dotenv import load_dotenv
 # Load environment
 load_dotenv()
 
-# Configuration
-AI_MODEL = os.getenv("AI_MODEL", "gpt-4o")  # Default to gpt-4o
+# Configuration - Support both GPT-4o and GPT-5 models via environment variable
+AI_MODEL = os.getenv("AI_MODEL", "gpt-4o")  # Default to gpt-4o for stability
 print(f"🤖 Meal Generator using model: {AI_MODEL}")
+
+# Function to determine if model needs max_completion_tokens
+def uses_completion_tokens_param(model_name):
+    """
+    Determine if the model uses max_completion_tokens instead of max_tokens.
+    GPT-5 and reasoning models (o1, o3) use max_completion_tokens.
+    """
+    model_lower = model_name.lower()
+    return (
+        model_lower.startswith("gpt-5") or
+        model_lower.startswith("o1") or
+        model_lower.startswith("o3")
+    )
+
+
+def build_api_params(model_name, max_tokens_value, temperature_value=None):
+    """
+    Build OpenAI API parameters based on model capabilities.
+
+    Args:
+        model_name: The OpenAI model name
+        max_tokens_value: Maximum tokens to generate
+        temperature_value: Temperature setting (None means use model default)
+
+    Returns:
+        Dict with appropriate parameters for the model
+    """
+    params = {}
+
+    # Handle token parameter naming
+    if uses_completion_tokens_param(model_name):
+        params["max_completion_tokens"] = max_tokens_value
+        print(f"📝 [MODEL COMPAT] Using max_completion_tokens for {model_name}")
+    else:
+        params["max_tokens"] = max_tokens_value
+        print(f"📝 [MODEL COMPAT] Using max_tokens for {model_name}")
+
+    # Handle temperature (GPT-5 only supports default temperature=1)
+    model_lower = model_name.lower()
+    if model_lower.startswith("gpt-5"):
+        # GPT-5 only supports temperature=1 (default), so don't specify it
+        print(f"📝 [MODEL COMPAT] Skipping temperature for {model_name} (uses default)")
+
+        # GPT-5 REQUIRES reasoning_effort parameter to avoid empty responses
+        params["reasoning_effort"] = "minimal"  # Use minimal for JSON generation tasks
+        print(f"📝 [MODEL COMPAT] Using reasoning_effort=minimal for {model_name}")
+    elif temperature_value is not None:
+        params["temperature"] = temperature_value
+        print(f"📝 [MODEL COMPAT] Using temperature={temperature_value} for {model_name}")
+
+    return params
 
 
 def extract_ingredients_from_cart(cart_data: Dict[str, Any]) -> Dict[str, List[str]]:
     """
-    Extract and categorize ingredients from cart data.
-    
+    Extract and categorize ingredients from cart data WITH QUANTITY INFORMATION.
+
     Args:
         cart_data: Cart data with individual_items, customizable_boxes, etc.
-        
+
     Returns:
-        Dict with proteins, vegetables, and other_items lists
+        Dict with proteins, vegetables, and other_items lists including quantities
     """
     proteins = []
     vegetables = []
     other_items = []
-    
+
+    def format_item_with_quantity(item):
+        """Format item name with quantity and unit information."""
+        name = item.get('name', '')
+        unit = item.get('unit', '')
+        quantity = item.get('quantity', 1)
+
+        if unit and quantity:
+            if quantity == 1:
+                return f"{name} ({unit})"
+            else:
+                return f"{name} ({quantity}x {unit})"
+        return name
+
     # Individual items
     for item in cart_data.get('individual_items', []):
         name = item.get('name', '').lower()
+        formatted_item = format_item_with_quantity(item)
+
         if 'egg' in name:
-            proteins.append('eggs')
+            proteins.append(formatted_item)
         elif 'avocado' in name:
-            other_items.append('avocados')
+            other_items.append(formatted_item)
         elif 'banana' in name:
-            other_items.append('bananas')
+            other_items.append(formatted_item)
         else:
-            other_items.append(item.get('name', ''))
-    
+            other_items.append(formatted_item)
+
     # Customizable boxes
     for box in cart_data.get('customizable_boxes', []):
         for item in box.get('selected_items', []):
             name = item.get('name', '').lower()
+            formatted_item = format_item_with_quantity(item)
+
             if any(meat in name for meat in ['chicken', 'beef', 'turkey', 'sausage', 'fish', 'salmon', 'bass', 'pork']):
-                proteins.append(item.get('name', ''))
-            elif any(veg in name for veg in ['tomato', 'pepper', 'kale', 'lettuce', 'carrot', 'zucchini', 'eggplant', 'onion', 'broccoli', 'spinach']):
-                vegetables.append(item.get('name', ''))
+                proteins.append(formatted_item)
+            elif any(veg in name for veg in ['tomato', 'pepper', 'kale', 'lettuce', 'carrot', 'zucchini', 'eggplant', 'onion', 'broccoli', 'spinach', 'arugula']):
+                vegetables.append(formatted_item)
             else:
-                other_items.append(item.get('name', ''))
-    
+                other_items.append(formatted_item)
+
     # Non-customizable boxes
     for box in cart_data.get('non_customizable_boxes', []):
         for item in box.get('selected_items', []):
             name = item.get('name', '').lower()
+            formatted_item = format_item_with_quantity(item)
+
             if any(fruit in name for fruit in ['plum', 'peach', 'nectarine', 'apple', 'orange', 'berry']):
-                other_items.append(item.get('name', ''))
+                other_items.append(formatted_item)
             else:
-                other_items.append(item.get('name', ''))
-    
+                other_items.append(formatted_item)
+
     return {
         'proteins': proteins,
         'vegetables': vegetables,
@@ -132,19 +203,38 @@ USER PREFERENCES TO CONSIDER:
     
     prompt += """
 
-CRITICAL ANALYSIS REQUIRED:
-1. Calculate REALISTICALLY how many complete dinners this cart can make
-2. Protein portion reality check:
-   - 0.6-1lb chicken thighs = ONE meal for 2 people
-   - 1lb sausage = ONE meal for 3-4 people
-   - Don't overcount - be honest about portions
-3. Create meal names that reflect the actual ingredients
-4. Be clear: "Makes 1 dinner" vs "Makes 2 dinners"
+CRITICAL QUANTITY & SERVING RULES:
+1. **PROTEIN PORTIONS (for this household size):**
+   - 8 oz salmon/fish = 1 serving (ONE meal only - don't split across meals)
+   - 1 lb ground turkey = 2 servings (can make 2 separate meals)
+   - 1 chicken breast = 1 serving (ONE meal only)
+   - 1 dozen eggs = can use across multiple meals (2-3 eggs per meal)
+   - IMPORTANT: "Leftover" meals STILL contain full protein (e.g., turkey hash with leftover veggies = 28g protein from turkey)
+   - NEVER return "0g" protein for any meal containing meat, fish, eggs, or beans
+
+2. **VEGETABLE PORTIONS:**
+   - 5 oz arugula = very small amount (1-2 side salads, not main ingredient)
+   - 1 bunch kale = 2-3 meals (hearty green, substantial amount)
+   - 2 zucchini pieces = 1-2 meals realistically
+   - 1 pint cherry tomatoes = 2-3 meals (accent ingredient)
+
+3. **INGREDIENT DISTRIBUTION RULES:**
+   - Don't use small quantities (5 oz arugula) in multiple meals
+   - Each meal should have one dedicated protein (don't split 8 oz salmon)
+   - Distribute vegetables based on actual amounts, not just variety
+   - Large quantities (1+ lb) can span multiple meals
+   - Small quantities (under 8 oz) should be used in 1 meal max
+
+4. **REALISTIC MEAL PLANNING:**
+   - Calculate how many complete dinners this cart can actually make
+   - Be honest about portions - don't overstretch small quantities
+   - Create meal names that reflect the actual ingredients available
+   - Each meal should be substantial and satisfying for the household size
 
 Return 4 meal suggestions focusing on dinner meals.
 
-When possible, lean toward meals that align with their preferences,
-but feel free to suggest variety and new ideas they might enjoy.
+When possible, align with their preferences while respecting ingredient quantities.
+Prioritize variety but don't sacrifice realism for the sake of using every ingredient.
 
 Format as JSON:
 [{
@@ -193,20 +283,40 @@ async def generate_meals(cart_data: Dict[str, Any], preferences: Dict[str, Any] 
             return {"success": False, "error": "OpenAI API key not configured"}
         
         client = openai.OpenAI(api_key=openai_key)
+        print(f"📝 [MEAL API DEBUG] Generated prompt length: {len(prompt)} characters")
+        if preferences:
+            print(f"📝 [MEAL API DEBUG] Preferences:", {
+                'household_size': preferences.get('household_size'),
+                'dietary_restrictions': preferences.get('dietary_restrictions'),
+                'health_goals': preferences.get('goals'),
+                'cooking_methods': preferences.get('cooking_methods')
+            })
+
         print(f"🤖 Calling {AI_MODEL} for meal generation...")
-        
+        api_start_time = time.time()
+
+        # Build parameters compatible with the specific model
+        # Use higher token limit for GPT-5 to account for reasoning tokens
+        token_limit = 2000 if AI_MODEL.lower().startswith("gpt-5") else 800
+        api_params = build_api_params(AI_MODEL, max_tokens_value=token_limit, temperature_value=0.7)
+        print(f"📝 [MEAL API DEBUG] Using token limit: {token_limit} for {AI_MODEL}")
+
         response = client.chat.completions.create(
             model=AI_MODEL,
             messages=[
                 {"role": "system", "content": "You are a creative chef who specializes in making delicious meals from specific available ingredients. Always return valid JSON."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=800,
-            temperature=0.7
+            **api_params
         )
-        
+
+        api_response_time = time.time() - api_start_time
+        print(f"⏱️ [MEAL API DEBUG] {AI_MODEL} API call took: {api_response_time:.2f} seconds")
+
         # Parse response
         gpt_response = response.choices[0].message.content.strip()
+        print(f"📥 [MEAL API DEBUG] Raw GPT response length: {len(gpt_response)} characters")
+        print(f"📥 [MEAL API DEBUG] Raw GPT response preview: {gpt_response[:200]}...")
         
         # Clean up response
         if "```json" in gpt_response:
@@ -216,14 +326,22 @@ async def generate_meals(cart_data: Dict[str, Any], preferences: Dict[str, Any] 
         
         # Parse JSON
         meals = json.loads(gpt_response)
-        
+
         # Map protein_per_serving to protein for frontend compatibility
         for meal in meals:
             if 'protein_per_serving' in meal and 'protein' not in meal:
                 meal['protein'] = meal['protein_per_serving']
-        
+
         print(f"✅ Generated {len(meals)} meal suggestions")
-        
+        print(f"🍽️ [MEAL API DEBUG] Final meals:", [
+            {
+                'name': meal.get('name', 'Unknown'),
+                'protein': meal.get('protein', 'Unknown'),
+                'time': meal.get('time', 'Unknown'),
+                'servings': meal.get('servings', 'Unknown')
+            } for meal in meals
+        ])
+
         return {
             "success": True,
             "meals": meals
@@ -239,6 +357,119 @@ async def generate_meals(cart_data: Dict[str, Any], preferences: Dict[str, Any] 
         
     except Exception as e:
         print(f"❌ Meal generation error: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+async def generate_single_meal(cart_data: Dict[str, Any], preferences: Dict[str, Any] = None) -> Dict[str, Any]:
+    """
+    Generate a single meal suggestion for the simple meal card.
+
+    Args:
+        cart_data: Cart data with ingredients
+        preferences: User preferences (optional)
+
+    Returns:
+        Dict with success status and meal data
+    """
+    try:
+        print("🍽️ Generating single meal suggestion...")
+
+        # Extract ingredients
+        ingredients = extract_ingredients_from_cart(cart_data)
+        all_ingredients = ingredients['proteins'] + ingredients['vegetables'] + ingredients['other_items']
+
+        if not all_ingredients:
+            return {
+                "success": False,
+                "error": "No ingredients found in cart"
+            }
+
+        # Build simplified prompt for single meal
+        protein_preference = ""
+        cooking_preference = ""
+
+        if preferences:
+            proteins = preferences.get('preferred_proteins', [])
+            if proteins:
+                protein_preference = f"Prefer these proteins: {', '.join(proteins[:3])}"
+
+            cooking_methods = preferences.get('cooking_methods', [])
+            if cooking_methods:
+                cooking_preference = f"Cooking style: {', '.join(cooking_methods[:2])}"
+
+        ingredient_list = ", ".join(all_ingredients[:10])  # Limit for prompt size
+
+        prompt = f"""Create ONE simple meal using these Farm to People ingredients: {ingredient_list}
+
+{protein_preference}
+{cooking_preference}
+
+Requirements:
+- Use available ingredients creatively
+- 30+ grams protein per serving
+- Quick cooking method (under 30 minutes)
+- Include cooking time and protein content
+- Return valid JSON only
+
+Format:
+{{
+    "name": "Meal Name with 35g protein",
+    "cooking_time": "20 minutes",
+    "protein": "35g",
+    "ingredients_used": ["ingredient1", "ingredient2"],
+    "quick_description": "Brief cooking method"
+}}"""
+
+        # Call OpenAI
+        client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+        # Build parameters compatible with the specific model (for single meal generation)
+        # Use higher token limit for GPT-5 to account for reasoning tokens
+        token_limit = 1000 if AI_MODEL.lower().startswith("gpt-5") else 400
+        api_params = build_api_params(AI_MODEL, max_tokens_value=token_limit, temperature_value=0.8)
+        print(f"📝 [SINGLE MEAL DEBUG] Using token limit: {token_limit} for {AI_MODEL}")
+
+        response = client.chat.completions.create(
+            model=AI_MODEL,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            **api_params
+        )
+
+        gpt_response = response.choices[0].message.content.strip()
+        print(f"🤖 GPT Response: {gpt_response[:100]}...")
+
+        # Clean up response if wrapped in markdown
+        if "```json" in gpt_response:
+            gpt_response = gpt_response.split("```json")[1].split("```")[0].strip()
+        elif "```" in gpt_response:
+            gpt_response = gpt_response.split("```")[1].strip()
+
+        # Parse JSON
+        meal = json.loads(gpt_response)
+
+        print(f"✅ Generated single meal: {meal.get('name', 'Unknown')}")
+
+        return {
+            "success": True,
+            "meal": meal,
+            "ingredients_used": meal.get('ingredients_used', [])
+        }
+
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON parsing error in single meal: {e}")
+        return {
+            "success": False,
+            "error": "Failed to parse meal suggestion",
+            "raw_response": gpt_response if 'gpt_response' in locals() else None
+        }
+
+    except Exception as e:
+        print(f"❌ Single meal generation error: {e}")
         return {
             "success": False,
             "error": str(e)
