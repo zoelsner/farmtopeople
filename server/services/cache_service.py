@@ -14,7 +14,7 @@ from datetime import datetime
 
 # Initialize Redis connection
 # Railway automatically provides REDIS_URL when you add Redis service
-REDIS_URL = os.getenv("REDIS_URL")
+REDIS_URL = os.getenv("REDIS_URL") or os.getenv("REDIS_PUBLIC_URL")
 
 if REDIS_URL:
     try:
@@ -85,7 +85,71 @@ class CacheService:
             print(f"✅ Cached cart:{phone} for {ttl} seconds")
         except Exception as e:
             print(f"⚠️ Cache set error: {e}")
-    
+
+    @staticmethod
+    def set_cart_response(phone: str, cart_response: dict, ttl: int = 7200):
+        """
+        Cache complete cart response including swaps and addons.
+
+        Args:
+            phone: User's phone number
+            cart_response: Complete response with cart_data, swaps, addons
+            ttl: Time to live in seconds (default 2 hours)
+        """
+        if not redis_client:
+            return
+
+        try:
+            redis_client.setex(
+                f"cart_response:{phone}",
+                ttl,
+                json.dumps(cart_response)
+            )
+            print(f"✅ Cached complete cart response:{phone} for {ttl} seconds")
+        except Exception as e:
+            print(f"⚠️ Cart response cache set error: {e}")
+
+    @staticmethod
+    def get_cart_response(phone: str) -> Optional[dict]:
+        """
+        Get cached complete cart response for a user.
+
+        Args:
+            phone: User's phone number
+
+        Returns:
+            Complete cart response or None if not cached
+        """
+        if not redis_client:
+            return None
+
+        try:
+            cached = redis_client.get(f"cart_response:{phone}")
+            if cached:
+                print(f"✅ Cache hit for cart_response:{phone}")
+                return json.loads(cached)
+        except Exception as e:
+            print(f"⚠️ Cart response cache get error: {e}")
+
+        return None
+
+    @staticmethod
+    def invalidate_cart_response(phone: str):
+        """
+        Invalidate cached complete cart response.
+
+        Args:
+            phone: User's phone number
+        """
+        if not redis_client:
+            return
+
+        try:
+            redis_client.delete(f"cart_response:{phone}")
+            print(f"✅ Invalidated cart response cache for cart_response:{phone}")
+        except Exception as e:
+            print(f"⚠️ Cart response cache delete error: {e}")
+
     @staticmethod
     def invalidate_cart(phone: str):
         """

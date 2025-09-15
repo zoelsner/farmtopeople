@@ -501,128 +501,109 @@
         }
         
         .day-header {
-            background: #f8f9fa;
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid #e9ecef;
+            padding: 20px 0 12px 0;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
         }
-        
+
         .day-header h3 {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
-            color: #495057;
-            margin: 0;
+            color: #1e293b;
+            margin: 0 0 4px 0;
         }
         
         .day-date {
-            font-size: 12px;
-            color: #6c757d;
+            font-size: 14px;
+            color: #94a3b8;
             font-weight: normal;
         }
         
         .meal-slot {
-            padding: 16px;
-            min-height: 180px;
+            padding: 20px 0;
+            min-height: 160px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        
+
         .add-meal-prompt {
             text-align: center;
-            color: #6c757d;
+            color: #94a3b8;
             cursor: pointer;
-            padding: 20px;
-            border: 2px dashed #dee2e6;
-            border-radius: 8px;
+            padding: 32px 20px;
+            border: 1px dashed #d1d5db;
+            border-radius: 12px;
             width: 100%;
             transition: all 0.2s ease;
         }
-        
+
         .add-meal-prompt:hover {
-            border-color: #28a745;
-            color: #28a745;
-            background: #f8fff9;
+            border-color: #3b82f6;
+            color: #3b82f6;
+            background: #f8fafc;
         }
-        
+
         .add-icon {
             display: block;
-            font-size: 24px;
+            font-size: 20px;
             margin-bottom: 8px;
         }
         
-        /* Meal Cards - Loveable Inspired Clean Design */
+        /* Meal Cards - Clean Minimal Design */
         .meal-card {
             background: white;
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            border-radius: 16px;
-            padding: 16px;
-            cursor: move;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
             width: 100%;
             position: relative;
-            overflow: hidden;
         }
-        
-        .meal-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #28a745, #20c997);
-            opacity: 0;
-            transition: opacity 0.25s ease;
-        }
-        
+
         .meal-card:hover {
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            transform: translateY(-3px);
-            border-color: rgba(40, 167, 69, 0.15);
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
         }
-        
-        .meal-card:hover::before {
-            opacity: 1;
-        }
-        
+
         .meal-card.dragging {
-            opacity: 0.5;
-            transform: rotate(3deg);
+            opacity: 0.8;
+            transform: scale(0.95);
             z-index: 1000;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
         
         .meal-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
-        
+
         .meal-name {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 600;
-            color: #212529;
-            line-height: 1.3;
+            color: #1a1a1a;
+            line-height: 1.4;
         }
         
         .protein-badge {
-            background: #28a745;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 600;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
             white-space: nowrap;
         }
         
         .meal-details {
             display: flex;
             gap: 12px;
-            margin-bottom: 8px;
-            font-size: 12px;
-            color: #6c757d;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #64748b;
         }
         
         .ingredients-used {
@@ -649,26 +630,36 @@
         
         .meal-action-btn {
             background: none;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 12px;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 14px;
             cursor: pointer;
             transition: all 0.2s ease;
+            color: #64748b;
         }
-        
+
         .meal-action-btn:hover {
-            background: #f8f9fa;
+            background: #f1f5f9;
+            color: #3b82f6;
         }
-        
+
         .meal-action-btn.regenerate {
-            color: #007bff;
-            border-color: #007bff;
+            color: #64748b;
+        }
+
+        .meal-action-btn.regenerate:hover {
+            background: #f1f5f9;
+            color: #3b82f6;
         }
         
         .meal-action-btn.remove {
-            color: #dc3545;
-            border-color: #dc3545;
+            color: #94a3b8;
+        }
+
+        .meal-action-btn.remove:hover {
+            background: #fef2f2;
+            color: #ef4444;
         }
         
         /* Ingredient Panel */
@@ -784,12 +775,112 @@
             text-align: center;
             padding: 40px 20px;
         }
+
+        /* Simple Meal Card Styling */
+        .meal-card-container {
+            padding: 20px;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            height: auto !important;
+        }
+
+        .simple-meal-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 32px;
+            margin: 0 auto;
+            max-width: 500px;
+            text-align: left;
+            display: block !important; /* Force visibility */
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .meal-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .meal-card-header h3 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .meal-card-header span {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .meal-ingredients h4 {
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .ingredients-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 32px;
+        }
+
+        .ingredient-tag {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .meal-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .regenerate-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+
+        .regenerate-button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .regenerate-button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
         
         .spinner {
             width: 32px;
             height: 32px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #28a745;
+            border: 3px solid #f1f5f9;
+            border-top: 3px solid #3b82f6;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
@@ -1067,16 +1158,16 @@
             <!-- Meals View - Weekly Meal Calendar -->
             <div class="meals-view section active" id="mealsSection">
             <div class="calendar-header">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
                     <div>
-                        <h2>🍽️ This Week's Meals</h2>
-                        <p style="color: #6c757d; font-size: 14px;" id="weekDisplay">Plan your Sunday-Thursday dinners</p>
+                        <h2 style="margin: 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">This Week's Meals</h2>
+                        <p style="color: #666; font-size: 15px; margin: 4px 0 0 0;" id="weekDisplay">Plan your Sunday-Thursday dinners</p>
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <!-- Week navigation hidden for now - showing only current delivery week -->
                         <button id="prevWeek" class="nav-button" style="display: none;">‹</button>
                         <button id="nextWeek" class="nav-button" style="display: none;">›</button>
-                        <button id="generatePDF" class="pdf-button">📄 PDF</button>
+                        <button id="generatePDF" class="pdf-button" style="display: none;">📄 PDF</button>
                     </div>
                 </div>
             </div>
@@ -1094,12 +1185,39 @@
                 <button id="retryLoad" class="retry-button">Try Again</button>
             </div>
 
+            <!-- Simple Meal Card - dedicated container -->
+            <div id="simpleMealCardContainer" class="meal-card-container" style="display: block;">
+                <div id="simpleMealCard" class="simple-meal-card">
+                    <div class="meal-card-header">
+                        <h3 id="mealTitle">🍗 Suggested Meal</h3>
+                        <span id="mealTime">20 mins</span>
+                    </div>
+
+                    <div class="meal-ingredients">
+                        <h4>Using from your cart:</h4>
+                        <div id="simpleMealIngredients" class="ingredients-list">
+                            <!-- Ingredients will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="meal-actions">
+                        <button id="regenerateMeal" class="regenerate-button" onclick="regenerateSimpleMeal()">
+                            🔄 Try Another Recipe
+                        </button>
+                        <button id="createFullPlan" class="analyze-button" onclick="startAnalysis(); switchTab('cart', document.getElementById('cartTab'));">
+                            Create Full Week Plan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Empty state -->
             <div id="mealPlanEmpty" class="empty-state" style="display: none;">
-                <div class="empty-icon">🍽️</div>
-                <h3>No Meal Plan Yet</h3>
-                <p>Create your first meal plan by analyzing your cart</p>
-                <button id="createMealPlan" class="analyze-button" onclick="startAnalysis(); switchTab('cart', document.getElementById('cartTab'));">Create Meal Plan</button>
+                <div class="empty-content">
+                    <h3>No Cart Data</h3>
+                    <p>Analyze your cart first to see meal suggestions.</p>
+                    <button onclick="switchTab('cart')" class="analyze-button">Analyze Cart</button>
+                </div>
             </div>
 
             <!-- Main Calendar Grid -->
@@ -1172,8 +1290,8 @@
                     </div>
                 </div>
 
-                <!-- Ingredient Pool Sidebar -->
-                <div class="ingredient-panel">
+                <!-- Ingredient Pool Sidebar - Hidden for simplicity -->
+                <div class="ingredient-panel" style="display: none;">
                     <h3>Ingredient Pool</h3>
                     <div id="ingredientList" class="ingredient-list">
                         <!-- Ingredients will be loaded here -->
@@ -1347,6 +1465,14 @@
                 clearInterval(statusInterval);
 
                 if (data.success) {
+                    // CRITICAL: Clear localStorage if fresh data was scraped
+                    if (data.fresh_scrape) {
+                        console.log('🧹 Fresh scrape detected - clearing localStorage cache');
+                        localStorage.removeItem('cartData');
+                        localStorage.removeItem('cartTimestamp');
+                        localStorage.removeItem('lastCartAnalysis');
+                    }
+
                     showCartAnalysis(data.cart_data, data.swaps, data.addons);
                 } else {
                     // Show error message instead of mock data
@@ -1560,34 +1686,49 @@
         }
         
         function showCartCutoffTime(deliveryDateStr) {
+            console.log('🕒 Calculating cart cutoff time for delivery:', deliveryDateStr);
+
             // Parse the delivery date (e.g., "Mon, Sep 15")
             const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             const dayMatch = deliveryDateStr.match(/^(\w{3})/);
-            
+
             if (dayMatch) {
                 const deliveryDay = dayMatch[1];
                 const deliveryDayIndex = days.indexOf(deliveryDay);
-                
+
+                console.log('🕒 Delivery day details:', {
+                    deliveryDay: deliveryDay,
+                    deliveryDayIndex: deliveryDayIndex
+                });
+
                 if (deliveryDayIndex !== -1) {
                     // Calculate cutoff day (day before delivery)
                     const cutoffDayIndex = deliveryDayIndex === 0 ? 6 : deliveryDayIndex - 1;
                     const cutoffDay = days[cutoffDayIndex];
-                    
+
                     // Create cutoff time display matching delivery date format
                     const cutoffText = `${cutoffDay} • 11:59AM`;
+
+                    console.log('🕒 Calculated cutoff:', cutoffText);
                     
                     // Add cutoff time to the header
                     const headerSubtitle = document.getElementById('headerSubtitle');
                     if (headerSubtitle && headerSubtitle.textContent === 'Cart analysis complete') {
+                        // Remove any existing cutoff warning first
+                        const existingCutoff = document.getElementById('cartCutoffWarning');
+                        if (existingCutoff) {
+                            existingCutoff.remove();
+                        }
+
                         // Add cutoff time warning
                         const cutoffDiv = document.createElement('div');
                         cutoffDiv.id = 'cartCutoffWarning';
                         cutoffDiv.style.cssText = 'color: #FF6B35; font-size: 12px; margin-top: 4px; font-weight: 500;';
                         cutoffDiv.innerHTML = `⏰ Cart locks: ${cutoffText}`;
-                        
+
                         // Insert after the subtitle
                         const headerElement = headerSubtitle.parentElement;
-                        if (headerElement && !document.getElementById('cartCutoffWarning')) {
+                        if (headerElement) {
                             headerElement.appendChild(cutoffDiv);
                         }
                     }
@@ -1628,6 +1769,11 @@
             // Always generate fresh meal suggestions - no caching for now
             console.log('🍽️ Generating fresh meal suggestions from current cart');
             generateMealSuggestionsFromAPI(cartData);
+
+            // Sync meals from Cart tab to Meals tab
+            setTimeout(() => {
+                syncMealsFromCart();
+            }, 500);
             
             // Calculate and display category counts
             const categoryCounts = { protein: 0, produce: 0, fruit: 0 };
@@ -1759,8 +1905,20 @@
 
             // Separate boxes based on customizable flag (not which array they're in)
             const allBoxes = [...(cartData.customizable_boxes || []), ...(cartData.non_customizable_boxes || [])];
+
+            console.log('🔍 Debug cart box data:', {
+                customizable_boxes: cartData.customizable_boxes,
+                non_customizable_boxes: cartData.non_customizable_boxes,
+                allBoxes: allBoxes
+            });
+
             const actuallyCustomizable = allBoxes.filter(box => box.customizable === true || box.customizable === undefined && box.alternatives_count > 0);
             const actuallyNonCustomizable = allBoxes.filter(box => box.customizable === false);
+
+            console.log('🔍 Box filtering results:', {
+                actuallyCustomizable: actuallyCustomizable,
+                actuallyNonCustomizable: actuallyNonCustomizable
+            });
             
             // Show customizable boxes with category tags
             if (actuallyCustomizable.length > 0) {
@@ -2171,6 +2329,14 @@
                 const data = await response.json();
                 
                 if (data.success) {
+                    // CRITICAL: Clear localStorage if fresh data was scraped
+                    if (data.fresh_scrape) {
+                        console.log('🧹 Fresh scrape detected in refresh - clearing localStorage cache');
+                        localStorage.removeItem('cartData');
+                        localStorage.removeItem('cartTimestamp');
+                        localStorage.removeItem('lastCartAnalysis');
+                    }
+
                     // Update swaps display
                     if (data.swaps && data.swaps.length > 0) {
                         updateSwapSuggestions(data.swaps);
@@ -2378,9 +2544,22 @@
                 </div>
             `).join('');
             document.getElementById('suggestedMeals').innerHTML = mealsHTML;
+
+            // Also update Meals tab with the first meal if we have one
+            if (meals && meals.length > 0) {
+                try {
+                    if (typeof populateSimpleMealCard === 'function') {
+                        populateSimpleMealCard(meals[0]);
+                    }
+                } catch (e) {
+                    console.log('Note: Could not sync to Meals tab:', e.message);
+                }
+            }
         }
 
         function switchTab(tab, element) {
+            console.log('🔄 Switching to tab:', tab);
+
             // Special handling for settings - open modal instead
             if (tab === 'settings') {
                 openSettingsModal();
@@ -2391,8 +2570,20 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             element.classList.add('active');
 
+            // Hide all tab contents first
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+
             // Hide all sections
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+            // Show the correct tab content
+            if (tab === 'cart') {
+                console.log('📦 Showing cart tab content');
+                document.getElementById('boxTab').classList.add('active');
+            } else if (tab === 'meals') {
+                console.log('🍽️ Showing meals tab content');
+                document.getElementById('planTab').classList.add('active');
+            }
 
             // Show the right section based on state and tab
             if (tab === 'cart') {
@@ -2414,22 +2605,20 @@
                 // Meals tab shows meal suggestions
                 document.getElementById('mealsSection').classList.add('active');
 
-                // Show the meal calendar if we have data
+                // Show simple meal card if we have cart data, otherwise show empty state
                 if (mealPlanData && mealPlanData.cart_data) {
+                    // Show simple meal card instead of full calendar for now
+                    document.getElementById('simpleMealCardContainer').style.display = 'block';
                     document.getElementById('mealPlanEmpty').style.display = 'none';
-                    document.getElementById('mealCalendarGrid').style.display = 'grid';
+                    document.getElementById('mealCalendarGrid').style.display = 'none';
 
-                    // Update the week dates
-                    updateWeekDates();
-
-                    // Initialize or load meal plan with ingredient tracking
-                    if (!mealPlanData.meal_plan) {
-                        initializeMealPlanFromCart();
-                    } else {
-                        renderFullMealPlan(mealPlanData.meal_plan);
-                    }
+                    // Sync meals from Cart tab to Meals tab
+                    setTimeout(() => {
+                        syncMealsFromCart();
+                    }, 100);
                 } else {
                     // Show empty state
+                    document.getElementById('simpleMealCardContainer').style.display = 'none';
                     document.getElementById('mealPlanEmpty').style.display = 'block';
                     document.getElementById('mealCalendarGrid').style.display = 'none';
                 }
@@ -2845,8 +3034,11 @@
             // Auto-fill week
             document.getElementById('autoFillWeek').addEventListener('click', autoFillWeek);
             
-            // Create meal plan
-            document.getElementById('createMealPlan').addEventListener('click', createNewMealPlan);
+            // Create meal plan (only if element exists)
+            const createMealPlanBtn = document.getElementById('createMealPlan');
+            if (createMealPlanBtn) {
+                createMealPlanBtn.addEventListener('click', createNewMealPlan);
+            }
             
             // Retry loading
             document.getElementById('retryLoad').addEventListener('click', loadCurrentWeekPlan);
@@ -2992,27 +3184,39 @@
         function showLoading() {
             document.getElementById('mealPlanLoading').style.display = 'block';
             document.getElementById('mealPlanError').style.display = 'none';
+            document.getElementById('simpleMealCardContainer').style.display = 'none';
             document.getElementById('mealPlanEmpty').style.display = 'none';
             document.getElementById('mealCalendarGrid').style.display = 'none';
         }
-        
+
         function showError() {
             document.getElementById('mealPlanLoading').style.display = 'none';
             document.getElementById('mealPlanError').style.display = 'block';
+            document.getElementById('simpleMealCardContainer').style.display = 'none';
             document.getElementById('mealPlanEmpty').style.display = 'none';
             document.getElementById('mealCalendarGrid').style.display = 'none';
         }
-        
+
         function showEmpty() {
             document.getElementById('mealPlanLoading').style.display = 'none';
             document.getElementById('mealPlanError').style.display = 'none';
+            document.getElementById('simpleMealCardContainer').style.display = 'none';
             document.getElementById('mealPlanEmpty').style.display = 'block';
             document.getElementById('mealCalendarGrid').style.display = 'none';
         }
-        
+
+        function showMealCard() {
+            document.getElementById('mealPlanLoading').style.display = 'none';
+            document.getElementById('mealPlanError').style.display = 'none';
+            document.getElementById('simpleMealCardContainer').style.display = 'block';
+            document.getElementById('mealPlanEmpty').style.display = 'none';
+            document.getElementById('mealCalendarGrid').style.display = 'none';
+        }
+
         function showCalendar() {
             document.getElementById('mealPlanLoading').style.display = 'none';
             document.getElementById('mealPlanError').style.display = 'none';
+            document.getElementById('simpleMealCardContainer').style.display = 'none';
             document.getElementById('mealPlanEmpty').style.display = 'none';
             document.getElementById('mealCalendarGrid').style.display = 'grid';
         }
@@ -3063,7 +3267,7 @@
                 <div class="meal-card" draggable="true" data-meal-id="${meal.id}" data-day="${day}">
                     <div class="meal-header">
                         <div class="meal-name">${mealData.name || 'Unnamed Meal'}</div>
-                        <span class="protein-badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px;">${mealData.protein || '25g'} protein</span>
+                        <span class="protein-badge">${mealData.protein || '25g'} protein</span>
                     </div>
                     <div class="meal-details">
                         <span>${mealData.cook_time || '30 min'} • ${mealData.servings || 2} servings</span>
@@ -3406,6 +3610,161 @@
             
             document.getElementById('settingsCategories').innerHTML = html;
         }
+
+        // Sync Meals From Cart Tab Functions
+        function syncMealsFromCart() {
+            console.log('🔄 Syncing meals from Cart tab to Meals tab');
+
+            // Try to get cached meal suggestions from localStorage first
+            const cachedMeals = localStorage.getItem('cachedMealSuggestions');
+            if (cachedMeals) {
+                try {
+                    const meals = JSON.parse(cachedMeals);
+                    if (meals && meals.length > 0) {
+                        console.log('✅ Found cached meal suggestions:', meals.length, 'meals');
+                        populateSimpleMealCard(meals[0]); // Use first meal as featured
+                        return;
+                    }
+                } catch (e) {
+                    console.log('⚠️ Could not parse cached meals');
+                }
+            }
+
+            // Fall back to trying to extract from Cart tab DOM
+            const mealSuggestionsContainer = document.getElementById('mealSuggestionsContainer');
+            if (mealSuggestionsContainer && mealSuggestionsContainer.children.length > 0) {
+                console.log('✅ Found meal suggestions in Cart tab DOM');
+                // Extract meal data from first card
+                const firstMealCard = mealSuggestionsContainer.children[0];
+                const mealName = firstMealCard.querySelector('.meal-name')?.textContent;
+                const mealMeta = firstMealCard.querySelector('.meal-meta')?.textContent;
+
+                if (mealName && mealMeta) {
+                    // Parse meta info (e.g., "25 mins • 32g protein • Dinner")
+                    const metaParts = mealMeta.split(' • ');
+                    const meal = {
+                        name: mealName,
+                        time: metaParts[0] || '30 mins',
+                        protein: metaParts[1] || '25g protein',
+                        type: metaParts[2] || 'Dinner'
+                    };
+                    populateSimpleMealCard(meal);
+                    return;
+                }
+            }
+
+            // If no meals found, show empty state
+            console.log('❌ No meal suggestions found - showing empty state');
+            showEmptyMealState();
+        }
+
+        function populateSimpleMealCard(meal) {
+            console.log('🍽️ Populating Meals tab with GPT-generated meal:', meal);
+
+            // Check if all required elements exist
+            const mealTitle = document.getElementById('mealTitle');
+            const mealTime = document.getElementById('mealTime');
+            const ingredientsList = document.getElementById('simpleMealIngredients');
+            const simpleMealCard = document.getElementById('simpleMealCard');
+
+            if (!mealTitle || !mealTime || !ingredientsList || !simpleMealCard) {
+                console.log('❌ Meal card elements not found');
+                return;
+            }
+
+            // Update with actual meal data from GPT
+            mealTitle.textContent = meal.name;
+            mealTime.textContent = meal.time;
+
+            // Show ingredients used (if available)
+            if (meal.ingredients_used && meal.ingredients_used.length > 0) {
+                const ingredientItems = meal.ingredients_used.map(ingredient => `
+                    <div class="ingredient-tag">${ingredient}</div>
+                `).join('');
+                ingredientsList.innerHTML = `<div>Uses from your cart:</div>${ingredientItems}`;
+            } else {
+                // Generic message if no specific ingredients listed
+                ingredientsList.innerHTML = `<div class="ingredient-tag">Uses ingredients from your cart</div>`;
+            }
+
+            // Show the card
+            showMealCard();
+
+            console.log('✅ Meals tab updated with GPT meal successfully');
+        }
+
+        function showEmptyMealState() {
+            console.log('📭 Showing empty meal state');
+            const mealTitle = document.getElementById('mealTitle');
+            const mealTime = document.getElementById('mealTime');
+            const ingredientsList = document.getElementById('simpleMealIngredients');
+
+            if (mealTitle) mealTitle.textContent = '🍽️ Suggested Meal';
+            if (mealTime) mealTime.textContent = 'Analyze cart first';
+            if (ingredientsList) ingredientsList.innerHTML = '<div class="ingredient-tag">No meal suggestions yet</div>';
+        }
+
+        async function regenerateSimpleMeal() {
+            console.log('🔄 Regenerating simple meal using Cart tab API...');
+
+            const button = document.getElementById('regenerateMeal');
+            if (!button) {
+                console.log('❌ Regenerate button not found');
+                return;
+            }
+
+            const originalText = button.textContent;
+            button.textContent = 'Generating...';
+            button.disabled = true;
+
+            try {
+                // Use the same API endpoint that Cart tab uses
+                const storedData = localStorage.getItem('cartAnalysisData');
+                if (!storedData) {
+                    throw new Error('No cart data available - analyze cart first');
+                }
+
+                const { cartData } = JSON.parse(storedData);
+
+                console.log('🍽️ Calling same API as Cart tab for meal suggestions...');
+                const response = await fetch('/api/refresh-meals', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        cart_data: cartData,
+                        phone: localStorage.getItem('userPhone')
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.meals && data.meals.length > 0) {
+                    console.log('✅ Got new meal suggestion:', data.meals[0]);
+
+                    // Update localStorage so Cart tab also shows the new meals
+                    localStorage.setItem('cachedMealSuggestions', JSON.stringify(data.meals));
+                    localStorage.setItem('cachedMealSuggestionsTimestamp', Date.now().toString());
+
+                    // Update Meals tab display with first meal
+                    populateSimpleMealCard(data.meals[0]);
+
+                    // Also update Cart tab if it exists
+                    if (typeof updateMealSuggestions === 'function') {
+                        updateMealSuggestions(data.meals);
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to generate new meal');
+                }
+
+            } catch (error) {
+                console.error('❌ Error regenerating meal:', error);
+                alert('Failed to generate new meal. Please try again.');
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+
     </script>
 
 </body>

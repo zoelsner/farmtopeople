@@ -1031,26 +1031,80 @@ async def dashboard_v3_page(request: Request):
     return templates.TemplateResponse("dashboard-v3.html", {"request": request})
 
 @app.get("/api/get-saved-cart")
-async def get_saved_cart():
-    """Retrieve saved cart data from database"""
+async def get_saved_cart(force_refresh: bool = False):
+    """Retrieve saved cart data - check Redis first, then database"""
     try:
         # Get the user's phone number from session or default test number
         phone_number = "+14254955323"  # Your phone number
-        
-        # Get saved cart data from database
+
+        # CRITICAL: Check Redis cache first for fresh data (unless force_refresh)
+        if not force_refresh:
+            try:
+                from services.cache_service import CacheService
+
+                # First, try to get complete cart response (includes swaps & addons)
+                cached_response = CacheService.get_cart_response(phone_number)
+                if cached_response:
+                    # Validate the cached response before serving it
+                    cart_data = cached_response.get('cart_data')
+                    if cart_data:
+                        customizable_boxes = cart_data.get('customizable_boxes', [])
+                        has_valid_items = False
+                        for box in customizable_boxes:
+                            selected_items = box.get('selected_items', [])
+                            if selected_items and len(selected_items) > 0:
+                                has_valid_items = True
+                                break
+
+                        if has_valid_items:
+                            print(f"⚡ Serving COMPLETE cart response from Redis cache for {phone_number}")
+                            # Add cache metadata
+                            cached_response["from_cache"] = True
+                            cached_response["cache_type"] = "redis_complete"
+                            return cached_response
+                        else:
+                            print(f"⚠️ Cached response has invalid cart_data (empty selected_items) - invalidating")
+                            # Invalidate bad cache entry
+                            CacheService.invalidate_cart_response(phone_number)
+                    else:
+                        print(f"⚠️ Cached response missing cart_data - invalidating")
+                        CacheService.invalidate_cart_response(phone_number)
+
+                # Fall back to cart-only cache if complete response not available
+                cached_cart = CacheService.get_cart(phone_number)
+                if cached_cart:
+                    print(f"⚡ Serving cart-only from Redis cache for {phone_number}")
+                    return {
+                        "cart_data": cached_cart,
+                        "delivery_date": None,  # Redis doesn't store delivery date yet
+                        "scraped_at": "cached",
+                        "from_cache": True,
+                        "cache_type": "redis_cart_only",
+                        "swaps": [],
+                        "addons": []
+                    }
+            except Exception as cache_error:
+                print(f"⚠️ Redis cache read failed: {cache_error}")
+        else:
+            print(f"🔄 Force refresh requested - bypassing Redis cache")
+
+        # Fall back to database if no Redis cache
+        print(f"📦 No Redis cache, checking database for {phone_number}")
         saved_cart = db.get_latest_cart_data(phone_number)
-        
+
         if saved_cart and saved_cart.get('cart_data'):
             return {
                 "cart_data": saved_cart['cart_data'],
                 "delivery_date": saved_cart.get('delivery_date'),
                 "scraped_at": saved_cart.get('scraped_at'),
+                "from_cache": False,
+                "cache_type": "database",
                 "swaps": [],  # Can be populated later
                 "addons": []  # Can be populated later
             }
         else:
             return {"error": "No saved cart data found"}
-            
+
     except Exception as e:
         print(f"Error retrieving saved cart: {e}")
         return {"error": str(e)}
@@ -1094,7 +1148,17 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                     }
                 
                 print(f"[CART-STEP-1] Normalized: {phone} -> {normalized_phone}")
-                
+
+                # CRITICAL: Handle force refresh by invalidating Redis cache
+                if force_refresh:
+                    try:
+                        from services.cache_service import CacheService
+                        CacheService.invalidate_cart(normalized_phone)
+                        CacheService.invalidate_cart_response(normalized_phone)
+                        print(f"🔄 Force refresh: Invalidated Redis cache and cart_response for {normalized_phone}")
+                    except Exception as cache_error:
+                        print(f"⚠️ Cache invalidation failed (non-critical): {cache_error}")
+
                 # Try to get stored cart data (but don't rely on it exclusively)
                 stored_cart = db.get_latest_cart_data(normalized_phone)
                 if stored_cart and stored_cart.get('cart_data'):
@@ -1161,7 +1225,15 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                             
                             if cart_data:
                                 print("✅ Successfully scraped live cart data!")
-                                
+
+                                # CRITICAL: Cache fresh cart data to Redis immediately
+                                try:
+                                    from services.cache_service import CacheService
+                                    CacheService.set_cart(normalized_phone, cart_data, ttl=7200)  # 2 hour cache
+                                    print(f"🔥 Fresh cart data cached to Redis for {normalized_phone}")
+                                except Exception as cache_error:
+                                    print(f"⚠️ Redis cache failed (non-critical): {cache_error}")
+
                                 # Check if cart is missing customizable boxes (likely locked)
                                 has_customizable = cart_data.get('customizable_boxes') and len(cart_data['customizable_boxes']) > 0
                                 
@@ -1363,7 +1435,50 @@ IMPORTANT: Each addon MUST have a category field with one of these values:
                 # Return empty swaps/addons rather than hardcoded ones
                 pass
         
-        return {"success": True, "cart_data": cart_data, "swaps": swaps, "addons": addons}
+        # Determine if fresh data was scraped (to trigger localStorage clear)
+        fresh_scrape = cart_data is not None and not regenerate_only
+
+        # Build complete response
+        complete_response = {
+            "success": True,
+            "cart_data": cart_data,
+            "swaps": swaps,
+            "addons": addons,
+            "fresh_scrape": fresh_scrape,  # Flag for frontend to clear localStorage
+            "force_refresh": force_refresh  # Echo back for debugging
+        }
+
+        # CRITICAL: Cache complete response to Redis (includes swaps & addons)
+        # Validate cart_data contains valid customizable boxes before caching
+        def is_valid_cart_data(cart_data):
+            """Validate that cart_data has customizable boxes with selected_items"""
+            if not cart_data:
+                return False
+
+            customizable_boxes = cart_data.get('customizable_boxes', [])
+            if not customizable_boxes:
+                return False
+
+            # Check that at least one customizable box has selected_items
+            for box in customizable_boxes:
+                selected_items = box.get('selected_items', [])
+                if selected_items and len(selected_items) > 0:
+                    return True
+
+            return False
+
+        if (normalized_phone and cart_data and swaps is not None and addons is not None and
+            is_valid_cart_data(cart_data)):
+            try:
+                from services.cache_service import CacheService
+                CacheService.set_cart_response(normalized_phone, complete_response, ttl=7200)
+                print(f"🔥 Complete cart response cached to Redis for {normalized_phone}")
+            except Exception as cache_error:
+                print(f"⚠️ Complete response cache failed (non-critical): {cache_error}")
+        elif normalized_phone:
+            print(f"⚠️ Skipping cache - invalid cart_data structure (missing selected_items in customizable boxes)")
+
+        return complete_response
         
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -1415,6 +1530,50 @@ async def refresh_meal_suggestions(request: Request):
 
 # OLD CODE REMOVED - Meal generation logic moved to services/meal_generator.py
 # The refresh-meals endpoint now uses the meal_generator service
+
+@app.post("/api/regenerate-simple-meal")
+async def regenerate_simple_meal(request: Request):
+    """
+    Generate a single meal suggestion for the simple meal card.
+
+    This provides quick meal inspiration without generating full weekly plans.
+    Used by the Meals tab for instant meal ideas.
+    """
+    from services.meal_generator import generate_single_meal
+    from services.phone_service import normalize_phone
+
+    try:
+        data = await request.json()
+        cart_data = data.get('cart_data')
+        phone = data.get('phone')
+
+        if not cart_data:
+            return {"success": False, "error": "No cart data provided"}
+
+        # Get user preferences for personalized meal generation
+        user_preferences = {}
+        if phone:
+            normalized_phone = normalize_phone(phone)
+            if normalized_phone:
+                user_record = db.get_user_by_phone(normalized_phone)
+                if user_record:
+                    user_preferences = user_record.get('preferences', {})
+
+        # Generate a single meal using available ingredients
+        result = await generate_single_meal(cart_data, user_preferences)
+
+        if result['success']:
+            return {
+                "success": True,
+                "meal": result['meal'],
+                "ingredients_used": result.get('ingredients_used', [])
+            }
+        else:
+            return result
+
+    except Exception as e:
+        print(f"❌ Error regenerating simple meal: {e}")
+        return {"success": False, "error": str(e)}
 
 @app.get("/onboard")
 async def serve_onboarding(request: Request, phone: str = None):
