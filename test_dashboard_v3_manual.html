@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard v3 Manual Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-item {
+            padding: 10px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .pass { color: #28a745; }
+        .fail { color: #dc3545; }
+        button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0051D5;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dashboard v3 Manual Test Suite</h1>
+
+    <div class="test-section">
+        <h2>Test Dashboard</h2>
+        <iframe id="dashboardFrame" src="/dashboard-v3"></iframe>
+    </div>
+
+    <div class="test-section">
+        <h2>Automated Tests</h2>
+        <button onclick="testTabSwitching()">Test Tab Switching</button>
+        <button onclick="testSettingsModal()">Test Settings Modal</button>
+        <button onclick="testCartAnalysis()">Test Cart Analysis</button>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        const iframe = document.getElementById('dashboardFrame');
+        const results = document.getElementById('testResults');
+
+        function log(message, isPass = true) {
+            const div = document.createElement('div');
+            div.className = 'test-item';
+            div.innerHTML = `<span class="${isPass ? 'pass' : 'fail'}">${isPass ? '✅' : '❌'}</span> ${message}`;
+            results.appendChild(div);
+        }
+
+        function clearResults() {
+            results.innerHTML = '';
+        }
+
+        async function waitForFrame() {
+            return new Promise(resolve => {
+                if (iframe.contentWindow.navigation) {
+                    resolve();
+                } else {
+                    setTimeout(() => waitForFrame().then(resolve), 100);
+                }
+            });
+        }
+
+        async function testTabSwitching() {
+            clearResults();
+            log('Starting tab switching test...');
+
+            await waitForFrame();
+            const win = iframe.contentWindow;
+
+            try {
+                // Test switching to each tab
+                const tabs = ['box', 'plan', 'settings'];
+                for (const tab of tabs) {
+                    win.navigation.switchTab(tab);
+                    await new Promise(resolve => setTimeout(resolve, 200));
+
+                    const activeTab = win.document.querySelector('.tab-content.active');
+                    if (activeTab && activeTab.id === `${tab}Tab`) {
+                        log(`Tab switch to ${tab} successful`);
+                    } else {
+                        log(`Tab switch to ${tab} failed`, false);
+                    }
+                }
+
+                // Check no page refresh occurred
+                if (win.navigation === iframe.contentWindow.navigation) {
+                    log('No page refresh detected');
+                } else {
+                    log('Page refresh detected!', false);
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`, false);
+            }
+        }
+
+        async function testSettingsModal() {
+            clearResults();
+            log('Starting settings modal test...');
+
+            await waitForFrame();
+            const win = iframe.contentWindow;
+
+            try {
+                // Switch to settings tab
+                win.navigation.switchTab('settings');
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Wait for settings to load
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Try to open modal
+                if (win.settingsManager) {
+                    win.settingsManager.openEditModal('household_size');
+                    await new Promise(resolve => setTimeout(resolve, 300));
+
+                    const modal = win.document.getElementById('settingsModalV3');
+                    if (modal && modal.style.display === 'flex') {
+                        log('Settings modal opened successfully');
+
+                        // Close modal
+                        win.settingsManager.closeModal();
+                        await new Promise(resolve => setTimeout(resolve, 300));
+
+                        if (modal.style.display === 'none' || !modal.classList.contains('active')) {
+                            log('Settings modal closed successfully');
+                        } else {
+                            log('Settings modal did not close properly', false);
+                        }
+                    } else {
+                        log('Settings modal did not open', false);
+                    }
+                } else {
+                    log('Settings manager not initialized', false);
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`, false);
+            }
+        }
+
+        async function testCartAnalysis() {
+            clearResults();
+            log('Starting cart analysis test...');
+
+            await waitForFrame();
+            const win = iframe.contentWindow;
+
+            try {
+                // Switch to cart tab
+                win.navigation.switchTab('box');
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Check if cart manager exists
+                if (win.cartManager) {
+                    log('Cart manager initialized');
+
+                    // Check for analyze button
+                    const analyzeBtn = win.document.getElementById('analyzeButton');
+                    if (analyzeBtn) {
+                        log('Analyze button found');
+                    } else {
+                        log('Analyze button not found', false);
+                    }
+                } else {
+                    log('Cart manager not initialized', false);
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`, false);
+            }
+        }
+
+        async function runAllTests() {
+            clearResults();
+            log('Running all tests...');
+
+            await testTabSwitching();
+            await testSettingsModal();
+            await testCartAnalysis();
+
+            log('All tests complete!');
+        }
+
+        // Wait for iframe to load
+        iframe.onload = () => {
+            log('Dashboard loaded, ready for testing');
+        };
+    </script>
+</body>
+</html>

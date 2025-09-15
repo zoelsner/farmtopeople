@@ -668,3 +668,4 @@ The system integrates with Vonage SMS service to receive incoming messages.
 - `stop` - Opt out of service
 
 This comprehensive API reference provides all the information needed to integrate with and maintain the Farm to People AI Assistant API.
+

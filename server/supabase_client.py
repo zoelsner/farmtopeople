@@ -159,6 +159,47 @@ def get_user_by_email(ftp_email: str) -> Optional[Dict[str, Any]]:
     return row
 
 
+def update_user_preferences(phone_number: str, preferences: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Update only the preferences for a user, without touching credentials.
+
+    Args:
+        phone_number: User's phone number
+        preferences: Updated preferences dictionary
+
+    Returns:
+        Updated user record or None if update failed
+    """
+    client = get_client()
+
+    # Try multiple phone formats
+    phone_formats = []
+    if phone_number.startswith('+1'):
+        phone_formats.append(phone_number)
+        phone_formats.append(phone_number[2:])
+    elif len(phone_number) == 10 and phone_number[0] != '1':
+        phone_formats.append(phone_number)
+        phone_formats.append(f'+1{phone_number}')
+    else:
+        phone_formats.append(phone_number)
+
+    # Try each format to find and update user
+    for phone_format in phone_formats:
+        try:
+            res = (
+                client.table("users")
+                .update({"preferences": preferences})
+                .eq("phone_number", phone_format)
+                .execute()
+            )
+            if res.data:
+                return res.data[0]
+        except Exception as e:
+            continue
+
+    return None
+
+
 def save_latest_cart_data(phone_number: str, cart_data: Dict[str, Any], delivery_date = None, meal_suggestions = None) -> bool:
     """
     Save latest cart data for a user (overwrites previous data).

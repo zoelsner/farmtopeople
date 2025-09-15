@@ -183,11 +183,15 @@ class SettingsManager {
         if (modalSave) {
             modalSave.addEventListener('click', () => {
                 try {
+                    console.log('🚀 [DEBUG] Save button clicked! Current category:', this.currentCategory);
+                    console.log('🚀 [DEBUG] User phone:', this.userPhone);
                     this.saveCategoryChanges();
                 } catch (error) {
                     console.error('🐛 [ERROR] Error in modal save handler:', error);
                 }
             });
+        } else {
+            console.log('🚨 [DEBUG] Modal save button NOT found during setup!');
         }
 
         if (modalOverlay) {
@@ -571,15 +575,26 @@ class SettingsManager {
     }
     
     async saveCategoryChanges() {
-        if (!this.currentCategory) return;
-        
+        console.log('💾 [DEBUG] saveCategoryChanges called');
+        console.log('💾 [DEBUG] Current category:', this.currentCategory);
+
+        if (!this.currentCategory) {
+            console.log('❌ [DEBUG] No current category set!');
+            return;
+        }
+
         try {
             // Collect the current selections from the modal
+            console.log('📝 [DEBUG] Collecting modal selections...');
             let value = this.collectModalSelections(this.currentCategory);
+            console.log('📝 [DEBUG] Collected value:', value);
             
             // Send update to backend
             const cleanPhone = this.userPhone.replace(/[^\d]/g, '');
             
+            console.log('🌐 [DEBUG] Making API call to:', `/api/settings/${cleanPhone}/update`);
+            console.log('🌐 [DEBUG] Request payload:', { category: this.currentCategory, value: value });
+
             const response = await fetch(`/api/settings/${cleanPhone}/update`, {
                 method: 'POST',
                 headers: {
@@ -590,6 +605,8 @@ class SettingsManager {
                     value: value
                 })
             });
+
+            console.log('🌐 [DEBUG] API response status:', response.status);
             
             const result = await response.json();
             
