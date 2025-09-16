@@ -4,11 +4,11 @@
 
 **Farm to People AI Assistant** transforms weekly produce boxes into personalized meal plans through intelligent SMS conversations. The system learns user preferences, analyzes cart contents, and delivers actionable cooking guidance.
 
-**Current Status:** GPT-5 Integration & Enhanced Loading Experience - Redis caching, timer fixes, smooth UI
-**Last Updated:** September 15, 2025
-**Version:** 5.3.0 (GPT-5 + Redis Caching + Enhanced Loading)  
-**Branch:** `feature/customer-automation`  
-**Primary Contact:** SMS `18334391183` (Vonage)  
+**Current Status:** Cart Scraper Fixed - Stale data issue resolved, performance restored
+**Last Updated:** September 16, 2025
+**Version:** 5.5.0 (Scraper Stale Data Fix + Performance Restoration)
+**Branch:** `feature/customer-automation`
+**Primary Contact:** SMS `18334391183` (Vonage)
 **Live URL:** https://farmtopeople-production.up.railway.app
 
 ---
@@ -44,6 +44,15 @@ open http://localhost:8000/dashboard-v3.html
 - ✅ **Protein in titles:** "38g protein" must be prominent under each meal name
 - ✅ NEVER use GPT-3.5 - use GPT-5 or gpt-4o-mini only
 
+### **🚨 CRITICAL: Cart Scraper Debugging Lessons (Sept 16, 2024)**
+**BEFORE adding complexity to fix stale data, check these first:**
+- ⚠️ **Variable scope conflicts** - Watch for `os`, `email`, `datetime` shadowing
+- ⚠️ **Modal timing** - Farm to People loads content dynamically (needs 3s wait)
+- ⚠️ **Don't assume external caching** - Test with diagnostics first
+- ⚠️ **Simplicity first** - Remove complexity before adding more
+- ⚠️ **Performance baseline** - Current: 40s, Target: 25s (with smart optimizations)
+- 📖 **Full lessons:** See `docs/SCRAPER_DEBUGGING_LESSONS_2024_09.md`
+
 ---
 
 ## 📚 DOCUMENTATION INDEX
@@ -63,6 +72,7 @@ open http://localhost:8000/dashboard-v3.html
 - [`database/meal_planning_schema.sql`](database/meal_planning_schema.sql) - Database schema for meal planning
 - [`docs/refactoring_opportunities.md`](docs/refactoring_opportunities.md) - Architecture improvements & conversation state management
 - [`docs/conversational_ai_architecture.md`](docs/conversational_ai_architecture.md) - AI system design patterns
+- [`docs/SCRAPER_DEBUGGING_LESSONS_2024_09.md`](docs/SCRAPER_DEBUGGING_LESSONS_2024_09.md) - **NEW:** Sept 2024 stale data debugging lessons
 - [`DEBUGGING_PROTOCOL.md`](DEBUGGING_PROTOCOL.md) - Scraper troubleshooting guide
 - [`CRITICAL_SCRAPING_LESSONS_LEARNED.md`](CRITICAL_SCRAPING_LESSONS_LEARNED.md) - Historical failures & solutions
 
@@ -303,6 +313,19 @@ await storage.get_ingredient_pool(plan_id)  # Real-time availability
 ---
 
 ## 📊 CURRENT IMPLEMENTATION STATUS
+
+### ✅ **LATEST FIXES (Sept 15, 2025 - Cart Scraper Debugging)**
+- **✅ Fixed Cart Analysis Hanging**: Resolved datetime scope bug in comprehensive_scraper.py line 875
+- **✅ Fixed UI State Management**: Cart section now properly hides during loading
+- **✅ Added Comprehensive Logging**: Server and scraper now log detailed progress with timestamps
+- **✅ Added Timeout Protection**: 120-second timeout prevents indefinite hanging with fallback to cached data
+- **✅ Improved Error Handling**: Better error messages and graceful fallbacks
+
+### ❌ **KNOWN ISSUES (Remaining)**
+- **Cart Lock Calculation Bug**: Shows wrong day (Sun instead of Wed) and disappears on refresh
+- **Delivery Date Format**: Shows full string instead of clean "Thu • 4:00PM" format
+- **Performance Issue**: Scraping takes ~50 seconds (increased timeouts for reliability)
+- **Redis Warning**: "No module named 'server.services'" in scraper (non-critical)
 
 ### ✅ **COMPLETED FEATURES (as of 8/31)**
 - **✅ Web App Foundation** - Complete 7-step onboarding with smart user detection
@@ -683,6 +706,44 @@ When making changes, ensure these working features are NOT broken:
 
 ## 🆘 TROUBLESHOOTING
 
+### 🔴 **NEW: Cart Analysis Issues (Sept 15, 2025)**
+
+**Cart Stuck on "Analyzing Your Cart" Screen:**
+```bash
+# SYMPTOMS: Loading spinner stuck, console shows cart data loaded but UI doesn't update
+# CAUSE: UI state management bug - multiple sections active simultaneously
+# STATUS: ✅ FIXED - Cart section now properly hides during loading
+
+# Check console for these logs:
+"🔄 startAnalysis() - State transition to loading"
+"Active sections after showCartAnalysis: {start: false, loading: false, cart: true}"
+
+# If you see cart: true during loading, this indicates the old bug
+```
+
+**Scraper Returns Old Cart Data:**
+```bash
+# SYMPTOMS: Fresh scrape returns Monday cart instead of Thursday cart
+# CAUSE: DateTime scope bug causing scraper to crash and fall back to cached data
+# STATUS: ✅ FIXED - Removed duplicate datetime import in comprehensive_scraper.py line 875
+
+# Check server logs for:
+"❌ Scraper failed with error: cannot access local variable 'datetime'"
+"⚠️ Scraper returned no data or timed out"
+"✅ Using previously stored cart data as fallback"
+```
+
+**Cart Lock Time Wrong/Missing:**
+```bash
+# SYMPTOMS: Shows "Sun 11:59AM" instead of "Wed 11:59AM" or disappears on refresh
+# CAUSE: Date parsing logic in dashboard.html needs fixing
+# STATUS: ❌ KNOWN ISSUE
+
+# Cart should lock day before delivery:
+# Thu delivery → Wed 11:59 AM lock time
+# Current calculation is incorrect
+```
+
 ### 🔴 **CRITICAL: Phone Number Format Issues - HAPPENS FREQUENTLY!**
 **If cart shows old data or "user not found" - CHECK THIS FIRST:**
 ```bash
@@ -801,15 +862,25 @@ Box has customizable=true but appears as non-customizable
 ---
 
 **Last Updated:** September 15, 2025
-**Version:** 5.3.0 (GPT-5 Integration & Enhanced Loading Experience)
-**Status:** GPT-5 Redis Caching & Enhanced Loading Experience Complete
+**Version:** 5.4.0 (Cart Scraper Fixes + Comprehensive Logging)
+**Status:** Cart Analysis System Fully Debugged and Operational
 **Recent Updates:**
+- Fixed critical datetime scope bug preventing fresh cart scraping
+- Resolved UI state management issues causing stuck loading screens
+- Added comprehensive logging with timestamps throughout scraper workflow
+- Implemented 120-second timeout protection with graceful fallbacks
+- Cart scraping now successfully captures Thursday delivery dates
 - GPT-5 integration with full reasoning_effort compatibility
 - Redis meal caching for persistence across page refreshes
 - Fixed duplicate progress timer issues and "New Suggestions" button
 - Enhanced loading experience with progress bar, timer, and cancel functionality
 - Optimized spinner animations for smooth cross-browser performance
 - Removed localStorage dependencies in favor of Redis caching
-**Next Sprint:** Premium add-ons refresh integration, discuss swaps organization philosophy
+**Known Issues & Next Steps:**
+- Cart lock calculation wrong day (shows Sun instead of Wed) and disappears on refresh
+- Delivery date formatting needs cleanup (full string vs clean "Thu • 4:00PM" format)
+- Scraper performance optimization (currently takes ~50 seconds)
+- Redis warning "No module named 'server.services'" in scraper (non-critical)
+**Next Sprint:** Fix remaining UI polish issues, optimize scraper performance, premium add-ons refresh integration
 
 *This guide provides the essential information for developing and maintaining the Farm to People AI Assistant. For detailed implementation specifics, refer to the documentation index above.*

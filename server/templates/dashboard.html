@@ -1601,6 +1601,7 @@
                         }
 
                         currentState = 'complete';
+                        console.log('🏠 Page load - About to call showCartAnalysis() with cached data');
                         showCartAnalysis(data.cart_data, data.swaps || [], data.addons || [], false, data.meals || null);
                         return true;
                     }
@@ -1617,7 +1618,10 @@
         // Load saved cart data on page load
         loadSavedCartData();
 
-        async function startAnalysis() {
+        // Restore cart lock time on page load
+        restoreCartLockTime();
+
+        async function startAnalysis(forceRefresh = false) {
             // Prevent overlapping analysis calls
             if (isAnalyzing) {
                 console.log('⚠️ Analysis already in progress, ignoring duplicate call');
@@ -1639,8 +1643,18 @@
             // Switch to loading state
             currentState = 'loading';
             document.getElementById('startSection').classList.remove('active');
+            document.getElementById('cartAnalysisSection').classList.remove('active');
             document.getElementById('loadingSection').classList.add('active');
             document.getElementById('headerSubtitle').textContent = 'Analyzing...';
+
+            // Add diagnostic logging to track state
+            console.log('🔄 startAnalysis() - State transition to loading:', {
+                start: document.getElementById('startSection').classList.contains('active'),
+                loading: document.getElementById('loadingSection').classList.contains('active'),
+                cart: document.getElementById('cartAnalysisSection').classList.contains('active'),
+                currentState: currentState,
+                forceRefresh: forceRefresh
+            });
 
             // Update loading status messages with progress bar and timer
             const statuses = [
@@ -1669,7 +1683,10 @@
                         <div style="background: #f0f0f0; border-radius: 8px; height: 6px; margin-bottom: 8px; overflow: hidden;">
                             <div style="background: #4169E1; height: 100%; width: ${status.progress}%; transition: width 0.8s ease;"></div>
                         </div>
-                        <div style="font-size: 12px; color: #666;">Elapsed: ${elapsed}s</div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Elapsed: ${elapsed}s</div>
+                        <button onclick="cancelAnalysis()" style="padding: 6px 12px; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                            Cancel
+                        </button>
                     `;
                 });
             }
@@ -1682,26 +1699,14 @@
                 updateLoadingStatus();
             }, 8000); // Slower updates for longer processes
 
-            // Add cancel button to loading status
-            setTimeout(() => {
-                const loadingEl = document.getElementById('loadingStatus');
-                if (loadingEl && currentState === 'loading') {
-                    const currentHTML = loadingEl.innerHTML;
-                    loadingEl.innerHTML = currentHTML + `
-                        <br>
-                        <button onclick="cancelAnalysis()" style="padding: 6px 12px; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 8px;">
-                            Cancel
-                        </button>
-                    `;
-                }
-            }, 10000); // Show cancel after 10 seconds
+            // Cancel button is now included in updateLoadingStatus() function above
 
             // Add timeout for scraping (PWA recovery mechanism)
             analysisTimeout = setTimeout(() => {
                 clearAnalysisTimers();
                 if (currentState === 'loading') {
                     const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                    // Show error with retry option
+                    // Show error with retry and cancel options
                     document.getElementById('loadingStatus').innerHTML = `
                         <div style="color: #ff6b6b; margin-bottom: 12px;">⚠️ Analysis taking longer than expected (${elapsed}s)</div>
                         <div style="font-size: 14px; color: #666; margin-bottom: 12px;">
@@ -1709,6 +1714,9 @@
                         </div>
                         <button onclick="retryAnalysis()" style="padding: 8px 16px; background: #4169E1; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px;">
                             Try Again
+                        </button>
+                        <button onclick="cancelAnalysis()" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px;">
+                            Cancel
                         </button>
                         <button onclick="goBackToStart()" style="padding: 8px 16px; background: #666; color: white; border: none; border-radius: 4px; cursor: pointer;">
                             Go Back
@@ -1745,7 +1753,8 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         phone: userPhone,
-                        use_mock: false  // Set to true to use mock data for testing
+                        use_mock: false,  // Set to true to use mock data for testing
+                        force_refresh: forceRefresh  // Pass force refresh parameter
                     })
                 });
 
@@ -1753,6 +1762,14 @@
                 clearAnalysisTimers();
 
                 if (data.success) {
+                    console.log('✅ Cart analysis API response received:', {
+                        fresh_scrape: data.fresh_scrape,
+                        has_cart_data: !!data.cart_data,
+                        has_meals: !!data.meals,
+                        currentState: currentState,
+                        isAnalyzing: isAnalyzing
+                    });
+
                     // CRITICAL: Clear localStorage if fresh data was scraped
                     if (data.fresh_scrape) {
                         console.log('🧹 Fresh scrape detected - clearing localStorage cache');
@@ -1762,6 +1779,7 @@
                     }
 
                     isAnalyzing = false; // Reset analyzing flag on success
+                    console.log('🎯 About to call showCartAnalysis()');
                     showCartAnalysis(data.cart_data, data.swaps, data.addons, data.fresh_scrape, data.meals);
                 } else {
                     // Show error message instead of mock data
@@ -1988,25 +2006,30 @@
         function showDeliveryDate(cartData) {
             const deliveryInfo = cartData?.delivery_info;
             if (deliveryInfo && deliveryInfo.delivery_text) {
-                // Parse "Shopping for: Sun, Aug 31, 10:00AM - 4:00PM"
+                // Parse formats: "Thu, Sep 18, 4:00PM - 8:00PM" or "Shopping for: Thu, Sep 18, 4:00PM - 8:00PM"
                 const text = deliveryInfo.delivery_text;
-                const match = text.match(/Shopping for: (.+?),.*(\d{1,2}:\d{2}[AP]M)/);
-                
+                console.log('📅 Parsing delivery date:', text);
+
+                // Try multiple patterns to handle different formats
+                let match = text.match(/(?:Shopping for: )?(\w+), (\w+ \d+), (\d{1,2}:\d{2}[AP]M)/);
+
                 if (match) {
-                    const dayDate = match[1].trim(); // "Sun, Aug 31"
-                    const time = match[2]; // "10:00AM"
-                    
-                    // Format for display
-                    const displayText = `${dayDate} • ${time}`;
-                    
+                    const [_, day, date, startTime] = match;
+                    // Format: "Thu, Sep 18 • 4:00PM"
+                    const displayText = `${day}, ${date} • ${startTime}`;
+
+                    console.log('✅ Formatted delivery date:', displayText);
+
                     document.getElementById('deliveryDateText').textContent = displayText;
                     document.getElementById('deliveryDate').style.display = 'block';
-                    
-                    // Calculate and show cart cutoff time
-                    showCartCutoffTime(dayDate);
+
+                    // Calculate and show cart cutoff time (pass full date for proper calculation)
+                    showCartCutoffTime(`${day}, ${date}`);
                 } else {
-                    // Fallback - show raw text
-                    document.getElementById('deliveryDateText').textContent = text.replace('Shopping for: ', '');
+                    console.log('⚠️ Could not parse delivery date, using fallback');
+                    // Fallback - show raw text (cleaned)
+                    const cleanText = text.replace('Shopping for: ', '').replace(/ - \d{1,2}:\d{2}[AP]M/, '');
+                    document.getElementById('deliveryDateText').textContent = cleanText;
                     document.getElementById('deliveryDate').style.display = 'block';
                 }
             }
@@ -2015,51 +2038,80 @@
         function showCartCutoffTime(deliveryDateStr) {
             console.log('🕒 Calculating cart cutoff time for delivery:', deliveryDateStr);
 
-            // Parse the delivery date (e.g., "Mon, Sep 15")
-            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const dayMatch = deliveryDateStr.match(/^(\w{3})/);
-
-            if (dayMatch) {
-                const deliveryDay = dayMatch[1];
-                const deliveryDayIndex = days.indexOf(deliveryDay);
-
-                console.log('🕒 Delivery day details:', {
-                    deliveryDay: deliveryDay,
-                    deliveryDayIndex: deliveryDayIndex
-                });
-
-                if (deliveryDayIndex !== -1) {
-                    // Calculate cutoff day (day before delivery)
-                    const cutoffDayIndex = deliveryDayIndex === 0 ? 6 : deliveryDayIndex - 1;
-                    const cutoffDay = days[cutoffDayIndex];
-
-                    // Create cutoff time display matching delivery date format
-                    const cutoffText = `${cutoffDay} • 11:59AM`;
-
-                    console.log('🕒 Calculated cutoff:', cutoffText);
-                    
-                    // Add cutoff time to the header
-                    const headerSubtitle = document.getElementById('headerSubtitle');
-                    if (headerSubtitle && headerSubtitle.textContent === 'Cart analysis complete') {
-                        // Remove any existing cutoff warning first
-                        const existingCutoff = document.getElementById('cartCutoffWarning');
-                        if (existingCutoff) {
-                            existingCutoff.remove();
-                        }
-
-                        // Add cutoff time warning
-                        const cutoffDiv = document.createElement('div');
-                        cutoffDiv.id = 'cartCutoffWarning';
-                        cutoffDiv.style.cssText = 'color: #FF6B35; font-size: 12px; margin-top: 4px; font-weight: 500;';
-                        cutoffDiv.innerHTML = `⏰ Cart locks: ${cutoffText}`;
-
-                        // Insert after the subtitle
-                        const headerElement = headerSubtitle.parentElement;
-                        if (headerElement) {
-                            headerElement.appendChild(cutoffDiv);
-                        }
-                    }
+            try {
+                // Parse "Thu, Sep 18" format
+                const dateMatch = deliveryDateStr.match(/(\w+), (\w+) (\d+)/);
+                if (!dateMatch) {
+                    console.log('⚠️ Could not parse delivery date format');
+                    return;
                 }
+
+                const [_, dayName, month, dayNum] = dateMatch;
+                const year = new Date().getFullYear();
+
+                // Create actual date object for delivery
+                const deliveryDate = new Date(`${month} ${dayNum}, ${year}`);
+                console.log('📅 Delivery date parsed:', deliveryDate.toDateString());
+
+                // Calculate cutoff date (day before delivery)
+                const cutoffDate = new Date(deliveryDate);
+                cutoffDate.setDate(cutoffDate.getDate() - 1);
+
+                // Format cutoff day name
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const cutoffDay = days[cutoffDate.getDay()];
+                const cutoffText = `${cutoffDay} • 11:59AM`;
+
+                console.log('✅ Calculated cutoff:', cutoffText, 'for delivery on:', deliveryDate.toDateString());
+
+                // Store in localStorage for persistence across page refreshes
+                localStorage.setItem('cartLockTime', cutoffText);
+                localStorage.setItem('cartLockExpiry', Date.now() + 3600000); // 1 hour expiry
+
+                // Display the cart lock time
+                displayCartLockTime(cutoffText);
+            } catch (error) {
+                console.error('❌ Error calculating cart cutoff time:', error);
+            }
+        }
+
+        // Helper function to display cart lock time (separate for reuse)
+        function displayCartLockTime(cutoffText) {
+            // Remove any existing cutoff warning first
+            const existingCutoff = document.getElementById('cartCutoffWarning');
+            if (existingCutoff) {
+                existingCutoff.remove();
+            }
+
+            // Find header to attach to
+            const headerSubtitle = document.getElementById('headerSubtitle');
+            if (!headerSubtitle) return;
+
+            // Create and add cutoff time warning
+            const cutoffDiv = document.createElement('div');
+            cutoffDiv.id = 'cartCutoffWarning';
+            cutoffDiv.style.cssText = 'color: #FF6B35; font-size: 12px; margin-top: 4px; font-weight: 500;';
+            cutoffDiv.innerHTML = `⏰ Cart locks: ${cutoffText}`;
+
+            // Insert after the subtitle
+            const headerElement = headerSubtitle.parentElement;
+            if (headerElement) {
+                headerElement.appendChild(cutoffDiv);
+            }
+        }
+
+        // On page load, restore cart lock if valid and available
+        function restoreCartLockTime() {
+            const savedLock = localStorage.getItem('cartLockTime');
+            const lockExpiry = localStorage.getItem('cartLockExpiry');
+
+            if (savedLock && lockExpiry && Date.now() < parseInt(lockExpiry)) {
+                console.log('🔄 Restoring cart lock time from localStorage:', savedLock);
+                displayCartLockTime(savedLock);
+            } else if (savedLock) {
+                console.log('🗑️ Cart lock time expired, clearing localStorage');
+                localStorage.removeItem('cartLockTime');
+                localStorage.removeItem('cartLockExpiry');
             }
         }
         
@@ -2083,9 +2135,21 @@
 
             // Cart analysis complete (no localStorage caching - using Redis only)
             console.log('💾 Cart analysis complete - data served from Redis');
+
+            // CRITICAL FIX: Hide all other sections first
+            document.getElementById('startSection').classList.remove('active');
             document.getElementById('loadingSection').classList.remove('active');
+
+            // Then show the cart analysis section
             document.getElementById('cartAnalysisSection').classList.add('active');
             document.getElementById('headerSubtitle').textContent = 'Cart analysis complete';
+
+            // Add diagnostic logging to track state
+            console.log('🔍 Active sections after showCartAnalysis:', {
+                start: document.getElementById('startSection').classList.contains('active'),
+                loading: document.getElementById('loadingSection').classList.contains('active'),
+                cart: document.getElementById('cartAnalysisSection').classList.contains('active')
+            });
 
             // Show delivery date and timestamp if available
             showDeliveryDate(cartData);
@@ -2218,11 +2282,11 @@
                     return `
                         <div class="cart-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
                             <div class="item-details" style="flex: 1;">
-                                <div class="item-name" style="font-size: 15px; font-weight: 600; color: #4169E1; margin-bottom: 2px;">${item.name}</div>
-                                <div class="item-meta" style="color: #666; font-size: 13px;">${quantityText}${item.producer ? ` • ${cleanProducerName(item.producer)}` : ''}</div>
+                                <div class="item-name" style="font-size: 14px; font-weight: 600; color: #4169E1; margin-bottom: 2px;">${item.name}</div>
+                                <div class="item-meta" style="color: #666; font-size: 12px;">${quantityText}${item.producer ? ` • ${cleanProducerName(item.producer)}` : ''}</div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div class="item-price" style="color: #2e7d32; font-weight: 600; font-size: 15px; min-width: 55px; text-align: right;">${item.price || ''}</div>
+                                <div class="item-price" style="color: #2e7d32; font-weight: 600; font-size: 14px; min-width: 55px; text-align: right;">${item.price || ''}</div>
                                 <span class="category-tag" style="
                                     background: rgba(255, 255, 255, 0.7);
                                     color: ${colors.text};
@@ -2383,6 +2447,64 @@
                     const category = addon.category || 'produce';
                     const colors = getCategoryColors(category);
                     
+                    return `
+                        <div class="addon-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
+                            <div class="item-details" style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="item-name" style="font-weight: 600;">${addon.item}</div>
+                                    <div class="item-price" style="color: #2e7d32; font-weight: 600;">${addon.price || '$3.99'}</div>
+                                </div>
+                                <div class="item-meta" style="color: #666; font-size: 14px; margin-top: 2px;">${addon.reason}</div>
+                            </div>
+                            <span class="category-tag" style="
+                                background: rgba(255, 255, 255, 0.7);
+                                color: ${colors.text};
+                                padding: 3px 9px;
+                                border-radius: 10px;
+                                font-size: 12px;
+                                font-weight: 500;
+                                text-align: center;
+                                border: 1px solid rgba(0, 0, 0, 0.1);
+                                display: inline-block;
+                                opacity: 0.9;
+                            ">${category}</span>
+                        </div>
+                    `;
+                }).join('');
+                document.getElementById('recommendedAddons').innerHTML = addonsHTML;
+            } else {
+                // No addons suggested
+                document.getElementById('recommendedAddons').innerHTML = '<div style="color: #666; padding: 10px;">Your cart is complete!</div>';
+            }
+        }
+
+        function updateSwapSuggestions(swaps) {
+            // Update only the swaps display section
+            console.log('🔄 Updating swap suggestions:', swaps);
+
+            if (swaps && swaps.length > 0) {
+                const swapsHTML = swaps.map(swap => `
+                    <div class="swap-suggestion">
+                        <div class="swap-text">Swap ${swap.from} → ${swap.to}</div>
+                        <div class="swap-reason" style="font-size: 12px; color: #666; margin-top: 4px;">${swap.reason}</div>
+                    </div>
+                `).join('');
+                document.getElementById('suggestedSwaps').innerHTML = swapsHTML;
+            } else {
+                document.getElementById('suggestedSwaps').innerHTML = '<div style="color: #666; padding: 10px;">No swaps needed - your selections look great!</div>';
+            }
+        }
+
+        function updatePremiumAddons(addons) {
+            // Update only the add-ons display section
+            console.log('🔄 Updating add-ons display:', addons);
+
+            if (addons && addons.length > 0) {
+                const addonsHTML = addons.map(addon => {
+                    // Determine category and color using the same helper function
+                    const category = addon.category || 'produce';
+                    const colors = getCategoryColors(category);
+
                     return `
                         <div class="addon-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
                             <div class="item-details" style="flex: 1;">
@@ -2723,7 +2845,37 @@
                 // Don't alert here, let the main function handle errors
             }
         }
-        
+
+        async function regenerateAddonsOnly(cartData) {
+            try {
+                console.log('🔄 Generating new add-ons (keeping swaps stable)...');
+
+                // Call analyze-cart with regenerate flag to get new add-ons
+                const response = await fetch('/api/analyze-cart', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        phone: getPhoneNumber(),
+                        use_mock: false,
+                        regenerate_only: true  // Signal to skip scraping, just regenerate suggestions
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Only update add-ons display (skip swaps to keep them stable)
+                    if (data.addons && data.addons.length > 0) {
+                        updatePremiumAddons(data.addons);
+                        console.log('✅ Regenerated add-ons successfully (swaps kept stable)');
+                    }
+                }
+            } catch (error) {
+                console.error('Error generating add-ons:', error);
+                // Don't alert here, let the main function handle errors
+            }
+        }
+
         async function refreshSuggestions() {
             // Just regenerate meal suggestions without re-scraping cart
             const button = document.getElementById('refreshSuggestionsButton');
@@ -2758,8 +2910,8 @@
                 console.log('🎲 Generating new meal suggestions from current cart');
                 await generateMealSuggestionsFromAPI(cartData);
 
-                // Also regenerate swaps and add-ons
-                await regenerateSwapsAndAddons(cartData);
+                // Also regenerate add-ons to complement new meals (keep swaps stable)
+                await regenerateAddonsOnly(cartData);
 
             } catch (error) {
                 console.error('Error refreshing suggestions:', error);
@@ -2782,8 +2934,8 @@
                 button.disabled = true;
                 button.innerHTML = '⏳ Scraping FTP...';
                 
-                // Re-run full cart analysis (including scraping)
-                await startAnalysis();
+                // Re-run full cart analysis with force refresh (including scraping)
+                await startAnalysis(true);
                 
             } catch (error) {
                 console.error('Error refreshing cart:', error);
@@ -4451,6 +4603,53 @@
                 generateMealSuggestions(); // Generate fresh suggestions
             }
         }
+
+        // ===== DEBUG HELPER FOR STATE INSPECTION =====
+
+        // Debug helper for state inspection (callable from console)
+        window.debugStateInfo = function() {
+            const info = {
+                timestamp: new Date().toISOString(),
+                localStorage: {
+                    userPhone: localStorage.getItem('userPhone'),
+                    cachedMealSuggestions: localStorage.getItem('cachedMealSuggestions') ?
+                        JSON.parse(localStorage.getItem('cachedMealSuggestions')).length + ' meals' : 'none',
+                    cachedMealSuggestionsTimestamp: localStorage.getItem('cachedMealSuggestionsTimestamp'),
+                    cartAnalysisData: localStorage.getItem('cartAnalysisData') ? 'present' : 'none',
+                    cartAnalysisState: localStorage.getItem('cartAnalysisState')
+                },
+                globalVariables: {
+                    mealPlanData: window.mealPlanData ? 'loaded' : 'not loaded',
+                    currentState: window.currentState,
+                    isAnalyzing: window.isAnalyzing,
+                    refreshesLeft: window.refreshesLeft
+                },
+                cartInfo: window.mealPlanData?.cart_data ? {
+                    deliveryDate: window.mealPlanData.cart_data.delivery_date,
+                    scrapedTimestamp: window.mealPlanData.cart_data.scraped_timestamp,
+                    customizableBoxes: window.mealPlanData.cart_data.customizable_boxes?.length || 0,
+                    individualItems: window.mealPlanData.cart_data.individual_items?.length || 0
+                } : 'no cart data loaded'
+            };
+
+            console.log('📊 STATE DEBUG INFO');
+            console.log('===================');
+            console.log('🕐 Timestamp:', info.timestamp);
+            console.log('💾 localStorage:');
+            console.table(info.localStorage);
+            console.log('🌐 Global Variables:');
+            console.table(info.globalVariables);
+            if (info.cartInfo !== 'no cart data loaded') {
+                console.log('🛒 Cart Info:');
+                console.table(info.cartInfo);
+            } else {
+                console.log('🛒 Cart Info: No cart data loaded');
+            }
+
+            return info;
+        };
+
+        console.log('💡 Debug Helper Available: Type debugStateInfo() in console for state inspection');
 
     </script>
 

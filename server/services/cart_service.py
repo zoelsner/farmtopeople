@@ -83,9 +83,10 @@ async def analyze_user_cart(phone: str, use_mock: bool = False, force_refresh: b
             
             # Run the scraper
             cart_data = await run_cart_scraper(
-                credentials, 
-                return_data=True, 
-                phone_number=normalized_phone
+                credentials,
+                return_data=True,
+                phone_number=normalized_phone,
+                force_save=force_refresh  # Pass force_refresh as force_save to scraper
             )
             
             if cart_data:

@@ -25,8 +25,8 @@ load_dotenv(dotenv_path=project_root / '.env', override=True)
 # Detect if we're running in production (Railway) or local
 IS_PRODUCTION = os.getenv('RAILWAY_ENVIRONMENT', '').lower() == 'production' or os.getenv('RAILWAY_PROJECT_ID', None) is not None
 
-# Adjust timeouts based on environment (production needs longer waits)
-TIMEOUT_MULTIPLIER = 1.5 if IS_PRODUCTION else 1.0
+# Adjust timeouts based on environment (optimized for performance)
+TIMEOUT_MULTIPLIER = 1.0  # Removed production multiplier for better performance
 
 def get_timeout(base_ms):
     """Get adjusted timeout based on environment"""
@@ -138,11 +138,33 @@ async def scrape_customize_modal(page):
             # Get item name from aria-label
             item_name = await article.get_attribute("aria-label")
             
-            # Get producer info
-            producer_elem = article.locator("p[class*='producer'] a").first
+            # Get producer info with enhanced detection
             producer = ""
-            if await producer_elem.count() > 0:
-                producer = (await producer_elem.text_content()).strip()
+
+            # Try multiple producer selectors
+            producer_selectors = [
+                "p[class*='producer'] a",       # Original selector
+                "a[href*='/farms/']",           # Direct farm links
+                "a[href*='/producers/']",       # Producer links
+                "a[href*='/growers/']",         # Grower links
+                ".producer-name",               # CSS class for producer
+                ".farm-name",                   # CSS class for farm
+                "[data-producer]",              # Data attribute
+                "[title*='Farm']",              # Title attribute with 'Farm'
+                "[title*='Producer']",          # Title attribute with 'Producer'
+            ]
+
+            for selector in producer_selectors:
+                try:
+                    producer_elem = article.locator(selector).first
+                    if await producer_elem.count() > 0:
+                        producer_text = (await producer_elem.text_content()).strip()
+                        if producer_text and len(producer_text) > 2:  # Valid producer name
+                            producer = producer_text
+                            print(f"    🏪 Box item producer via {selector}: {producer}")
+                            break
+                except:
+                    continue
             
             # Get unit/details info
             details_elem = article.locator("div[class*='item-details'] p").first
@@ -196,52 +218,77 @@ async def scrape_customize_modal(page):
         "alternatives_count": len(available_alternatives)
     }
 
-async def main(credentials=None, return_data=False, phone_number=None):
+async def main(credentials=None, return_data=False, phone_number=None, force_save=False):
     """
     Main scraper function.
-    
+
     Args:
         credentials: Dict with 'email' and 'password' keys (optional)
         return_data: If True, return the scraped data instead of just saving to file
-        
+
     Returns:
         If return_data=True: Dict with scraped cart data
         Otherwise: None (saves to file)
     """
+    print(f"🚀 Starting comprehensive scraper for phone: {phone_number}")
+
+    # CRITICAL: Extract credentials at the very beginning to prevent scope issues
+    email = None
+    password = None
+    if credentials:
+        email = credentials.get('email')
+        password = credentials.get('password')
+    else:
+        email = os.getenv("EMAIL") or os.getenv("FTP_EMAIL")
+        password = os.getenv("PASSWORD") or os.getenv("FTP_PWD")
+
+    print(f"🔐 Using email: {email}")
+    print(f"⏱️ Force save: {force_save}")
+    print(f"📊 Return data: {return_data}")
+
+    import time
+    start_time = time.time()
+
     output_dir = Path("../farm_box_data")
     output_dir.mkdir(exist_ok=True)
-    
+
     async with async_playwright() as p:
-        # Always use fresh browser session for multi-user support
-        print("🌐 Starting fresh browser session...")
+        print("🌐 Starting browser session...")
         browser = await p.chromium.launch(headless=True)  # Must be headless in cloud environment
         context = await browser.new_context(viewport={"width": 1920, "height": 1080})
-        
+
         page = await context.new_page()
 
-        # Navigate to home where header/cart lives
-        await page.goto("https://farmtopeople.com/home")
-        await page.wait_for_load_state("domcontentloaded")
-        await page.wait_for_timeout(get_timeout(2500))  # Give page time to settle (increased for reliability)
+        # Session caching disabled for debugging - always do fresh login
+        # TODO: Re-enable session caching after fixing core issues
+        session_used = False
 
-        # Check if we're on a login page or if login elements are visible
-        current_url = page.url
-        login_form_visible = await page.locator("input[placeholder='Enter email address']").count() > 0
-        
-        # Also check if we see a "Log in" link/button which indicates we're not logged in
-        login_link_visible = await page.locator("a:has-text('Log in'), button:has-text('Log in')").count() > 0
-        
-        if "login" in current_url or login_form_visible or login_link_visible:
-            print("🔐 Login page detected. Performing login...")
+        # Navigate and potentially login (always fresh for now)
+        if not session_used:
+            # Navigate to home where header/cart lives
+            await page.goto("https://farmtopeople.com/home")
+            await page.wait_for_load_state("domcontentloaded")
+
+            # Smart wait: Look for either login elements or cart elements (indicates page is ready)
+            try:
+                await page.wait_for_selector("input[placeholder='Enter email address'], .cart-button", timeout=5000)
+                print("✅ Page ready - found login or cart elements")
+            except:
+                # Fallback to shorter timeout if selectors not found
+                await page.wait_for_timeout(get_timeout(1500))  # Reduced from 2500ms
+                print("⚠️ Using fallback timeout for page settle")
+
+            # Check if we're on a login page or if login elements are visible
+            current_url = page.url
+            login_form_visible = await page.locator("input[placeholder='Enter email address']").count() > 0
+
+            # Also check if we see a "Log in" link/button which indicates we're not logged in
+            login_link_visible = await page.locator("a:has-text('Log in'), button:has-text('Log in')").count() > 0
+
+            if "login" in current_url or login_form_visible or login_link_visible:
+                print(f"🔐 Login page detected. Performing login... (elapsed: {time.time() - start_time:.1f}s)")
             
-            # Get credentials - use passed credentials first, then env vars
-            if credentials:
-                email = credentials.get('email')
-                password = credentials.get('password')
-            else:
-                email = os.getenv("EMAIL") or os.getenv("FTP_EMAIL")
-                password = os.getenv("PASSWORD") or os.getenv("FTP_PWD")
-            
+            # Credentials already extracted at the top of the function
             if not email or not password:
                 print("❌ No credentials found in environment (EMAIL/PASSWORD)")
                 print("   Looking in .env at:", project_root / '.env')
@@ -280,6 +327,27 @@ async def main(credentials=None, return_data=False, phone_number=None):
                                 # Verify we're logged in
                                 if "login" not in page.url:
                                     print("✅ Login successful!")
+
+                                    # Save session cookies for future use
+                                    if phone_number and email:
+                                        try:
+                                            cookies = await context.cookies()
+                                            # Reuse the sys.path setup from above if not already imported
+                                            try:
+                                                from services.cache_service import CacheService
+                                            except ImportError:
+                                                import sys
+                                                import os as os_module  # Avoid scope conflicts
+                                                server_path = os_module.path.join(os_module.path.dirname(__file__), '../server')
+                                                if server_path not in sys.path:
+                                                    sys.path.append(server_path)
+                                                from services.cache_service import CacheService
+
+                                            CacheService.set_browser_session(phone_number, email, cookies, ttl=3600)  # 1 hour
+                                            print(f"💾 Saved browser session for {phone_number}")
+                                        except Exception as session_error:
+                                            print(f"⚠️ Failed to save session: {session_error}")
+
                                 else:
                                     print("⚠️ Still on login page, may have failed")
                             
@@ -291,7 +359,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
             ensure_logged_in(page)  
         
         # The scraper can now proceed assuming it's logged in.
-        print("Opening cart...")
+        print(f"🛒 Opening cart... (elapsed: {time.time() - start_time:.1f}s)")
         
         # Prefer a cart button that isn’t inside any dialog
         cart_btn = page.locator("body > div:not([role='dialog']) >> div.cart-button.ml-auto.cursor-pointer").first
@@ -299,11 +367,27 @@ async def main(credentials=None, return_data=False, phone_number=None):
         if await cart_btn.is_visible():
             print("✅ Cart button is visible and not in a modal. Clicking it.")
             await cart_btn.click()
-            await page.wait_for_timeout(get_timeout(3000))  # Wait for cart to open (increased for reliability)
+
+            # Smart wait: Look for cart articles to appear (indicates cart has loaded)
+            try:
+                await page.wait_for_selector("article[class*='cart-order_cartOrderItem']", timeout=5000)
+                print("✅ Cart loaded - found cart articles")
+            except:
+                # Fallback timeout if cart articles not found
+                await page.wait_for_timeout(get_timeout(2000))  # Reduced from 3000ms
+                print("⚠️ Using fallback timeout for cart load")
         else:
             print("❌ Cart button not found or not visible. Trying direct navigation.")
             await page.goto("https://farmtopeople.com/cart")
-            await page.wait_for_timeout(get_timeout(3000))  # Wait after direct nav (increased for reliability)
+
+            # Smart wait: Look for cart articles after direct navigation
+            try:
+                await page.wait_for_selector("article[class*='cart-order_cartOrderItem']", timeout=5000)
+                print("✅ Cart page loaded - found cart articles")
+            except:
+                # Fallback timeout if cart articles not found
+                await page.wait_for_timeout(get_timeout(2000))  # Reduced from 3000ms
+                print("⚠️ Using fallback timeout for cart page load")
 
         # First, get individual cart items (non-customizable items like eggs, avocados, etc.)
         print("🔍 Checking for individual cart items...")
@@ -353,21 +437,80 @@ async def main(credentials=None, return_data=False, phone_number=None):
                         except:
                             quantity = 1
                 
-                # Try to get unit info and producer/farm name
+                # Try to get unit info and producer/farm name with enhanced detection
                 unit_info = ""
                 producer = ""
-                unit_elements = await article.locator("p").all()
-                for unit_elem in unit_elements:
-                    unit_text = (await unit_elem.text_content()).strip()
-                    if unit_text and not unit_text.startswith("$"):
-                        # Check if this is a farm/producer name
-                        if any(word in unit_text for word in ['Farm', 'Farms', 'Acres', 'Ranch', 'Creamery', 'Dairy', 'Orchard', 'Grove']):
-                            producer = unit_text
-                        # Otherwise it might be unit info (like "1 dozen" or "2 pieces")
-                        elif ("people" not in unit_text.lower() and 
-                              len(unit_text) < 50 and 
-                              not producer):  # Only set unit if we haven't found it yet
+
+                # First, try specific producer selectors
+                producer_selectors = [
+                    "a[href*='/farms/']",           # Direct farm links
+                    "a[href*='/producers/']",       # Producer links
+                    "a[href*='/growers/']",         # Grower links
+                    "p[class*='producer'] a",       # Producer class with link
+                    "p[class*='farm'] a",           # Farm class with link
+                    ".producer-name",               # CSS class for producer
+                    ".farm-name",                   # CSS class for farm
+                    "[data-producer]",              # Data attribute
+                    "[title*='Farm']",              # Title attribute with 'Farm'
+                    "[title*='Producer']",          # Title attribute with 'Producer'
+                ]
+
+                for selector in producer_selectors:
+                    try:
+                        producer_elem = article.locator(selector).first
+                        if await producer_elem.count() > 0:
+                            producer_text = (await producer_elem.text_content()).strip()
+                            if producer_text and len(producer_text) > 2:  # Valid producer name
+                                producer = producer_text
+                                print(f"    🏪 Found producer via {selector}: {producer}")
+                                break
+                    except:
+                        continue
+
+                # If no producer found via specific selectors, try text-based detection
+                if not producer:
+                    unit_elements = await article.locator("p, span, div, a").all()
+                    for unit_elem in unit_elements:
+                        unit_text = (await unit_elem.text_content()).strip()
+                        if unit_text and not unit_text.startswith("$") and len(unit_text) < 100:
+                            # Check if this is a farm/producer name (expanded patterns)
+                            farm_indicators = [
+                                'Farm', 'Farms', 'Acres', 'Ranch', 'Creamery', 'Dairy', 'Orchard', 'Grove',
+                                'Co.', 'Company', 'Bros', 'Brothers', 'Sons', 'Valley', 'Hills', 'Gardens',
+                                'Organics', 'Organic', 'Family', 'Heritage', 'Fresh', 'Natural', 'Estate',
+                                'Harvest', 'Growers', 'Market', 'Meadow', 'Ridge', 'Creek', 'Mountain',
+                                'Cooperative', 'Coop', 'Collective', 'Union', 'Association', 'Group',
+                                'Local', 'Community', 'Artisan', 'Pasture', 'Grass', 'Free Range',
+                                'Sustainable', 'Homestead', 'Woods', 'Fields', 'Barn', 'Mill'
+                            ]
+
+                            # Look for "from [Farm Name]" pattern
+                            if unit_text.lower().startswith('from '):
+                                producer = unit_text[5:]  # Remove "from " prefix
+                                print(f"    🏪 Found producer via 'from' pattern: {producer}")
+                                break
+                            # Look for farm indicators
+                            elif any(word in unit_text for word in farm_indicators):
+                                producer = unit_text
+                                print(f"    🏪 Found producer via farm indicators: {producer}")
+                                break
+                            # Look for patterns like "by [Farm Name]"
+                            elif unit_text.lower().startswith('by '):
+                                producer = unit_text[3:]  # Remove "by " prefix
+                                print(f"    🏪 Found producer via 'by' pattern: {producer}")
+                                break
+
+                # Get unit info from remaining elements (if no producer found in them)
+                if not unit_info:
+                    unit_elements = await article.locator("p").all()
+                    for unit_elem in unit_elements:
+                        unit_text = (await unit_elem.text_content()).strip()
+                        if (unit_text and not unit_text.startswith("$") and
+                            unit_text != producer and  # Don't use producer text as unit
+                            "people" not in unit_text.lower() and
+                            len(unit_text) < 50):
                             unit_info = unit_text
+                            break
                 
                 individual_item = {
                     "name": item_name,
@@ -389,7 +532,7 @@ async def main(credentials=None, return_data=False, phone_number=None):
         print(f"🛒 Found {len(individual_items)} individual cart items")
         
         # Check for non-customizable boxes (like Seasonal Fruit Medley)
-        print("🔍 Checking for non-customizable boxes...")
+        print(f"🔍 Checking for non-customizable boxes... (elapsed: {time.time() - start_time:.1f}s)")
         non_customizable_boxes = []
         
         for article in articles:
@@ -476,12 +619,15 @@ async def main(credentials=None, return_data=False, phone_number=None):
         print(f"📦 Found {len(non_customizable_boxes)} non-customizable boxes")
 
         # Get all CUSTOMIZE buttons
+        print(f"🎯 Processing customizable boxes... (elapsed: {time.time() - start_time:.1f}s)")
         customize_btns = await page.locator("button:has-text('CUSTOMIZE'), button:has-text('Customize')").all()
-        
+
+        print(f"🔍 Found {len(customize_btns)} customizable boxes to process")
         all_box_data = []
         
         for i, customize_btn in enumerate(customize_btns):
             try:
+                print(f"📦 Processing customizable box {i+1}/{len(customize_btns)}... (elapsed: {time.time() - start_time:.1f}s)")
                 # Get box name and price from the parent article
                 article = customize_btn.locator("xpath=ancestor::article").first
                 box_name = "Unknown Box"
@@ -558,6 +704,21 @@ async def main(credentials=None, return_data=False, phone_number=None):
                         modal_present = await page.locator("aside[aria-label*='Customize']").count() > 0
                         if modal_present:
                             print("✅ Customize modal opened successfully")
+
+                            # Wait for modal content to fully load (Farm to People loads dynamically)
+                            await page.wait_for_timeout(3000)
+
+                            # DEBUG: Uncomment below for diagnostic logging when debugging stale data:
+                            # modal = page.locator("aside[aria-label*='Customize']").first
+                            # articles = await modal.locator("article[aria-label]").all()
+                            # print(f"🔍 Found {len(articles)} items in modal")
+                            # for i, article in enumerate(articles[:3]):
+                            #     name = await article.get_attribute("aria-label")
+                            #     print(f"  Item {i+1}: {name}")
+                            # nectarine_count = await modal.locator("article[aria-label*='Nectarine']").count()
+                            # peach_count = await modal.locator("article[aria-label*='Peach']").count()
+                            # print(f"📊 Modal check - Nectarines: {nectarine_count}, Peaches: {peach_count}")
+
                             box_data = await scrape_customize_modal(page)
                             break  # Success, exit retry loop
                         else:
@@ -622,23 +783,78 @@ async def main(credentials=None, return_data=False, phone_number=None):
                 text_content = await elem.text_content()
                 text = text_content.strip() if text_content else ""
                 # Skip empty or very long texts
-                if not text or len(text) > 200:
+                if not text or len(text) > 500:
                     continue
-                    
+
                 # Look for month names to find delivery date
-                if any(month in text for month in ['January', 'February', 'March', 'April', 'May', 'June', 
+                if any(month in text for month in ['January', 'February', 'March', 'April', 'May', 'June',
                                                    'July', 'August', 'September', 'October', 'November', 'December',
-                                                   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                                   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                                                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']):
-                    delivery_info['delivery_text'] = text
-                    print(f"  📅 Found delivery info: {text}")
-                    found_date = True
-                    break  # Take first match
-                    
-                # Also check for "Deliver" keyword with dates
+
+                    # Extract just the delivery date part using regex
+                    import re
+
+                    # Try multiple patterns to extract delivery date
+                    patterns = [
+                        r'Shopping for:\s*([A-Za-z]+,\s*[A-Za-z]+\s*\d+,\s*\d+:\d+[AP]M\s*-\s*\d+:\d+[AP]M)',  # "Shopping for: Wed, Sep 17, 10:00AM - 3:00PM"
+                        r'([A-Za-z]+,\s*[A-Za-z]+\s*\d+,\s*\d+:\d+[AP]M\s*-\s*\d+:\d+[AP]M)',  # "Wed, Sep 17, 10:00AM - 3:00PM"
+                        r'([A-Za-z]+\s*\d+,\s*\d+:\d+[AP]M\s*-\s*\d+:\d+[AP]M)',  # "Sep 17, 10:00AM - 3:00PM"
+                        r'([A-Za-z]+,\s*[A-Za-z]+\s*\d+)',  # "Wed, Sep 17"
+                        r'([A-Za-z]+\s*\d+)',  # "Sep 17"
+                    ]
+
+                    extracted_date = None
+                    for pattern in patterns:
+                        match = re.search(pattern, text)
+                        if match:
+                            extracted_date = match.group(1).strip()
+                            print(f"  📅 Extracted delivery date: '{extracted_date}' from: '{text[:100]}...'")
+                            break
+
+                    # Use extracted date if found, otherwise use original text (but truncated)
+                    if extracted_date:
+                        delivery_info['delivery_text'] = extracted_date
+                        print(f"  ✅ Using extracted date for comparison: '{extracted_date}'")
+                        found_date = True
+                        break
+                    else:
+                        # Fallback: use original text but warn about potential parsing issues
+                        delivery_info['delivery_text'] = text
+                        print(f"  ⚠️ Could not extract clean date, using full text: {text[:100]}...")
+                        found_date = True
+                        break
+
+                # Also check for "Deliver" keyword with dates and apply same extraction
                 elif 'deliver' in text.lower() and any(char.isdigit() for char in text):
-                    delivery_info['delivery_text'] = text
-                    print(f"  📅 Found delivery mention: {text}")
+                    print(f"  📅 Found delivery mention: {text[:100]}...")
+
+                    # Apply same regex extraction for delivery mentions
+                    import re
+                    patterns = [
+                        r'Shopping for:\s*([A-Za-z]+,\s*[A-Za-z]+\s*\d+,\s*\d+:\d+[AP]M\s*-\s*\d+:\d+[AP]M)',  # "Shopping for: Wed, Sep 17, 10:00AM - 3:00PM"
+                        r'([A-Za-z]+,\s*[A-Za-z]+\s*\d+,\s*\d+:\d+[AP]M\s*-\s*\d+:\d+[AP]M)',  # "Wed, Sep 17, 10:00AM - 3:00PM"
+                        r'([A-Za-z]+\s*\d+,\s*\d+:\d+[AP]M\s*-\s*\d+:\d+[AP]M)',  # "Sep 17, 10:00AM - 3:00PM"
+                        r'([A-Za-z]+,\s*[A-Za-z]+\s*\d+)',  # "Wed, Sep 17"
+                        r'([A-Za-z]+\s*\d+)',  # "Sep 17"
+                    ]
+
+                    extracted_date = None
+                    for pattern in patterns:
+                        match = re.search(pattern, text)
+                        if match:
+                            extracted_date = match.group(1).strip()
+                            print(f"  📅 Extracted delivery date from 'deliver' mention: '{extracted_date}' from: '{text[:100]}...'")
+                            break
+
+                    # Use extracted date if found, otherwise use original text
+                    if extracted_date:
+                        delivery_info['delivery_text'] = extracted_date
+                        print(f"  ✅ Using extracted date for comparison: '{extracted_date}'")
+                    else:
+                        delivery_info['delivery_text'] = text
+                        print(f"  ⚠️ Could not extract clean date from deliver mention, using full text: {text[:100]}...")
+
                     found_date = True
                     break
                     
@@ -696,10 +912,14 @@ async def main(credentials=None, return_data=False, phone_number=None):
                 # Decision logic for saving cart data
                 should_save = False
                 save_reason = ""
-                
+
                 existing_cart = supabase_client.get_latest_cart_data(phone_number)
-                
-                if cart_status['status'] == 'active':
+
+                # Force save overrides all other logic (when user explicitly clicks "Refresh Cart")
+                if force_save:
+                    should_save = True
+                    save_reason = "Force save requested - user explicitly refreshed cart"
+                elif cart_status['status'] == 'active':
                     if cart_status.get('should_backup_soon'):
                         # Cart is about to lock - definitely save
                         should_save = True
@@ -710,14 +930,52 @@ async def main(credentials=None, return_data=False, phone_number=None):
                         save_reason = "No existing cart data - saving first capture"
                     else:
                         # Cart is active but not about to lock, and we have existing data
-                        # Check if this looks like the same week's cart
-                        stored_delivery = existing_cart.get('delivery_date', '')
-                        if stored_delivery == delivery_date_text:
+                        # Check if this looks like the same week's cart by comparing dates properly
+                        try:
+                            stored_delivery = existing_cart.get('delivery_date', '')
+
+                            # Parse both dates to compare them properly
+                            current_parsed_date = parse_delivery_date(delivery_date_text)
+                            stored_parsed_date = None
+
+                            if stored_delivery:
+                                try:
+                                    # Handle different stored date formats
+                                    if 'T' in stored_delivery:  # ISO format from database
+                                        # Use datetime from top-level import to avoid scope issues
+                                        stored_parsed_date = datetime.fromisoformat(stored_delivery.replace('Z', '+00:00'))
+                                        print(f"✅ Parsed stored delivery date: {stored_parsed_date}")
+                                    else:  # Text format
+                                        stored_parsed_date = parse_delivery_date(stored_delivery)
+                                        print(f"✅ Parsed stored delivery date via parse_delivery_date: {stored_parsed_date}")
+                                except Exception as date_error:
+                                    print(f"⚠️ Could not parse stored delivery date: {stored_delivery} - Error: {date_error}")
+                                    stored_parsed_date = None
+
+                            # Compare dates (ignore time, just compare the date part)
+                            dates_match = False
+                            current_is_newer = False
+
+                            if current_parsed_date and stored_parsed_date:
+                                dates_match = current_parsed_date.date() == stored_parsed_date.date()
+                                current_is_newer = current_parsed_date.date() > stored_parsed_date.date()
+
+                            if dates_match:
+                                should_save = True
+                                save_reason = "Same delivery date - updating cart data"
+                            elif current_is_newer:
+                                should_save = True
+                                save_reason = f"Newer delivery date detected - updating to latest cart"
+                            else:
+                                should_save = False
+                                save_reason = f"Different delivery date (stored: '{stored_delivery}' vs current: '{delivery_date_text}') - preserving existing data"
+
+                        except Exception as date_comparison_error:
+                            # If ANY part of date comparison fails, default to saving fresh data
+                            print(f"🚨 Date comparison completely failed: {date_comparison_error}")
+                            print("🔄 Defaulting to saving fresh cart data since comparison failed")
                             should_save = True
-                            save_reason = "Same delivery date - updating cart data"
-                        else:
-                            should_save = False
-                            save_reason = f"Different delivery date (stored: '{stored_delivery}' vs current: '{delivery_date_text}') - preserving existing data"
+                            save_reason = "Date comparison failed - saving fresh cart data"
                 
                 elif cart_status['status'] == 'locked':
                     # Cart is locked - don't overwrite, this is likely next week's cart

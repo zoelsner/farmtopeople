@@ -227,6 +227,73 @@ class CacheService:
         return None
 
     @staticmethod
+    def set_browser_session(phone: str, email: str, cookies: list, ttl: int = 3600):
+        """Cache browser session cookies for login persistence."""
+        if not redis_client:
+            return
+
+        try:
+            import hashlib
+            email_hash = hashlib.md5(email.lower().encode()).hexdigest()[:8]
+            session_key = f"browser_session:{phone}:{email_hash}"
+
+            session_data = {
+                "cookies": cookies,
+                "email": email,
+                "created_at": datetime.now().isoformat()
+            }
+
+            redis_client.setex(
+                session_key,
+                ttl,
+                json.dumps(session_data)
+            )
+            print(f"✅ Cached browser session for {phone} ({ttl//60} min TTL)")
+        except Exception as e:
+            print(f"⚠️ Session cache set error: {e}")
+
+    @staticmethod
+    def get_browser_session(phone: str, email: str) -> Optional[dict]:
+        """Get cached browser session."""
+        if not redis_client:
+            return None
+
+        try:
+            import hashlib
+            email_hash = hashlib.md5(email.lower().encode()).hexdigest()[:8]
+            session_key = f"browser_session:{phone}:{email_hash}"
+
+            cached = redis_client.get(session_key)
+            if cached:
+                session_data = json.loads(cached)
+                # Validate email matches (security check)
+                if session_data.get('email') == email:
+                    print(f"✅ Retrieved cached browser session for {phone}")
+                    return session_data
+                else:
+                    print(f"🚨 Session email mismatch for {phone} - invalidating")
+                    redis_client.delete(session_key)
+        except Exception as e:
+            print(f"⚠️ Session cache get error: {e}")
+
+        return None
+
+    @staticmethod
+    def invalidate_browser_session(phone: str, email: str):
+        """Invalidate cached browser session."""
+        if not redis_client:
+            return
+
+        try:
+            import hashlib
+            email_hash = hashlib.md5(email.lower().encode()).hexdigest()[:8]
+            session_key = f"browser_session:{phone}:{email_hash}"
+            redis_client.delete(session_key)
+            print(f"🗑️ Invalidated browser session for {phone}")
+        except Exception as e:
+            print(f"⚠️ Session invalidation error: {e}")
+
+    @staticmethod
     def get_stats():
         """Get cache statistics."""
         if not redis_client:

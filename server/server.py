@@ -1138,8 +1138,8 @@ async def get_saved_cart(force_refresh: bool = False):
                     print(f"⚡ Serving cart-only from Redis cache for {phone_number}{meals_msg}")
                     return {
                         "cart_data": cached_cart,
-                        "delivery_date": None,  # Redis doesn't store delivery date yet
-                        "scraped_at": "cached",
+                        "delivery_date": cached_cart.get('delivery_date'),  # Get delivery date from cart data
+                        "scraped_at": cached_cart.get('scraped_timestamp', "cached"),
                         "from_cache": True,
                         "cache_type": "redis_cart_only",
                         "swaps": [],
@@ -1171,6 +1171,7 @@ async def get_saved_cart(force_refresh: bool = False):
     except Exception as e:
         print(f"Error retrieving saved cart: {e}")
         return {"error": str(e)}
+
 
 @app.post("/api/analyze-cart")
 async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
@@ -1279,12 +1280,31 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                                 # Don't fail completely - maybe stored cart has data
                         
                         if email and password:
-                            print(f"🛒 Running live scraper for {email}")
+                            print(f"🛒 Starting live scraper for {email} (force_refresh={force_refresh})")
                             # Run the actual scraper with return_data=True (properly isolated from async context)
                             credentials = {'email': email, 'password': password}
-                            
-                            # Use async scraper directly with normalized phone
-                            cart_data = await run_cart_scraper(credentials, return_data=True, phone_number=normalized_phone)
+
+                            # Add timeout and comprehensive logging
+                            import asyncio
+                            try:
+                                print(f"⏱️ Starting scraper with 120 second timeout...")
+                                # Use async scraper directly with normalized phone
+                                cart_data = await asyncio.wait_for(
+                                    run_cart_scraper(
+                                        credentials,
+                                        return_data=True,
+                                        phone_number=normalized_phone,
+                                        force_save=force_refresh  # Pass force_refresh to ensure database save
+                                    ),
+                                    timeout=120.0  # 2 minute timeout
+                                )
+                                print(f"✅ Scraper completed successfully after timeout protection")
+                            except asyncio.TimeoutError:
+                                print(f"⏰ Scraper timed out after 120 seconds - using fallback data")
+                                cart_data = None
+                            except Exception as scraper_error:
+                                print(f"❌ Scraper failed with error: {scraper_error}")
+                                cart_data = None
                             
                             if cart_data:
                                 print("✅ Successfully scraped live cart data!")
@@ -1313,9 +1333,8 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                                         else:
                                             print("⚠️ Stored cart also has no customizable boxes")
                             else:
-                                # Scraper returned no data
-                                print("⚠️ Scraper returned no data.")
-                            
+                                # Scraper returned no data or timed out - use fallback
+                                print("⚠️ Scraper returned no data or timed out.")
                                 if stored_cart and stored_cart.get('cart_data'):
                                     print("✅ Using previously stored cart data as fallback")
                                     cart_data = stored_cart['cart_data']
@@ -1323,8 +1342,8 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                                     # Return error if no data available
                                     return {
                                         "success": False,
-                                        "error": "No cart data available. Please check your Farm to People account.",
-                                        "debug_info": "Scraper failed and no stored data found"
+                                        "error": "Scraper timed out and no stored cart data available. Please try again or check your Farm to People account.",
+                                        "debug_info": "Scraper timeout/failure and no stored data found"
                                     }
                         else:
                             # Return error instead of mock data
@@ -1553,7 +1572,9 @@ IMPORTANT: Each addon MUST have a category field with one of these values:
             "addons": addons,
             "meals": meals,  # Include meals in response
             "fresh_scrape": fresh_scrape,  # Flag for frontend to clear localStorage
-            "force_refresh": force_refresh  # Echo back for debugging
+            "force_refresh": force_refresh,  # Echo back for debugging
+            "delivery_date": cart_data.get('delivery_date') if cart_data else None,  # Include delivery date in cache
+            "scraped_at": cart_data.get('scraped_timestamp') if cart_data else None  # Include timestamp
         }
 
         # CRITICAL: Cache complete response to Redis (includes swaps & addons)
