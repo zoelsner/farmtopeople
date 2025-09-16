@@ -71,6 +71,114 @@ def build_api_params(model_name, max_tokens_value, temperature_value=None):
     return params
 
 
+def calculate_possible_meals(proteins: List[str]) -> int:
+    """
+    Calculate how many complete meals can realistically be made from proteins.
+
+    Args:
+        proteins: List of protein items with quantities
+
+    Returns:
+        Number of realistic meals (1-4)
+    """
+    if not proteins:
+        return 0
+
+    meal_count = 0
+
+    for protein in proteins:
+        protein_lower = protein.lower()
+
+        # Individual protein sources = 1 meal each
+        if any(single_protein in protein_lower for single_protein in [
+            'chicken breast', 'salmon', 'bass', 'steak', 'pork chop'
+        ]):
+            meal_count += 1
+
+        # Ground meats - 1 lb = 2 meals, 0.5 lb = 1 meal
+        elif 'ground' in protein_lower or 'turkey' in protein_lower:
+            if '1 lb' in protein_lower or 'pound' in protein_lower:
+                meal_count += 2
+            else:
+                meal_count += 1  # Default conservative estimate
+
+        # Eggs - dozen can support multiple meals but count as 1 protein source
+        elif 'egg' in protein_lower:
+            meal_count += 1
+
+        else:
+            # Default: assume each protein item = 1 meal
+            meal_count += 1
+
+    # Cap at realistic maximum for current system
+    return min(meal_count, 4)
+
+
+def has_snack_potential(ingredients: Dict[str, List[str]]) -> bool:
+    """
+    Determine if remaining ingredients can make meaningful snacks.
+
+    Args:
+        ingredients: Dict with proteins, vegetables, other_items
+
+    Returns:
+        True if snack-worthy ingredients remain
+    """
+    # Check for snack-friendly items
+    snack_indicators = [
+        'egg',        # deviled eggs, egg salad
+        'avocado',    # avocado toast, guacamole
+        'tomato',     # bruschetta, salsa
+        'cheese',     # cheese board
+        'fruit',      # fruit salad
+        'berry',      # mixed berries
+        'nut'         # trail mix
+    ]
+
+    all_ingredients = ingredients.get('proteins', []) + ingredients.get('vegetables', []) + ingredients.get('other_items', [])
+
+    for item in all_ingredients:
+        item_lower = item.lower()
+        if any(snack_ingredient in item_lower for snack_ingredient in snack_indicators):
+            return True
+
+    return False
+
+
+def calculate_remaining_after_meals(cart_data: Dict[str, Any], used_meals: List[Dict[str, Any]]) -> Dict[str, List[str]]:
+    """
+    Calculate what ingredients remain after allocating to specific meals.
+
+    Args:
+        cart_data: Original cart data
+        used_meals: List of meals that have been allocated
+
+    Returns:
+        Dict of remaining ingredients
+    """
+    # For Phase 1, return simplified remaining calculation
+    # In Phase 2, we'll implement proper ingredient tracking
+
+    original = extract_ingredients_from_cart(cart_data)
+
+    # Simple heuristic: if we used N meals, assume major proteins are taken
+    # Leave smaller items and vegetables for snacks
+    remaining_proteins = []
+    remaining_vegetables = original['vegetables'].copy()
+    remaining_other = original['other_items'].copy()
+
+    # Keep eggs and small proteins for snacks
+    for protein in original['proteins']:
+        if 'egg' in protein.lower():
+            remaining_proteins.append(protein)
+
+    return {
+        'proteins': remaining_proteins,
+        'vegetables': remaining_vegetables,
+        'other_items': remaining_other
+    }
+
+
 def extract_ingredients_from_cart(cart_data: Dict[str, Any]) -> Dict[str, List[str]]:
     """
     Extract and categorize ingredients from cart data WITH QUANTITY INFORMATION.
@@ -143,7 +251,7 @@ def extract_ingredients_from_cart(cart_data: Dict[str, Any]) -> Dict[str, List[s
     }
 
 
-def build_meal_prompt(ingredients: Dict[str, List[str]], preferences: Dict[str, Any]) -> str:
+def build_meal_prompt(ingredients: Dict[str, List[str]], preferences: Dict[str, Any], meal_count: int = 4) -> str:
     """
     Build GPT prompt for meal generation based on ingredients and preferences.
     
@@ -231,7 +339,7 @@ CRITICAL QUANTITY & SERVING RULES:
    - Create meal names that reflect the actual ingredients available
    - Each meal should be substantial and satisfying for the household size
 
-Return 4 meal suggestions focusing on dinner meals.
+Return {meal_count} meal suggestions focusing on dinner meals.
 
 When possible, align with their preferences while respecting ingredient quantities.
 Prioritize variety but don't sacrifice realism for the sake of using every ingredient.
@@ -251,102 +359,236 @@ Format as JSON:
     return prompt
 
 
+def build_snack_prompt(ingredients: Dict[str, List[str]], preferences: Dict[str, Any]) -> str:
+    """
+    Build GPT prompt for snack generation using remaining ingredients.
+
+    Args:
+        ingredients: Dict with remaining proteins, vegetables, other_items
+        preferences: User preferences dict
+
+    Returns:
+        Formatted prompt string for GPT snack generation
+    """
+    household_size = preferences.get('household_size', '2 people')
+    dietary_restrictions = preferences.get('dietary_restrictions', [])
+
+    prompt = f"""Create 1-2 quick SNACKS using these remaining ingredients:
+
+AVAILABLE INGREDIENTS:
+PROTEINS: {', '.join(ingredients['proteins']) if ingredients['proteins'] else 'none'}
+VEGETABLES: {', '.join(ingredients['vegetables']) if ingredients['vegetables'] else 'none'}
+OTHER ITEMS: {', '.join(ingredients['other_items']) if ingredients['other_items'] else 'none'}
+
+SNACK REQUIREMENTS:
+- Quick prep time (under 20 minutes)
+- Under 20g protein per serving (snack-sized portions)
+- Household size: {household_size}
+- Dietary restrictions: {', '.join(dietary_restrictions) if dietary_restrictions else 'None'}
+- Use only ingredients listed above
+- Creative but simple preparations
+
+Examples of good snacks:
+- Deviled eggs (if eggs available)
+- Vegetable chips with dip
+- Quick salad or bruschetta
+- Fruit/veggie combination
+- Simple appetizer
+
+Format as JSON:
+[{{
+  "name": "Snack Name",
+  "time": "X min",
+  "protein_per_serving": X,
+  "servings": 2,
+  "type": "snack",
+  "ingredients_used": ["list", "of", "ingredients"],
+  "description": "Brief preparation method"
+}}]"""
+
+    return prompt
+
+
 async def generate_meals(cart_data: Dict[str, Any], preferences: Dict[str, Any] = None) -> Dict[str, Any]:
     """
-    Generate meal suggestions from cart data and preferences.
-    
+    Generate smart meal suggestions: realistic meal count + snacks with remaining ingredients.
+
     Args:
         cart_data: Cart data dict
         preferences: User preferences dict (optional)
-        
+
     Returns:
-        Dict with success status and meals array or error
+        Dict with success status and meals array (meals + snacks) or error
     """
     try:
-        print(f"🍽️ Starting meal generation...")
-        
+        print(f"🍽️ Starting SMART meal generation... (NEW LOGIC v2)")
+
         # Extract ingredients
         ingredients = extract_ingredients_from_cart(cart_data)
+
+        # Step 1: Calculate realistic meal count
+        possible_meal_count = calculate_possible_meals(ingredients['proteins'])
+        actual_meal_count = min(possible_meal_count, 4)  # Cap at 4 for now
+
+        print(f"📊 Smart analysis: Can make {possible_meal_count} meals from proteins, generating {actual_meal_count}")
+        print(f"  ✅ Proteins available: {len(ingredients['proteins'])} items")
+        print(f"  ✅ Will generate: {actual_meal_count} complete meals")
         
-        total = len(ingredients['proteins']) + len(ingredients['vegetables']) + len(ingredients['other_items'])
-        print(f"📊 Found {total} total ingredients")
-        print(f"  ✅ Proteins: {ingredients['proteins'][:3]}...")
-        print(f"  ✅ Vegetables: {ingredients['vegetables'][:3]}...")
-        print(f"  ✅ Other: {ingredients['other_items'][:3]}...")
-        
-        # Build prompt
-        prompt = build_meal_prompt(ingredients, preferences or {})
-        
-        # Call GPT
-        openai_key = os.getenv("OPENAI_API_KEY")
-        if not openai_key:
-            return {"success": False, "error": "OpenAI API key not configured"}
-        
-        client = openai.OpenAI(api_key=openai_key)
-        print(f"📝 [MEAL API DEBUG] Generated prompt length: {len(prompt)} characters")
-        if preferences:
-            print(f"📝 [MEAL API DEBUG] Preferences:", {
-                'household_size': preferences.get('household_size'),
-                'dietary_restrictions': preferences.get('dietary_restrictions'),
-                'health_goals': preferences.get('goals'),
-                'cooking_methods': preferences.get('cooking_methods')
-            })
+        # Step 2: Generate complete meals first
+        if actual_meal_count > 0:
+            meal_prompt = build_meal_prompt(ingredients, preferences or {}, actual_meal_count)
 
-        print(f"🤖 Calling {AI_MODEL} for meal generation...")
-        api_start_time = time.time()
+            # Call GPT for meals
+            openai_key = os.getenv("OPENAI_API_KEY")
+            if not openai_key:
+                return {"success": False, "error": "OpenAI API key not configured"}
 
-        # Build parameters compatible with the specific model
-        # Use higher token limit for GPT-5 to account for reasoning tokens
-        token_limit = 2000 if AI_MODEL.lower().startswith("gpt-5") else 800
-        api_params = build_api_params(AI_MODEL, max_tokens_value=token_limit, temperature_value=0.7)
-        print(f"📝 [MEAL API DEBUG] Using token limit: {token_limit} for {AI_MODEL}")
+            client = openai.OpenAI(api_key=openai_key)
+            print(f"🤖 Calling {AI_MODEL} for {actual_meal_count} meal generation...")
+            api_start_time = time.time()
 
-        response = client.chat.completions.create(
-            model=AI_MODEL,
-            messages=[
-                {"role": "system", "content": "You are a creative chef who specializes in making delicious meals from specific available ingredients. Always return valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            **api_params
-        )
+            # Build parameters for meals
+            token_limit = 2000 if AI_MODEL.lower().startswith("gpt-5") else 800
+            api_params = build_api_params(AI_MODEL, max_tokens_value=token_limit, temperature_value=0.7)
 
-        api_response_time = time.time() - api_start_time
-        print(f"⏱️ [MEAL API DEBUG] {AI_MODEL} API call took: {api_response_time:.2f} seconds")
+            response = client.chat.completions.create(
+                model=AI_MODEL,
+                messages=[
+                    {"role": "system", "content": "You are a creative chef who specializes in making delicious meals from specific available ingredients. Always return valid JSON."},
+                    {"role": "user", "content": meal_prompt}
+                ],
+                **api_params
+            )
 
-        # Parse response
-        gpt_response = response.choices[0].message.content.strip()
-        print(f"📥 [MEAL API DEBUG] Raw GPT response length: {len(gpt_response)} characters")
-        print(f"📥 [MEAL API DEBUG] Raw GPT response preview: {gpt_response[:200]}...")
-        
-        # Clean up response
-        if "```json" in gpt_response:
-            gpt_response = gpt_response.split("```json")[1].split("```")[0].strip()
-        elif "```" in gpt_response:
-            gpt_response = gpt_response.split("```")[1].strip()
-        
-        # Parse JSON
-        meals = json.loads(gpt_response)
+            api_response_time = time.time() - api_start_time
+            print(f"⏱️ [MEAL API DEBUG] {AI_MODEL} meal generation took: {api_response_time:.2f} seconds")
 
-        # Map protein_per_serving to protein for frontend compatibility
-        for meal in meals:
-            if 'protein_per_serving' in meal and 'protein' not in meal:
-                meal['protein'] = meal['protein_per_serving']
+            # Parse meal response
+            gpt_response = response.choices[0].message.content.strip()
+            print(f"📥 [MEAL API DEBUG] Raw meals response length: {len(gpt_response)} characters")
 
-        print(f"✅ Generated {len(meals)} meal suggestions")
-        print(f"🍽️ [MEAL API DEBUG] Final meals:", [
-            {
-                'name': meal.get('name', 'Unknown'),
-                'protein': meal.get('protein', 'Unknown'),
-                'time': meal.get('time', 'Unknown'),
-                'servings': meal.get('servings', 'Unknown')
-            } for meal in meals
-        ])
+            # Clean up response
+            if "```json" in gpt_response:
+                gpt_response = gpt_response.split("```json")[1].split("```")[0].strip()
+            elif "```" in gpt_response:
+                gpt_response = gpt_response.split("```")[1].strip()
+
+            # Parse JSON
+            meals = json.loads(gpt_response)
+
+            # Add type field, ensure protein compatibility, and categorize by protein content
+            for i, meal in enumerate(meals):
+                # Ensure protein field exists
+                if 'protein_per_serving' in meal and 'protein' not in meal:
+                    meal['protein'] = meal['protein_per_serving']
+
+                # Categorize as meal or snack based on cooking time/complexity, not just protein
+                cook_time = meal.get('time', '').lower()
+                meal_name = meal.get('name', '').lower()
+
+                # Extract time in minutes
+                time_minutes = 0
+                if 'min' in cook_time:
+                    try:
+                        time_minutes = int(''.join(filter(str.isdigit, cook_time.split('min')[0])))
+                    except:
+                        time_minutes = 0
+
+                # Snack indicators: quick prep (<20 min), no cooking words, snack-like names
+                snack_indicators = [
+                    time_minutes < 20 and time_minutes > 0,  # Quick prep time
+                    any(word in meal_name for word in ['slice', 'cup', 'plate', 'mix', 'blend', 'raw', 'bowl', 'parfait', 'smoothie']),
+                    any(word in cook_time for word in ['no cook', 'assembly', 'mix', 'combine', 'layer']),
+                    'yogurt' in meal_name or 'berries' in meal_name or 'fruit' in meal_name  # Common snack ingredients
+                ]
+
+                # Meal indicators: longer cook time, cooking methods mentioned
+                meal_indicators = [
+                    time_minutes >= 20,  # Longer cook time
+                    any(word in meal_name for word in ['roast', 'sear', 'grill', 'braise', 'stir-fry', 'skillet', 'pan'])
+                ]
+
+                # Default to meal unless clear snack indicators
+                if any(snack_indicators) and not any(meal_indicators):
+                    meal['type'] = 'snack'
+                else:
+                    meal['type'] = 'meal'
+
+                meal['id'] = i
+
+                protein_amount = meal.get('protein', 0)
+                print(f"  📊 {meal.get('name', 'Unknown')}: {protein_amount}g protein, {cook_time} → {meal['type']}")
+
+            print(f"✅ Generated {len(meals)} complete meals")
+        else:
+            meals = []
+            print(f"⚠️ No proteins available for complete meals")
+
+        # Step 3: Generate snacks with remaining ingredients
+        snacks = []
+        remaining = calculate_remaining_after_meals(cart_data, meals)
+
+        if has_snack_potential(remaining) and len(meals) < 4:
+            print(f"🍿 Generating snacks with remaining ingredients...")
+
+            snack_prompt = build_snack_prompt(remaining, preferences or {})
+
+            # Call GPT for snacks
+            snack_response = client.chat.completions.create(
+                model=AI_MODEL,
+                messages=[
+                    {"role": "system", "content": "You are a creative chef who makes quick, healthy snacks. Always return valid JSON."},
+                    {"role": "user", "content": snack_prompt}
+                ],
+                **api_params
+            )
+
+            snack_gpt_response = snack_response.choices[0].message.content.strip()
+
+            # Clean and parse snack response
+            if "```json" in snack_gpt_response:
+                snack_gpt_response = snack_gpt_response.split("```json")[1].split("```")[0].strip()
+            elif "```" in snack_gpt_response:
+                snack_gpt_response = snack_gpt_response.split("```")[1].strip()
+
+            try:
+                snacks = json.loads(snack_gpt_response)
+
+                # Add IDs and ensure type is set
+                for i, snack in enumerate(snacks):
+                    snack['type'] = 'snack'
+                    snack['id'] = len(meals) + i
+                    if 'protein_per_serving' in snack and 'protein' not in snack:
+                        snack['protein'] = snack['protein_per_serving']
+
+                print(f"✅ Generated {len(snacks)} snacks")
+            except json.JSONDecodeError:
+                print(f"⚠️ Could not parse snack suggestions, continuing with meals only")
+                snacks = []
+
+        # Combine meals and snacks
+        all_suggestions = meals + snacks
+
+        # Count actual meals vs snacks based on type field
+        actual_meals = [item for item in all_suggestions if item.get('type') == 'meal']
+        actual_snacks = [item for item in all_suggestions if item.get('type') == 'snack']
+
+        print(f"🍽️ SMART GENERATION COMPLETE:")
+        print(f"  📊 Total suggestions: {len(all_suggestions)}")
+        print(f"  🥘 Meals: {len(actual_meals)}")
+        print(f"  🍿 Snacks: {len(actual_snacks)}")
+
+        for item in all_suggestions:
+            print(f"    {item.get('type', 'unknown').upper()}: {item.get('name', 'Unknown')} ({item.get('protein', 'Unknown')}g protein)")
 
         return {
             "success": True,
-            "meals": meals
+            "meals": all_suggestions,  # Contains both meals and snacks
+            "meal_count": len(actual_meals),
+            "snack_count": len(actual_snacks),
+            "total_suggestions": len(all_suggestions)
         }
-        
+
     except json.JSONDecodeError as e:
         print(f"❌ JSON parsing error: {e}")
         return {
