@@ -486,11 +486,17 @@ async def generate_meals(cart_data: Dict[str, Any], preferences: Dict[str, Any] 
                 cook_time = meal.get('time', '').lower()
                 meal_name = meal.get('name', '').lower()
 
-                # Extract time in minutes
+                # Extract time in minutes - handle ranges like "10-12 min"
                 time_minutes = 0
                 if 'min' in cook_time:
                     try:
-                        time_minutes = int(''.join(filter(str.isdigit, cook_time.split('min')[0])))
+                        time_part = cook_time.split('min')[0].strip()
+                        if '-' in time_part:
+                            # Handle ranges: "10-12" → take first number "10"
+                            time_minutes = int(time_part.split('-')[0].strip())
+                        else:
+                            # Handle single numbers: "25" → 25
+                            time_minutes = int(''.join(filter(str.isdigit, time_part)))
                     except:
                         time_minutes = 0
 

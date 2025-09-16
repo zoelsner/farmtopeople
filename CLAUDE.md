@@ -44,6 +44,13 @@ open http://localhost:8000/dashboard-v3.html
 - ✅ **Protein in titles:** "38g protein" must be prominent under each meal name
 - ✅ NEVER use GPT-3.5 - use GPT-5 or gpt-4o-mini only
 
+### **🚨 CRITICAL: Smart Meal Generation & Frontend Debugging (Sept 16, 2025)**
+**Key learnings for meal categorization and UI updates:**
+- ⚠️ **Multiple updateMealSuggestions functions** - dashboard.html has TWO functions (lines 2713 & 3089). Line 3089 is the one actually used!
+- ⚠️ **Time parsing bug** - "10-12 min" was parsed as 1012 minutes. Fixed with range handling: `time_part.split('-')[0]`
+- ⚠️ **Backend categorization logic** - Based on cooking time (<20 min) AND ingredients (yogurt, cups, fruit) for snacks
+- ✅ **Complete implementation details** - See docs/MEAL_LOCKING_SYSTEM_PLAN.md for full Phase 1 documentation
+
 ### **🚨 CRITICAL: Cart Scraper Debugging Lessons (Sept 16, 2024)**
 **BEFORE adding complexity to fix stale data, check these first:**
 - ⚠️ **Variable scope conflicts** - Watch for `os`, `email`, `datetime` shadowing

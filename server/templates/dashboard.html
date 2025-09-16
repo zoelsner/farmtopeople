@@ -581,6 +581,26 @@
             z-index: 1000;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
+
+        /* Snack-specific styling */
+        .meal-card.snack {
+            background: #fff9c4; /* Light yellow background */
+            border-color: #fbbf24; /* Slightly more yellow border */
+        }
+
+        .meal-card.snack:hover {
+            border-color: #f59e0b;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+        }
+
+        .meal-card.snack .meal-name {
+            font-size: 0.95em; /* Slightly smaller for snacks */
+        }
+
+        .meal-card.snack .meal-meta {
+            color: #92400e; /* Darker yellow/brown for snack meta text */
+            font-size: 0.9em;
+        }
         
         .meal-header {
             display: flex;
@@ -2700,7 +2720,7 @@
                 // Add new meals with enhanced information
                 meals.forEach((meal, index) => {
                     const mealCard = document.createElement('div');
-                    mealCard.className = 'meal-card';
+                    mealCard.className = meal.type === 'snack' ? 'meal-card snack' : 'meal-card';
                     
                     // Build ingredients list if available
                     const ingredientsText = meal.ingredients_used && meal.ingredients_used.length > 0 
@@ -2713,10 +2733,14 @@
                     // Show how many dinners this makes
                     const servingsText = meal.makes_x_dinners || `Serves ${meal.servings || 2}`;
                     
+                    // Add type-specific emoji and formatting
+                    const typeIcon = meal.type === 'snack' ? '🍿' : '🥘';
+                    const typeLabel = meal.type === 'snack' ? 'Snack' : 'Meal';
+
                     mealCard.innerHTML = `
                         <div class="meal-header">
-                            <span class="meal-name">${meal.name}</span>
-                            <span class="meal-meta">${meal.time} • ${meal.protein}g protein • ${meal.type || 'Dinner'}</span>
+                            <span class="meal-name">${typeIcon} ${meal.name}</span>
+                            <span class="meal-meta">${meal.time} • ${meal.protein}g protein • ${typeLabel}</span>
                         </div>
                         <div class="meal-servings">${servingsText}</div>
                         ${ingredientsText}
@@ -3063,15 +3087,26 @@
         }
         
         function updateMealSuggestions(meals) {
-            const mealsHTML = meals.map((meal, index) => `
-                <div class="cart-item" style="background: #f0f8f0; border-left: 3px solid #4169E1;">
-                    <div class="item-details">
-                        <div class="item-name" style="color: #4169E1; font-weight: 600;">${meal.name}</div>
-                        <div class="item-meta">${meal.time} • ${meal.protein || '0'}g protein • ${meal.type || 'Dinner'}</div>
+            const mealsHTML = meals.map((meal, index) => {
+                // Determine if it's a snack
+                const isSnack = meal.type === 'snack';
+                const bgColor = isSnack ? '#f9f7f1' : '#f0f8f0';  // Subtle warm cream for snacks, green for meals
+                const borderColor = isSnack ? '#d6d3d1' : '#4169E1';  // Muted border for snacks, blue for meals
+                const textColor = isSnack ? '#b45309' : '#4169E1';  // Darker yellow-orange for snacks, blue for meals
+                const typeLabel = isSnack ? 'snack' : 'meal';
+
+                return `
+                    <div class="cart-item" style="background: ${bgColor}; border-left: 3px solid ${borderColor};">
+                        <div class="item-details">
+                            <div class="item-name" style="color: ${textColor}; font-weight: 600;">
+                                ${meal.name}
+                            </div>
+                            <div class="item-meta">${meal.time} • ${meal.protein || '0'}g protein • ${typeLabel}</div>
+                        </div>
+                        <div style="font-size: 12px; color: #6c757d;">Serves ${meal.servings || 2}</div>
                     </div>
-                    <div style="font-size: 12px; color: #6c757d;">Serves ${meal.servings || 2}</div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             document.getElementById('suggestedMeals').innerHTML = mealsHTML;
 
             // Also update Meals tab with the first meal if we have one
