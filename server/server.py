@@ -1099,13 +1099,30 @@ async def get_saved_cart(force_refresh: bool = False):
                     # Validate the cached response before serving it
                     cart_data = cached_response.get('cart_data')
                     if cart_data:
-                        customizable_boxes = cart_data.get('customizable_boxes', [])
                         has_valid_items = False
+
+                        # Check customizable boxes
+                        customizable_boxes = cart_data.get('customizable_boxes', [])
                         for box in customizable_boxes:
                             selected_items = box.get('selected_items', [])
                             if selected_items and len(selected_items) > 0:
                                 has_valid_items = True
                                 break
+
+                        # Check individual items if no customizable box items found
+                        if not has_valid_items:
+                            individual_items = cart_data.get('individual_items', [])
+                            if individual_items and len(individual_items) > 0:
+                                has_valid_items = True
+
+                        # Check non-customizable boxes if still no items found
+                        if not has_valid_items:
+                            non_customizable_boxes = cart_data.get('non_customizable_boxes', [])
+                            for box in non_customizable_boxes:
+                                selected_items = box.get('selected_items', [])
+                                if selected_items and len(selected_items) > 0:
+                                    has_valid_items = True
+                                    break
 
                         if has_valid_items:
                             # Get cached meals if not already in response
@@ -1986,6 +2003,216 @@ async def update_user_preferences(phone: str, request: Request):
         
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+# ===== MEAL LOCKING API ENDPOINTS =====
+
+@app.get("/api/meal-locks")
+async def get_meal_locks(phone: str):
+    """
+    Get meal lock status for a user.
+
+    Args:
+        phone: User's phone number (query parameter)
+
+    Returns:
+        JSON with lock status array and metadata
+    """
+    try:
+        from services.cache_service import CacheService
+
+        # Normalize phone number
+        from services.phone_service import normalize_phone
+        normalized_phone = normalize_phone(phone)
+
+        # Get meal locks data
+        meal_data = CacheService.get_meal_locks_data(normalized_phone)
+
+        if not meal_data:
+            return {
+                "success": True,
+                "locked_status": [],
+                "has_meals": False,
+                "message": "No meal data found"
+            }
+
+        return {
+            "success": True,
+            "locked_status": meal_data.get('locked_status', []),
+            "has_meals": len(meal_data.get('generated_meals', [])) > 0,
+            "meal_count": meal_data.get('meal_count', 0),
+            "snack_count": meal_data.get('snack_count', 0),
+            "generation_timestamp": meal_data.get('generation_timestamp'),
+            "generation_source": meal_data.get('generation_source', 'cart')
+        }
+
+    except Exception as e:
+        print(f"❌ Get meal locks error: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/meal-lock")
+async def toggle_meal_lock(request: Request):
+    """
+    Toggle lock status for a specific meal.
+
+    Request body:
+        {
+            "phone": "user_phone_number",
+            "index": 0,
+            "locked": true
+        }
+
+    Returns:
+        Success status and updated lock information
+    """
+    try:
+        from services.cache_service import CacheService
+        from services.phone_service import normalize_phone
+
+        body = await request.json()
+        phone = body.get('phone')
+        index = body.get('index')
+        locked = body.get('locked')
+
+        if not all([phone is not None, index is not None, locked is not None]):
+            return {"success": False, "error": "Missing required fields: phone, index, locked"}
+
+        # Normalize phone number
+        normalized_phone = normalize_phone(phone)
+
+        # Set the meal lock
+        success = CacheService.set_meal_lock(normalized_phone, int(index), bool(locked))
+
+        if success:
+            # Get updated lock status
+            lock_status = CacheService.get_meal_locks(normalized_phone)
+            locked_ingredients = CacheService.get_locked_ingredients(normalized_phone)
+
+            action = "locked" if locked else "unlocked"
+            print(f"✅ Meal {index} {action} for {normalized_phone}")
+
+            return {
+                "success": True,
+                "message": f"Meal {index} {action} successfully",
+                "locked_status": lock_status,
+                "locked_ingredients": locked_ingredients,
+                "action": action,
+                "index": index
+            }
+        else:
+            return {"success": False, "error": "Failed to update meal lock"}
+
+    except Exception as e:
+        print(f"❌ Toggle meal lock error: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@app.delete("/api/meal-locks")
+async def clear_meal_locks(phone: str):
+    """
+    Clear all meal locks for a user.
+
+    Args:
+        phone: User's phone number (query parameter)
+
+    Returns:
+        Success status
+    """
+    try:
+        from services.cache_service import CacheService
+        from services.phone_service import normalize_phone
+
+        # Normalize phone number
+        normalized_phone = normalize_phone(phone)
+
+        # Clear all locks
+        success = CacheService.clear_meal_locks(normalized_phone)
+
+        if success:
+            print(f"✅ Cleared all meal locks for {normalized_phone}")
+            return {
+                "success": True,
+                "message": "All meal locks cleared successfully",
+                "locked_status": []
+            }
+        else:
+            return {"success": False, "error": "Failed to clear meal locks"}
+
+    except Exception as e:
+        print(f"❌ Clear meal locks error: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/locked-ingredients")
+async def get_locked_ingredients(phone: str):
+    """
+    Get ingredients used by locked meals.
+
+    Args:
+        phone: User's phone number (query parameter)
+
+    Returns:
+        JSON with categorized locked ingredients
+    """
+    try:
+        from services.cache_service import CacheService
+        from services.phone_service import normalize_phone
+
+        # Normalize phone number
+        normalized_phone = normalize_phone(phone)
+
+        # Get locked ingredients
+        locked_ingredients = CacheService.get_locked_ingredients(normalized_phone)
+
+        return {
+            "success": True,
+            "locked_ingredients": locked_ingredients,
+            "total_locked": sum(len(category) for category in locked_ingredients.values())
+        }
+
+    except Exception as e:
+        print(f"❌ Get locked ingredients error: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/meal-locks-data")
+async def get_meal_locks_data(phone: str):
+    """
+    Get complete meal locks data structure for debugging/admin.
+
+    Args:
+        phone: User's phone number (query parameter)
+
+    Returns:
+        Complete meal locks data structure
+    """
+    try:
+        from services.cache_service import CacheService
+        from services.phone_service import normalize_phone
+
+        # Normalize phone number
+        normalized_phone = normalize_phone(phone)
+
+        # Get complete meal data
+        meal_data = CacheService.get_meal_locks_data(normalized_phone)
+
+        if meal_data:
+            return {
+                "success": True,
+                "meal_data": meal_data
+            }
+        else:
+            return {
+                "success": True,
+                "meal_data": None,
+                "message": "No meal locks data found"
+            }
+
+    except Exception as e:
+        print(f"❌ Get meal locks data error: {e}")
+        return {"success": False, "error": str(e)}
+
 
 if __name__ == "__main__":
     import uvicorn
