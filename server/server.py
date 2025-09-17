@@ -1152,16 +1152,28 @@ async def get_saved_cart(force_refresh: bool = False):
                     cached_meals = CacheService.get_meals(phone_number)
                     meals_msg = f" with {len(cached_meals)} meals" if cached_meals else " (no cached meals)"
 
+                    # Try to get cached swaps and addons from last successful scrape
+                    cached_response = CacheService.get_cart_response(phone_number)
+                    cached_swaps = []
+                    cached_addons = []
+
+                    if cached_response:
+                        cached_swaps = cached_response.get('swaps', [])
+                        cached_addons = cached_response.get('addons', [])
+                        swaps_msg = f" with {len(cached_swaps)} swaps" if cached_swaps else ""
+                        addons_msg = f" and {len(cached_addons)} add-ons" if cached_addons else ""
+                        print(f"✅ Found cached swaps/addons{swaps_msg}{addons_msg}")
+
                     print(f"⚡ Serving cart-only from Redis cache for {phone_number}{meals_msg}")
                     return {
                         "cart_data": cached_cart,
                         "delivery_date": cached_cart.get('delivery_date'),  # Get delivery date from cart data
                         "scraped_at": cached_cart.get('scraped_timestamp', "cached"),
                         "from_cache": True,
-                        "cache_type": "redis_cart_only",
-                        "swaps": [],
-                        "addons": [],
-                        "meals": cached_meals
+                        "cache_type": "redis_cart_fallback",
+                        "swaps": cached_swaps,  # Include cached swaps from last successful scrape
+                        "addons": cached_addons,  # Include cached addons from last successful scrape
+                        "meals": cached_meals or []  # Ensure meals is always an array
                     }
             except Exception as cache_error:
                 print(f"⚠️ Redis cache read failed: {cache_error}")
@@ -1400,6 +1412,25 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
         # Generate AI-powered swaps and add-ons based on preferences (2025-08-29)
         swaps = []
         addons = []
+
+        # Determine if fresh data was scraped (to trigger localStorage clear)
+        fresh_scrape = cart_data is not None and not regenerate_only
+
+        # If using stored cart data (fallback), try to get cached swaps and addons
+        if not fresh_scrape and normalized_phone:
+            try:
+                from services.cache_service import CacheService
+                cached_response = CacheService.get_cart_response(normalized_phone)
+                if cached_response:
+                    cached_swaps = cached_response.get('swaps', [])
+                    cached_addons = cached_response.get('addons', [])
+                    if cached_swaps or cached_addons:
+                        swaps = cached_swaps
+                        addons = cached_addons
+                        print(f"✅ Using cached swaps ({len(swaps)}) and addons ({len(addons)}) from last successful scrape")
+            except Exception as cache_error:
+                print(f"⚠️ Could not load cached swaps/addons: {cache_error}")
+                # Keep empty arrays as fallback
         
         # Get user preferences for personalized meal generation
         # IMPORTANT: This feeds into the Meals tab - consistent user lookup is critical
@@ -1545,9 +1576,6 @@ IMPORTANT: Each addon MUST have a category field with one of these values:
                 # Return empty swaps/addons rather than hardcoded ones
                 pass
         
-        # Determine if fresh data was scraped (to trigger localStorage clear)
-        fresh_scrape = cart_data is not None and not regenerate_only
-
         # Handle meal suggestions
         meals = None
         if fresh_scrape and cart_data and normalized_phone:

@@ -68,7 +68,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Your Meal Plan - Farm to People</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -3961,17 +3961,34 @@
 
         // Render meal suggestions in the grid
         function renderMealSuggestions(meals) {
-            const grid = document.getElementById('mealSuggestionsGrid');
-            if (!grid) {
-                console.error('❌ mealSuggestionsGrid not found - cannot render meals');
-                console.log('Available containers:',
-                    document.getElementById('simpleMealCardContainer') ? 'simpleMealCardContainer ✅' : 'simpleMealCardContainer ❌',
-                    document.getElementById('mealsSection') ? 'mealsSection ✅' : 'mealsSection ❌'
-                );
-                return;
-            }
+            console.log('🎨 Rendering meal suggestions with', meals.length, 'meals');
 
-            console.log('🎨 Rendering meal suggestions grid with', meals.length, 'meals');
+            // Try to find existing grid
+            let grid = document.getElementById('mealSuggestionsGrid');
+
+            // If not found, create it dynamically (for Meals tab)
+            if (!grid) {
+                console.log('⚠️ mealSuggestionsGrid not found - creating dynamically');
+                const container = document.getElementById('simpleMealCardContainer');
+                if (container) {
+                    // Clear any existing loading state
+                    const loadingState = container.querySelector('.meal-loading-state');
+                    if (loadingState) {
+                        loadingState.remove();
+                        console.log('🧹 Cleared loading state');
+                    }
+
+                    // Create the grid dynamically
+                    grid = document.createElement('div');
+                    grid.id = 'mealSuggestionsGrid';
+                    grid.className = 'meal-suggestions-grid';
+                    container.appendChild(grid);
+                    console.log('✅ Created mealSuggestionsGrid dynamically in Meals tab');
+                } else {
+                    console.error('❌ simpleMealCardContainer not found - cannot create grid');
+                    return;
+                }
+            }
 
             // Make sure the parent container is visible
             const container = document.getElementById('simpleMealCardContainer');
@@ -4182,12 +4199,24 @@
         function showMealLoadingState() {
             const container = document.getElementById('simpleMealCardContainer');
             if (container) {
-                container.innerHTML = `
+                // Check if grid exists, create if not
+                let grid = container.querySelector('#mealSuggestionsGrid');
+                if (!grid) {
+                    grid = document.createElement('div');
+                    grid.id = 'mealSuggestionsGrid';
+                    grid.className = 'meal-suggestions-grid';
+                    container.appendChild(grid);
+                    console.log('✅ Created mealSuggestionsGrid for loading state');
+                }
+
+                // Show loading in the grid, preserving container structure
+                grid.innerHTML = `
                     <div class="meal-loading-state" style="text-align: center; padding: 40px;">
                         <div class="spinner" style="margin: 0 auto 20px;"></div>
                         <p style="color: #666;">Loading your meal suggestions...</p>
                     </div>
                 `;
+                console.log('🔄 Showing loading state in grid (preserving container)');
             }
         }
 
