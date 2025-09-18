@@ -387,6 +387,7 @@ SNACK REQUIREMENTS:
 - Dietary restrictions: {', '.join(dietary_restrictions) if dietary_restrictions else 'None'}
 - Use only ingredients listed above
 - Creative but simple preparations
+- Do NOT use terms like "High-Protein" in names if protein is under 10g
 
 Examples of good snacks:
 - Deviled eggs (if eggs available)

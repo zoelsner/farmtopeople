@@ -25,14 +25,14 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    padding-bottom: calc(60px + env(safe-area-inset-bottom)); /* iPhone safe area - reduced for more content */
+    padding-bottom: calc(50px + env(safe-area-inset-bottom)); /* iPhone safe area - further reduced per user request */
     min-height: 100vh; /* Prevent content collapse */
 }
 
 /* Top Header */
 .header {
     background: white;
-    padding: 15px 20px; /* Reduced top/bottom padding for more content space */
+    padding: 12px 20px; /* Further reduced top/bottom padding per user request */
     border-bottom: 1px solid #e9ecef;
     position: sticky;
     top: 0;
