@@ -159,6 +159,16 @@
                 </div>
             </div>
 
+            <!-- Premium Add-Ons - MOVED HERE for logical flow: Meals → Swaps → Add-ons -->
+            <div class="cart-section" id="addonsSection">
+                <h3 class="section-header" style="display: flex; align-items: center;">
+                    <span style="font-size: 20px; margin-right: 8px;">+</span> Premium Add-Ons
+                </h3>
+                <div id="recommendedAddons">
+                    <!-- Add-on recommendations will be inserted here -->
+                </div>
+            </div>
+
             <!-- Cart Summary -->
             <div id="cartSummary" style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding: 0 20px;">
                 <!-- Summary counts will be inserted here -->
@@ -191,16 +201,6 @@
                 </h3>
                 <div id="nonCustomizableBoxes">
                     <!-- Non-customizable box data will be inserted here -->
-                </div>
-            </div>
-
-            <!-- Recommended Add-ons -->
-            <div class="cart-section" id="addonsSection">
-                <h3 class="section-header" style="display: flex; align-items: center;">
-                    <span style="font-size: 20px; margin-right: 8px;">+</span> Premium Add-Ons
-                </h3>
-                <div id="recommendedAddons">
-                    <!-- Add-on recommendations will be inserted here -->
                 </div>
             </div>
         </div>
@@ -824,6 +824,7 @@
         let statusInterval = null;
         let analysisTimeout = null;
         let isAnalyzing = false;
+        let currentAbortController = null; // Add AbortController for canceling requests
         let lastMealGenerationTime = 0;
         const MEAL_DEBOUNCE_TIMEOUT = 500; // 500ms debounce
         let mealGenerationTimeoutId = null;
@@ -930,8 +931,9 @@
             // Clear any existing timers to prevent duplicates
             clearAnalysisTimers();
 
-            // Set analyzing flag
+            // Set analyzing flag and create new AbortController
             isAnalyzing = true;
+            currentAbortController = new AbortController();
 
             // Clear ALL previous analysis data to prevent stale cache issues
             localStorage.removeItem('cartAnalysisData');
@@ -1063,6 +1065,7 @@
                 const response = await fetch('/api/analyze-cart', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
+                    signal: currentAbortController.signal, // Add abort signal
                     body: JSON.stringify({
                         phone: userPhone,
                         use_mock: false,  // Set to true to use mock data for testing
@@ -1101,7 +1104,14 @@
             } catch (error) {
                 clearAnalysisTimers();
                 isAnalyzing = false; // Reset analyzing flag on network error
-                // Show error message instead of mock data
+
+                // Handle abort error specifically (user canceled)
+                if (error.name === 'AbortError') {
+                    console.log('✅ Analysis canceled by user');
+                    return; // cancelAnalysis() already handles UI reset
+                }
+
+                // Show error message for other errors
                 showError('Network error: ' + error.message);
             }
         }
@@ -1125,16 +1135,35 @@
 
         // Cancel analysis and go back to start
         function cancelAnalysis() {
+            console.log('🚫 cancelAnalysis() called');
+
+            // Abort the current request if it exists
+            if (currentAbortController) {
+                console.log('📡 Aborting server request...');
+                currentAbortController.abort();
+                currentAbortController = null;
+            }
+
             // Clear all timers to prevent duplicates
             clearAnalysisTimers();
 
             // Reset analyzing flag
             isAnalyzing = false;
 
+            // Clean up any conflicting inline styles first (same as startAnalysis)
+            ['startSection', 'loadingSection', 'cartAnalysisSection'].forEach(id => {
+                const section = document.getElementById(id);
+                if (section) section.style.display = ''; // Clear inline styles
+            });
+
+            // Reset to start state with clean transitions
             currentState = 'start';
             document.getElementById('loadingSection').classList.remove('active');
+            document.getElementById('cartAnalysisSection').classList.remove('active');
             document.getElementById('startSection').classList.add('active');
             document.getElementById('headerSubtitle').textContent = 'Ready to analyze';
+
+            console.log('✅ Analysis canceled and UI reset to start');
         }
 
         // Go back to start from error state
@@ -1212,59 +1241,7 @@
             `;
         }
         
-        // DEPRECATED: Mock data function - no longer used
-        function showMockCartAnalysis() {
-            // Show error instead of mock data
-            showError('Mock data disabled. Please fix the real cart analysis.', 'Mock data was being shown because the real cart analysis failed.');
-            return;
-            
-            // Original mock data code (disabled)
-            const realCartData = {
-                individual_items: [
-                    {name: "Pasture Raised Eggs", quantity: 1, unit: "1 dozen", price: "$7.49", type: "individual"},
-                    {name: "Organic & Fair Trade Hass Avocados", quantity: 5, unit: "1 piece", price: "$12.50", type: "individual"},
-                    {name: "Organic & Fair Trade Bananas (Ripe)", quantity: 1, unit: "1 bunch", price: "$2.49", type: "individual"}
-                ],
-                customizable_boxes: [
-                    {
-                        box_name: "The Cook's Box - Paleo",
-                        selected_items: [
-                            {name: "Boneless, Skinless Chicken Breast", unit: ".7-1lb", producer: "Locust Point Farm"},
-                            {name: "Black Sea Bass", unit: "8.0 oz", producer: "Red's Best Seafood"},
-                            {name: "Local Yellow Peaches", unit: "2 pieces", producer: "Lancaster Farm Fresh Cooperative"},
-                            {name: "Organic Leaf Lettuce", unit: "1 head", producer: "Sun Sprout Farm"},
-                            {name: "Mixed Cherry Tomatoes", unit: "1 pint", producer: "Eagle Road Farm"},
-                            {name: "Lunchbox Peppers", unit: "12.0 oz", producer: "Sunny Harvest"},
-                            {name: "Organic Italian Eggplant", unit: "1 piece", producer: "Lancaster Farm Fresh Cooperative"},
-                            {name: "Unagi Cucumbers", unit: "2 pieces", producer: "Sunny Harvest"},
-                            {name: "Organic Green Zucchini", unit: "2 pieces", producer: "Sun Sprout Farm"}
-                        ],
-                        available_alternatives: [
-                            {name: "White Ground Turkey", unit: "1.0 Lbs", producer: "Koch's Turkey Farm"},
-                            {name: "Pork Kielbasa", unit: "1 Lbs", producer: "Autumn's Harvest"},
-                            {name: "Yellow Nectarines", unit: "2 pieces", producer: "Weaver's Orchard"},
-                            {name: "Red Onions", unit: "2 Lbs", producer: "Dagele Brothers Produce"},
-                            {name: "Yellow Onions", unit: "2.0 Lbs", producer: "Dagele Brothers Produce"}
-                        ],
-                        selected_count: 9,
-                        alternatives_count: 10
-                    }
-                ],
-                non_customizable_boxes: [
-                    {
-                        box_name: "Seasonal Fruit Medley",
-                        selected_items: [
-                            {name: "Prune Plums", unit: "1 Lbs"},
-                            {name: "Honeycrisp Apples", unit: "2 pieces"},
-                            {name: "Local Yellow Peaches", unit: "2 pieces"}
-                        ],
-                        selected_count: 3,
-                        customizable: false
-                    }
-                ]
-            };
-            FarmDashboard.Cart.showAnalysis(realCartData);
-        }
+        // Mock data function removed - no longer needed since real cart analysis is working
 
         // Helper function to clean duplicate producer names
         function cleanProducerName(producer) {

@@ -1744,6 +1744,20 @@ Return JSON format (generate appropriate suggestions based on cart):
                     from services.cache_service import CacheService
                     CacheService.set_meals(normalized_phone, meals, ttl=7200)
                     print(f"🔥 Cached {len(meals)} fresh meals to Redis")
+
+                    # Generate meal-aware add-ons after meals are created
+                    try:
+                        print(f"🔄 Generating meal-aware add-ons...")
+                        from services.meal_generator import generate_meal_addons
+                        addons = await generate_meal_addons(meals, cart_data, user_preferences)
+                        print(f"✅ Generated {len(addons)} meal-aware add-ons")
+                    except Exception as addon_error:
+                        print(f"⚠️ Error generating add-ons: {addon_error}")
+                        # Fallback to basic add-ons
+                        addons = [
+                            {"item": "Fresh Italian Parsley", "price": "$2.50", "reason": "Versatile herb for garnishing", "category": "produce"},
+                            {"item": "Fresh Lemons", "price": "$3.00", "reason": "Brightens any dish", "category": "produce"}
+                        ]
                 else:
                     print(f"⚠️ Failed to generate meals: {result.get('error', 'Unknown error')}")
             except Exception as meal_error:

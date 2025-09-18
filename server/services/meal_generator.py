@@ -761,6 +761,12 @@ async def generate_meal_addons(meals: List[Dict], cart_data: Dict, preferences: 
             print("⚠️ No meals found for add-on generation")
             return []
 
+        # PRIORITY 1: Check for protein gaps
+        protein_gap_addons = check_protein_gap(current_items, meal_names, preferences)
+        if protein_gap_addons:
+            print(f"🥩 Detected protein gap - suggesting {len(protein_gap_addons)} protein add-ons")
+            return protein_gap_addons
+
         # Build add-on prompt based on specific meals
         prompt = f"""You are suggesting 3 fresh add-on items that complement these specific meals:
 
@@ -825,3 +831,104 @@ IMPORTANT: Categories must be "produce", "protein", "dairy", or "pantry"."""
     except Exception as e:
         print(f"❌ Error generating meal add-ons: {e}")
         return []
+
+
+def check_protein_gap(current_items: List[str], meal_names: List[str], preferences: Dict = None) -> List[Dict]:
+    """
+    Check if cart has sufficient protein for planned meals.
+
+    Args:
+        current_items: List of current cart items
+        meal_names: List of planned meal names
+        preferences: User preferences for protein types
+
+    Returns:
+        List of protein add-on suggestions if gap detected, empty list otherwise
+    """
+    try:
+        # Count proteins in current cart
+        protein_count = 0
+        for item in current_items:
+            if is_protein_item(item):
+                protein_count += 1
+
+        meals_count = len(meal_names)
+
+        print(f"🥩 Protein analysis: {protein_count} proteins in cart, {meals_count} meals planned")
+
+        # If we have sufficient proteins (at least 1 per meal), no gap
+        if protein_count >= meals_count:
+            return []
+
+        # Calculate protein gap
+        protein_gap = meals_count - protein_count
+
+        # Get user's preferred protein types
+        preferred_proteins = get_preferred_proteins(preferences)
+
+        # Generate protein add-on suggestions
+        protein_addons = []
+
+        if protein_gap >= 1:
+            # Suggest primary protein
+            protein_addons.append({
+                "item": f"{preferred_proteins[0]} (2 servings)",
+                "price": "$12.99",
+                "reason": f"Complete protein for {protein_gap} meal{'s' if protein_gap > 1 else ''}",
+                "category": "protein"
+            })
+
+        if protein_gap >= 2:
+            # Suggest secondary protein for variety
+            protein_addons.append({
+                "item": f"{preferred_proteins[1]} (1-2 servings)",
+                "price": "$9.99",
+                "reason": "Add variety to your protein choices",
+                "category": "protein"
+            })
+
+        if protein_gap >= 3:
+            # Suggest quick protein option
+            protein_addons.append({
+                "item": "Farm Fresh Eggs (1 dozen)",
+                "price": "$6.99",
+                "reason": "Quick protein option for breakfasts or adding to meals",
+                "category": "protein"
+            })
+
+        return protein_addons[:3]  # Cap at 3 suggestions
+
+    except Exception as e:
+        print(f"❌ Error checking protein gap: {e}")
+        return []
+
+
+def is_protein_item(item_name: str) -> bool:
+    """Check if an item is a protein source."""
+    name = item_name.lower()
+    protein_keywords = [
+        'chicken', 'beef', 'turkey', 'pork', 'lamb', 'fish', 'salmon',
+        'tuna', 'cod', 'bass', 'steelhead', 'shrimp', 'egg', 'tofu',
+        'tempeh', 'seitan', 'beans', 'lentils', 'quinoa', 'sausage',
+        'kielbasa', 'bacon', 'ham', 'duck', 'goat', 'bison'
+    ]
+    return any(keyword in name for keyword in protein_keywords)
+
+
+def get_preferred_proteins(preferences: Dict = None) -> List[str]:
+    """Get user's preferred protein types based on dietary restrictions."""
+    if not preferences:
+        return ["Organic Chicken Breast", "Wild-Caught Salmon", "Grass-Fed Ground Beef"]
+
+    dietary_restrictions = preferences.get('dietary_restrictions', [])
+
+    # Handle vegetarian/vegan preferences
+    if 'vegetarian' in dietary_restrictions or 'vegan' in dietary_restrictions:
+        return ["Organic Extra-Firm Tofu", "Tempeh", "Black Beans"]
+
+    # Handle pescatarian
+    if 'pescatarian' in dietary_restrictions:
+        return ["Wild-Caught Salmon", "Fresh Cod Fillets", "Sustainable Shrimp"]
+
+    # Default omnivore options
+    return ["Organic Chicken Breast", "Wild-Caught Salmon", "Grass-Fed Ground Beef"]
