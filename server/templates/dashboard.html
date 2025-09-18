@@ -3417,7 +3417,7 @@
                 // Initialize calendar and meal locking interface when switching to meals tab
                 setTimeout(async () => {
                     initMealCalendar();
-                    await initializeMealLockingInterface(); // Initialize our new meal locking UI
+                    // await initializeMealLockingInterface(); // DISABLED: Causes competing views with syncMealsFromCart()
 
                     // Final safety check: if still no meals after initialization, generate them
                     if (!currentMealSuggestions || currentMealSuggestions.length === 0) {
@@ -3559,7 +3559,7 @@
 
                     if (data.meals && data.meals.length > 0) {
                         console.log('✅ Found meals from Redis cache:', data.meals.length, 'meals');
-                        populateMealLockingGrid(data.meals);
+                        renderMealSuggestions(data.meals);
                         // Sync lock status from Redis
                         FarmDashboard.MealLocking.syncFromRedis();
                         return;
@@ -3588,7 +3588,7 @@
                         const genData = await genResponse.json();
                         if (genData.success && genData.meals) {
                             console.log('✅ Generated', genData.meals.length, 'new meals');
-                            populateMealLockingGrid(genData.meals);
+                            renderMealSuggestions(genData.meals);
                             return;
                         }
                     }
@@ -4010,20 +4010,31 @@
             card.className = 'meal-suggestion-card';
             card.dataset.mealIndex = index;
 
-            // Extract ingredients used (if available)
-            const ingredientsText = meal.ingredients_used
-                ? meal.ingredients_used.slice(0, 3).join(', ') + (meal.ingredients_used.length > 3 ? '...' : '')
-                : 'Uses ingredients from your cart';
+            // Check lock status using existing MealLocking system
+            const isLocked = FarmDashboard.MealLocking && FarmDashboard.MealLocking.state
+                ? FarmDashboard.MealLocking.state.locked[index] || false
+                : false;
+
+            // Determine meal type for badge
+            const isSnack = meal.type === 'snack';
+            const typeLabel = isSnack ? '🍿 Snack' : '🥘 Meal';
 
             card.innerHTML = `
-                <div class="meal-card-title">${meal.name}</div>
-                <div class="meal-card-meta">
-                    <span class="meal-card-time">⏱️ ${meal.time}</span>
-                    <span class="meal-card-protein">💪 ${meal.protein}</span>
+                <div class="meal-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                    <div class="meal-card-title" style="font-size: 16px; font-weight: 600; line-height: 1.3; flex: 1; margin-right: 8px;">${meal.name}</div>
+                    <button onclick="FarmDashboard.MealLocking.toggleLock(${index})" style="background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px; opacity: 0.7; transition: opacity 0.2s;" title="${isLocked ? 'Unlock meal' : 'Lock meal'}">
+                        ${isLocked ? '🔒' : '🔓'}
+                    </button>
                 </div>
-                <div class="meal-card-ingredients">${ingredientsText}</div>
+                <div class="meal-card-badges" style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+                    <span style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">⏱️ ${meal.time}</span>
+                    <span style="background: #e8f5e8; color: #2e7d32; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">💪 ${meal.protein}</span>
+                    <span style="background: ${isSnack ? '#fff3e0' : '#f3e5f5'}; color: ${isSnack ? '#f57c00' : '#7b1fa2'}; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">${typeLabel}</span>
+                </div>
                 <div class="meal-card-actions">
-                    <button class="lock-button" onclick="lockMeal(${index})">🔒 Lock This Meal</button>
+                    <button onclick="regenerateSimpleMeal()" style="width: 100%; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 500; color: #555; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f5f5f5'">
+                        🔄 Regenerate
+                    </button>
                 </div>
             `;
 
