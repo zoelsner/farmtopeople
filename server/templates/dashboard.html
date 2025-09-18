@@ -132,11 +132,11 @@
                     <h3 class="section-header" style="margin: 0;">Suggested Meals</h3>
                     <div style="display: flex; gap: 8px;">
                         <button id="refreshSuggestionsButton" onclick="refreshSuggestions()"
-                                style="background: #faf8f2; color: #07261e; border: 1px solid #e6d8b5; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'" onmouseout="this.style.background='#faf8f2'">
+                                style="background: #faf8f2; color: #07261e; border: 1px solid #e6d8b5; border-radius: 8px; padding: 6px 14px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'" onmouseout="this.style.background='#faf8f2'">
                             ✨ New Suggestions
                         </button>
                         <button id="refreshCartButton" onclick="FarmDashboard.Cart.refreshCartData()"
-                                style="background: #faf8f2; color: #07261e; border: 1px solid #e6d8b5; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'" onmouseout="this.style.background='#faf8f2'">
+                                style="background: #faf8f2; color: #07261e; border: 1px solid #e6d8b5; border-radius: 8px; padding: 6px 14px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'" onmouseout="this.style.background='#faf8f2'">
                             🔄 Refresh Cart
                         </button>
                     </div>
@@ -239,7 +239,7 @@
                 <div class="meal-suggestions-header">
                     <h3>🍽️ Suggested Meals</h3>
                     <button id="generateMealsButton" class="regenerate-button" onclick="generateMealSuggestions()"
-                            style="background: #faf8f2; color: #07261e; border: 1px solid #e6d8b5; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'" onmouseout="this.style.background='#faf8f2'">
+                            style="background: #faf8f2; color: #07261e; border: 1px solid #e6d8b5; border-radius: 8px; padding: 6px 14px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'" onmouseout="this.style.background='#faf8f2'">
                         🔄 New Suggestions
                     </button>
                 </div>
@@ -2249,6 +2249,9 @@
             } finally {
                 button.disabled = false;
                 button.innerHTML = originalText;
+                // Reset button styling to prevent stuck highlighting
+                button.style.background = '#faf8f2';
+                button.style.color = '#07261e';
             }
         }
         
@@ -2273,6 +2276,9 @@
             } finally {
                 button.disabled = false;
                 button.innerHTML = originalText;
+                // Reset button styling to prevent stuck highlighting
+                button.style.background = '#faf8f2';
+                button.style.color = '#07261e';
             }
         }
         
@@ -3858,6 +3864,9 @@
             } finally {
                 button.textContent = originalText;
                 button.disabled = false;
+                // Reset button styling to prevent stuck highlighting
+                button.style.background = '#faf8f2';
+                button.style.color = '#07261e';
             }
         }
 
@@ -3934,7 +3943,7 @@
                     <span style="background: ${isSnack ? '#faf9f7' : '#f7f5f7'}; color: ${isSnack ? '#a67c52' : '#6b4c7a'}; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">${typeLabel}</span>
                 </div>
                 <div class="meal-card-actions">
-                    <button onclick="regenerateSimpleMeal()" style="width: 100%; background: #faf8f2; border: 1px solid #e6d8b5; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 500; color: #07261e; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'; this.style.color='#07261e'" onmouseout="this.style.background='#faf8f2'; this.style.color='#07261e'">
+                    <button onclick="regenerateSimpleMeal()" style="width: 100%; background: #faf8f2; border: 1px solid #e6d8b5; border-radius: 8px; padding: 8px; font-size: 14px; font-weight: 500; color: #07261e; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'; this.style.color='#07261e'" onmouseout="this.style.background='#faf8f2'; this.style.color='#07261e'">
                         🔄 Regenerate
                     </button>
                 </div>
