@@ -686,11 +686,24 @@
                 // Update UI for a specific lock
                 updateLockUI: function(index, locked) {
                     const card = document.querySelector(`[data-meal-index="${index}"]`);
-                    const lockBtn = card?.querySelector('.lock-btn');
+                    const lockBtn = card?.querySelector('button[onclick*="toggleLock"]');
 
-                    if (card && lockBtn) {
-                        lockBtn.textContent = locked ? '🔒' : '🔓';
-                        lockBtn.dataset.locked = locked.toString();
+                    if (card) {
+                        // Update lock button if found
+                        if (lockBtn) {
+                            lockBtn.textContent = locked ? '🔒' : '🔓';
+                            lockBtn.title = locked ? 'Unlock meal' : 'Lock meal';
+                        }
+
+                        // Update border color based on lock state
+                        if (locked) {
+                            card.style.borderColor = '#1976d2';  // Blue for locked
+                            card.style.backgroundColor = '#e3f2fd';  // Light blue background
+                        } else {
+                            card.style.borderColor = '#4169E1';  // Default blue for meals
+                            card.style.backgroundColor = '#f0f8f0';  // Default green background
+                        }
+
                         card.classList.toggle('locked', locked);
                     }
                 },
@@ -3860,7 +3873,7 @@
 
             } catch (error) {
                 console.error('❌ Error generating meal suggestions:', error);
-                alert('Failed to generate meal suggestions. Please try again.');
+                // Removed intrusive alert - errors are logged and handled gracefully
             } finally {
                 button.textContent = originalText;
                 button.disabled = false;
@@ -3937,10 +3950,10 @@
                         ${isLocked ? '🔒' : '🔓'}
                     </button>
                 </div>
-                <div class="meal-card-badges" style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
-                    <span style="background: #f8f6f0; color: #8b6914; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">⏱️ ${meal.time}</span>
-                    <span style="background: #f1f5f0; color: #4a5e3a; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">💪 ${meal.protein}</span>
-                    <span style="background: ${isSnack ? '#faf9f7' : '#f7f5f7'}; color: ${isSnack ? '#a67c52' : '#6b4c7a'}; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">${typeLabel}</span>
+                <div class="meal-card-badges" style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <span style="background: #f8f6f0; color: #8b6914; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; white-space: nowrap;">⏱️ ${meal.time}</span>
+                    <span style="background: #f1f5f0; color: #4a5e3a; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; white-space: nowrap;">💪 ${meal.protein}</span>
+                    <span style="background: ${isSnack ? '#faf9f7' : '#f7f5f7'}; color: ${isSnack ? '#a67c52' : '#6b4c7a'}; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; white-space: nowrap;">${typeLabel}</span>
                 </div>
                 <div class="meal-card-actions">
                     <button onclick="regenerateSimpleMeal()" style="width: 100%; background: #faf8f2; border: 1px solid #e6d8b5; border-radius: 8px; padding: 8px; font-size: 14px; font-weight: 500; color: #07261e; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'; this.style.color='#07261e'" onmouseout="this.style.background='#faf8f2'; this.style.color='#07261e'">
