@@ -723,3 +723,105 @@ Format:
             "success": False,
             "error": str(e)
         }
+
+
+async def generate_meal_addons(meals: List[Dict], cart_data: Dict, preferences: Dict = None) -> List[Dict]:
+    """
+    Generate add-on items that complement specific generated meals.
+
+    Args:
+        meals: List of generated meal suggestions
+        cart_data: Current cart contents (to avoid suggesting existing items)
+        preferences: User preferences for personalization
+
+    Returns:
+        List of add-on dictionaries
+    """
+    try:
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key:
+            print("⚠️ No OpenAI API key for add-on generation")
+            return []
+
+        client = openai.OpenAI(api_key=openai_key)
+
+        # Extract current cart items to avoid duplicates
+        current_items = []
+        for box in cart_data.get("customizable_boxes", []):
+            current_items.extend([item["name"] for item in box.get("selected_items", [])])
+        for box in cart_data.get("non_customizable_boxes", []):
+            current_items.extend([item["name"] for item in box.get("selected_items", [])])
+        for item in cart_data.get("individual_items", []):
+            current_items.append(item["name"])
+
+        # Extract meal names for context
+        meal_names = [meal.get('name', 'Unknown') for meal in meals if meal.get('type') == 'meal']
+
+        if not meal_names:
+            print("⚠️ No meals found for add-on generation")
+            return []
+
+        # Build add-on prompt based on specific meals
+        prompt = f"""You are suggesting 3 fresh add-on items that complement these specific meals:
+
+MEALS TO COMPLEMENT:
+{chr(10).join([f"• {name}" for name in meal_names])}
+
+CURRENT CART (DO NOT suggest these):
+{', '.join(current_items) if current_items else 'Empty cart'}
+
+Your task: Suggest 3 fresh add-ons that enhance these SPECIFIC dishes:
+- For stir-fries: fresh ginger, garlic, sesame oil, soy sauce
+- For salmon/fish: lemon, dill, capers, white wine
+- For roasted dishes: fresh rosemary, thyme, olive oil
+- For Italian dishes: basil, parmesan, balsamic vinegar
+- For Mexican dishes: lime, cilantro, jalapeños, avocado
+
+Guidelines:
+- Suggest items that directly enhance the cooking methods or cuisines mentioned
+- Fresh ingredients only (herbs, citrus, aromatics)
+- Price $2-8 per item (realistic Farm to People pricing)
+- Must complement at least one of the specific meals above
+
+Return JSON format:
+{{
+  "addons": [
+    {{"item": "Fresh Ginger Root", "price": "$3.50", "reason": "Perfect for your Turkey Stir-Fry - adds authentic Asian flavor", "category": "produce"}},
+    {{"item": "Fresh Lemon", "price": "$2.25", "reason": "Brightens your Salmon dish with citrus finish", "category": "produce"}},
+    {{"item": "Fresh Rosemary", "price": "$3.00", "reason": "Elevates your roasted potatoes with aromatic herbs", "category": "produce"}}
+  ]
+}}
+
+IMPORTANT: Categories must be "produce", "protein", "dairy", or "pantry"."""
+
+        # Use compatible API parameters
+        api_params = build_api_params(AI_MODEL, max_tokens_value=400)
+
+        response = client.chat.completions.create(
+            model=AI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a Farm to People chef expert. Suggest add-ons that complement specific meals. Always return valid JSON."},
+                {"role": "user", "content": prompt}
+            ],
+            **api_params
+        )
+
+        # Parse response
+        gpt_response = response.choices[0].message.content.strip()
+
+        # Extract JSON
+        import re
+        json_match = re.search(r'\{.*\}', gpt_response, re.DOTALL)
+        if json_match:
+            import json
+            result = json.loads(json_match.group())
+            addons = result.get("addons", [])
+            print(f"✅ Generated {len(addons)} meal-aware add-ons")
+            return addons
+        else:
+            print("⚠️ No JSON found in add-on response")
+            return []
+
+    except Exception as e:
+        print(f"❌ Error generating meal add-ons: {e}")
+        return []

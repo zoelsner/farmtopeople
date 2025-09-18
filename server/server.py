@@ -1202,6 +1202,134 @@ async def get_saved_cart(force_refresh: bool = False):
         return {"error": str(e)}
 
 
+async def generate_swaps_async(cart_data: dict, user_preferences: dict, normalized_phone: str) -> list:
+    """
+    Generate swaps asynchronously for parallel execution.
+
+    Args:
+        cart_data: Cart data containing selected items and alternatives
+        user_preferences: User preferences for personalization
+        normalized_phone: Normalized phone number for swap history
+
+    Returns:
+        List of swap suggestions
+    """
+    try:
+        import openai
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key:
+            print("⚠️ No OpenAI API key for swap generation")
+            return []
+
+        client = openai.OpenAI(api_key=openai_key)
+
+        # Build context for GPT-5
+        selected_items = []
+        available_alternatives = []
+
+        # Collect from customizable_boxes array
+        for box in cart_data.get("customizable_boxes", []):
+            selected_items.extend([item["name"] for item in box.get("selected_items", [])])
+            available_alternatives.extend([item["name"] for item in box.get("available_alternatives", [])])
+
+        # ALSO collect from non_customizable_boxes for customizable ones
+        for box in cart_data.get("non_customizable_boxes", []):
+            if box.get("customizable") or box.get("available_alternatives"):
+                selected_items.extend([item["name"] for item in box.get("selected_items", [])])
+                available_alternatives.extend([item["name"] for item in box.get("available_alternatives", [])])
+
+        # Extract key preferences
+        liked_meals = user_preferences.get('liked_meals', [])
+        cooking_methods = user_preferences.get('cooking_methods', [])
+        dietary_restrictions = user_preferences.get('dietary_restrictions', [])
+        health_goals = user_preferences.get('goals', [])
+
+        # Get household size for portion calculations
+        household_size = user_preferences.get('household_size', '1-2')
+        servings_needed = 2 if '1-2' in str(household_size) else 4 if '3-4' in str(household_size) else 6
+
+        # GET SWAP HISTORY to prevent ping-pong suggestions
+        recent_swaps = []
+        delivery_date = cart_data.get('delivery_date', '')
+        if normalized_phone and delivery_date:
+            try:
+                # Extract date from delivery string (format: 2025-09-18T14:00:00-04:00)
+                if 'T' in str(delivery_date):
+                    date_part = str(delivery_date).split('T')[0]
+                else:
+                    date_part = str(delivery_date)[:10]
+
+                recent_swaps = db.get_swap_history(normalized_phone, date_part, limit=5)
+                if recent_swaps:
+                    print(f"📋 Found {len(recent_swaps)} recent swaps for this delivery")
+            except Exception as swap_error:
+                print(f"⚠️ Could not retrieve swap history: {swap_error}")
+
+        prompt = f"""Analyze this Farm to People cart and suggest smart swaps.
+
+CURRENT CART:
+{', '.join(selected_items)}
+
+AVAILABLE ALTERNATIVES (can swap to these):
+{', '.join(available_alternatives)}
+
+USER PREFERENCES:
+- Household size: {household_size} (needs {servings_needed} servings per meal)
+- Liked meals: {', '.join(liked_meals[:5]) if liked_meals else 'Not specified'}
+- Cooking methods: {', '.join(cooking_methods) if cooking_methods else 'Any'}
+- Dietary restrictions: {', '.join(dietary_restrictions) if dietary_restrictions else 'None'}
+- Health goals: {', '.join(health_goals) if health_goals else 'None'}
+
+RECENT USER SWAPS (DO NOT REVERSE THESE):
+{[f"{swap['from_item']} → {swap['to_item']}" for swap in recent_swaps] if recent_swaps else ['None - this is the first analysis']}
+
+1. SWAPS: Suggest 1-5 swaps ONLY if they would SIGNIFICANTLY improve the cart:
+   - NEVER suggest reversing a recent swap shown above (critical rule!)
+   - Violates dietary restrictions (ALWAYS suggest swapping)
+   - Poor fit for health goals (high priority)
+   - Better matches preferred cuisine/cooking methods
+   - Improves protein variety across entire cart
+   - If current cart already aligns with preferences well, return EMPTY swaps array
+
+Return JSON format:
+{{
+  "swaps": [
+    {{"from": "item name", "to": "alternative name", "reason": "specific reason"}}
+  ]
+}}"""
+
+        # Build parameters compatible with the specific model
+        from services.meal_generator import build_api_params
+        token_limit = 1200 if AI_MODEL.lower().startswith("gpt-5") else 500
+        api_params = build_api_params(AI_MODEL, max_tokens_value=token_limit, temperature_value=0.7)
+
+        response = client.chat.completions.create(
+            model=AI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a Farm to People meal planning expert. Analyze carts and suggest smart improvements based on user preferences."},
+                {"role": "user", "content": prompt}
+            ],
+            **api_params
+        )
+
+        # Parse response (swaps only)
+        import json
+        import re
+        gpt_response = response.choices[0].message.content.strip()
+        json_match = re.search(r'\{.*\}', gpt_response, re.DOTALL)
+        if json_match:
+            result = json.loads(json_match.group())
+            swaps = result.get("swaps", [])
+            return swaps
+        else:
+            print("⚠️ No JSON found in swap response")
+            return []
+
+    except Exception as e:
+        print(f"❌ Error in async swap generation: {e}")
+        return []
+
+
 @app.post("/api/analyze-cart")
 async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
     """
@@ -1409,14 +1537,15 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                 "debug_info": "Cart data is None after all attempts"
             }
         
-        # Generate AI-powered swaps and add-ons based on preferences (2025-08-29)
-        swaps = []
-        addons = []
-
         # Determine if fresh data was scraped (to trigger localStorage clear)
         fresh_scrape = cart_data is not None and not regenerate_only
 
-        # If using stored cart data (fallback), try to get cached swaps and addons
+        # Initialize variables
+        swaps = []
+        meals = None
+        addons = []
+
+        # If using stored cart data (fallback), try to get cached data
         if not fresh_scrape and normalized_phone:
             try:
                 from services.cache_service import CacheService
@@ -1560,30 +1689,12 @@ First, analyze if the current cart already aligns well with the user's preferenc
    - If current cart already aligns with preferences well, return EMPTY swaps array
    - Quality over quantity: Better to suggest 0 swaps than random ones
 
-2. ADD-ONS: Suggest 2-3 FRESH ingredients that would complete meals:
-   - DO NOT suggest items already in the cart (check CURRENT CART above)
-   - Additional protein if there's not enough for multiple meals they want to make
-   - Fresh herbs for proteins (basil, cilantro, parsley, etc.)
-   - Consider ginger, garlic, fresh peppers for Asian dishes
-   - Fresh items that expire (no salt, oil, vinegar)
-   - Things that elevate or complete the dishes
-   - Be creative - suggest variety, not just lemons every time
-
 Return JSON format (generate appropriate suggestions based on cart):
 {{
   "swaps": [
     {{"from": "item name", "to": "alternative name", "reason": "specific reason"}}
-  ],
-  "addons": [
-    {{"item": "Fresh item name", "price": "$X.XX", "reason": "how it enhances their meals", "category": "produce/protein/dairy"}}
   ]
 }}
-
-IMPORTANT: Each addon MUST have a category field with one of these values:
-- "protein" (meats, fish, eggs)
-- "produce" (vegetables, fruits, herbs)
-- "dairy" (cheese, milk, yogurt)
-- "pantry" (oils, spices - but avoid these per instructions)
 """
 
                     # Build parameters compatible with the specific model
@@ -1601,7 +1712,7 @@ IMPORTANT: Each addon MUST have a category field with one of these values:
                         **api_params
                     )
                     
-                    # Parse response
+                    # Parse response (swaps only now)
                     import json
                     import re
                     gpt_response = response.choices[0].message.content.strip()
@@ -1609,8 +1720,7 @@ IMPORTANT: Each addon MUST have a category field with one of these values:
                     if json_match:
                         result = json.loads(json_match.group())
                         swaps = result.get("swaps", [])
-                        addons = result.get("addons", [])
-                        print(f"✅ Generated {len(swaps)} swaps and {len(addons)} add-ons via GPT-5")
+                        print(f"✅ Generated {len(swaps)} swaps via GPT-5")
                     
             except Exception as e:
                 print(f"⚠️ Could not generate AI swaps: {e}")
