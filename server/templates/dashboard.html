@@ -84,7 +84,7 @@
     <div class="header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <h1>Cart Analysis</h1>
+                <h1 style="font-size: 20px;">Cart Analysis</h1>
                 <p class="subtitle" id="headerSubtitle">Ready to analyze your cart</p>
             </div>
             <div id="deliveryDate" style="display: none; text-align: right;">
@@ -100,7 +100,7 @@
             <!-- Start Screen - Shows First -->
             <div class="start-screen section active" id="startSection">
             <div class="start-icon">📦</div>
-            <h2 class="start-title">Cart Analysis</h2>
+            <h2 class="start-title" style="font-size: 20px;">Cart Analysis</h2>
             <p class="start-description">
                 See what's in your Farm to People cart, suggested swaps, and add-ons.
             </p>
@@ -132,11 +132,11 @@
                     <h3 class="section-header" style="margin: 0;">Suggested Meals</h3>
                     <div style="display: flex; gap: 8px;">
                         <button id="refreshSuggestionsButton" onclick="refreshSuggestions()"
-                                style="background: #34C759; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                                style="background: #faf8f2; color: #07261e; border: 1px solid #e6d8b5; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'" onmouseout="this.style.background='#faf8f2'">
                             ✨ New Suggestions
                         </button>
                         <button id="refreshCartButton" onclick="FarmDashboard.Cart.refreshCartData()"
-                                style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                                style="background: #faf8f2; color: #07261e; border: 1px solid #e6d8b5; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'" onmouseout="this.style.background='#faf8f2'">
                             🔄 Refresh Cart
                         </button>
                     </div>
@@ -206,10 +206,10 @@
             <!-- Meals View - Weekly Meal Calendar -->
             <div class="meals-view section active" id="mealsSection">
             <div class="calendar-header">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <div>
-                        <h2 style="margin: 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">This Week's Meals</h2>
-                        <p style="color: #666; font-size: 15px; margin: 4px 0 0 0;" id="weekDisplay">Plan your Sunday-Thursday dinners</p>
+                        <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: #1a1a1a;">This Week's Meals</h2>
+                        <!-- Removed subtitle "Plan your Sunday-Thursday dinners" to reduce clutter -->
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <!-- Week navigation hidden for now - showing only current delivery week -->
@@ -238,7 +238,8 @@
                 <!-- Meal Suggestions (4 cards that can be locked) -->
                 <div class="meal-suggestions-header">
                     <h3>🍽️ Suggested Meals</h3>
-                    <button id="generateMealsButton" class="regenerate-button" onclick="generateMealSuggestions()">
+                    <button id="generateMealsButton" class="regenerate-button" onclick="generateMealSuggestions()"
+                            style="background: #faf8f2; color: #07261e; border: 1px solid #e6d8b5; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'" onmouseout="this.style.background='#faf8f2'">
                         🔄 New Suggestions
                     </button>
                 </div>
@@ -249,13 +250,7 @@
 
                 <!-- Locked Meals Section - REMOVED to eliminate competing views -->
 
-                <!-- Action buttons -->
-                <div class="meal-plan-actions">
-                    <button id="createFullPlan" class="analyze-button" onclick="FarmDashboard.Cart.startAnalysis(); switchTab('cart', document.getElementById('cartTab'));">
-                        Create Full Week Plan
-                    </button>
-                    <!-- Clear All Locks button - REMOVED to eliminate competing views -->
-                </div>
+                <!-- Action buttons - REMOVED: Create Full Week Plan button was redundant -->
             </div>
 
             <!-- Empty state -->
@@ -1134,26 +1129,45 @@
             const timestamp = cartData.scraped_timestamp;
             if (timestamp) {
                 const date = new Date(timestamp);
+
+                // Debug logging to understand timezone issues
+                console.log('🕐 Timestamp debug:', {
+                    raw: timestamp,
+                    date: date,
+                    userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    dateString: date.toString(),
+                    isoString: date.toISOString()
+                });
+
+                // Force local timezone interpretation
                 const formatted = date.toLocaleString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     hour: 'numeric',
                     minute: '2-digit',
-                    hour12: true
+                    hour12: true,
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
                 });
                 
                 // Add timestamp display near delivery date
                 const deliveryElem = document.getElementById('deliveryDate');
                 if (deliveryElem) {
-                    const timestampDiv = document.createElement('div');
-                    timestampDiv.style.fontSize = '11px';
-                    timestampDiv.style.color = '#888';
-                    timestampDiv.style.marginTop = '2px';
-                    timestampDiv.innerHTML = `<i>Cart updated: ${formatted}</i>`;
-                    
-                    // Add after delivery date text
+                    // First, remove any existing timestamp divs to prevent duplicates
                     const textElem = document.getElementById('deliveryDateText');
                     if (textElem && textElem.parentNode) {
+                        const existingTimestamps = textElem.parentNode.querySelectorAll('div[style*="font-size: 11px"]');
+                        existingTimestamps.forEach(div => {
+                            if (div.innerHTML.includes('Cart updated:')) {
+                                div.remove();
+                            }
+                        });
+
+                        // Now create and add the new timestamp
+                        const timestampDiv = document.createElement('div');
+                        timestampDiv.style.fontSize = '11px';
+                        timestampDiv.style.color = '#888';
+                        timestampDiv.style.marginTop = '2px';
+                        timestampDiv.innerHTML = `<i>Cart updated: ${formatted}</i>`;
                         textElem.parentNode.appendChild(timestampDiv);
                     }
                 }
