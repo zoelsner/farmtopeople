@@ -1454,31 +1454,67 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                 print(f"⚠️ Error loading preferences: {e}")
         
         # Use GPT-5 to generate smart swaps and add-ons
-        if cart_data and cart_data.get("customizable_boxes"):
+        # Check both arrays for boxes with alternatives (fixed from only checking customizable_boxes)
+        has_alternatives = False
+        if cart_data:
+            # Check customizable_boxes array
+            if cart_data.get("customizable_boxes"):
+                has_alternatives = True
+            # Also check non_customizable_boxes for boxes with alternatives
+            for box in cart_data.get("non_customizable_boxes", []):
+                if box.get("available_alternatives") or box.get("customizable"):
+                    has_alternatives = True
+                    break
+
+        if has_alternatives:
             try:
                 import openai
                 openai_key = os.getenv("OPENAI_API_KEY")
                 if openai_key:
                     client = openai.OpenAI(api_key=openai_key)
-                    
+
                     # Build context for GPT-5
                     selected_items = []
                     available_alternatives = []
-                    
+
+                    # Collect from customizable_boxes array
                     for box in cart_data.get("customizable_boxes", []):
                         selected_items.extend([item["name"] for item in box.get("selected_items", [])])
                         available_alternatives.extend([item["name"] for item in box.get("available_alternatives", [])])
-                    
+
+                    # ALSO collect from non_customizable_boxes for customizable ones
+                    for box in cart_data.get("non_customizable_boxes", []):
+                        if box.get("customizable") or box.get("available_alternatives"):
+                            selected_items.extend([item["name"] for item in box.get("selected_items", [])])
+                            available_alternatives.extend([item["name"] for item in box.get("available_alternatives", [])])
+
                     # Extract key preferences
                     liked_meals = user_preferences.get('liked_meals', [])
                     cooking_methods = user_preferences.get('cooking_methods', [])
                     dietary_restrictions = user_preferences.get('dietary_restrictions', [])
                     health_goals = user_preferences.get('goals', [])
-                    
+
                     # Get household size for portion calculations
                     household_size = user_preferences.get('household_size', '1-2')
                     servings_needed = 2 if '1-2' in str(household_size) else 4 if '3-4' in str(household_size) else 6
-                    
+
+                    # GET SWAP HISTORY to prevent ping-pong suggestions
+                    recent_swaps = []
+                    delivery_date = cart_data.get('delivery_date', '')
+                    if normalized_phone and delivery_date:
+                        try:
+                            # Extract date from delivery string (format: 2025-09-18T14:00:00-04:00)
+                            if 'T' in str(delivery_date):
+                                date_part = str(delivery_date).split('T')[0]
+                            else:
+                                date_part = str(delivery_date)[:10]
+
+                            recent_swaps = db.get_swap_history(normalized_phone, date_part, limit=5)
+                            if recent_swaps:
+                                print(f"📋 Found {len(recent_swaps)} recent swaps for this delivery")
+                        except Exception as swap_error:
+                            print(f"⚠️ Could not retrieve swap history: {swap_error}")
+
                     prompt = f"""Analyze this Farm to People cart and suggest smart swaps and fresh add-ons.
 
 CURRENT CART:
@@ -1493,6 +1529,9 @@ USER PREFERENCES:
 - Cooking methods: {', '.join(cooking_methods) if cooking_methods else 'Any'}
 - Dietary restrictions: {', '.join(dietary_restrictions) if dietary_restrictions else 'None'}
 - Health goals: {', '.join(health_goals) if health_goals else 'None'}
+
+RECENT USER SWAPS (DO NOT REVERSE THESE):
+{[f"{swap['from_item']} → {swap['to_item']}" for swap in recent_swaps] if recent_swaps else ['None - this is the first analysis']}
 
 IMPORTANT CONTEXT FOR ANALYSIS:
 - Portion sizes: 0.6-1lb chicken thighs serves 2 people for ONE meal only
@@ -1511,13 +1550,15 @@ First, analyze if the current cart already aligns well with the user's preferenc
 - If dietary restrictions are already satisfied, don't suggest unnecessary changes
 - If health goals are already met by current selections, minimize swaps
 
-1. SWAPS: Only suggest 1-3 swaps if they would SIGNIFICANTLY improve the cart based on:
-   - What goes better with other items in cart
-   - User's meal preferences (if they like chicken dishes but have pork, suggest swapping)
-   - Health goals (if eating healthy, suggest leaner proteins)
-   - Recipe compatibility
-   - Don't suggest swapping something they likely already chose intentionally
-   - IMPORTANT: If the current cart already matches user preferences well, return empty swaps array
+1. SWAPS: Suggest 1-5 swaps ONLY if they would SIGNIFICANTLY improve the cart:
+   - NEVER suggest reversing a recent swap shown above (critical rule!)
+   - Violates dietary restrictions (ALWAYS suggest swapping)
+   - Poor fit for health goals (high priority)
+   - Better matches preferred cuisine/cooking methods
+   - Improves protein variety across entire cart
+   - Better recipe compatibility with other ingredients
+   - If current cart already aligns with preferences well, return EMPTY swaps array
+   - Quality over quantity: Better to suggest 0 swaps than random ones
 
 2. ADD-ONS: Suggest 2-3 FRESH ingredients that would complete meals:
    - DO NOT suggest items already in the cart (check CURRENT CART above)

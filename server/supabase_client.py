@@ -363,3 +363,140 @@ def get_latest_cart_data(phone_number: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+# ==========================================
+# SWAP HISTORY FUNCTIONS
+# For tracking user cart changes and preventing ping-pong suggestions
+# ==========================================
+
+def save_swap_history(swap_data: Dict[str, Any]) -> bool:
+    """
+    Save a detected swap to the history table.
+
+    Args:
+        swap_data: Dict with phone, delivery_date, box_name, from_item, to_item
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        client = get_client()
+
+        # Prepare the data for insertion
+        insert_data = {
+            'phone': swap_data['phone'],
+            'delivery_date': swap_data['delivery_date'],
+            'box_name': swap_data.get('box_name'),
+            'from_item': swap_data['from_item'],
+            'to_item': swap_data['to_item']
+        }
+
+        result = client.table('swap_history').insert(insert_data).execute()
+
+        if result.data:
+            print(f"✅ Saved swap: {swap_data['from_item']} → {swap_data['to_item']} for {swap_data['phone']}")
+            return True
+        else:
+            print(f"⚠️ No data returned when saving swap")
+            return False
+
+    except Exception as e:
+        print(f"❌ Failed to save swap history: {e}")
+        return False
+
+
+def get_swap_history(phone_number: str, delivery_date: str, limit: int = 10) -> List[Dict[str, Any]]:
+    """
+    Get recent swap history for a user and delivery date.
+
+    Args:
+        phone_number: User's phone number
+        delivery_date: Delivery date (YYYY-MM-DD format)
+        limit: Maximum number of swaps to return
+
+    Returns:
+        List of swap dictionaries with from_item, to_item, box_name, detected_at
+    """
+    try:
+        client = get_client()
+
+        # Handle multiple phone formats (consistent with other functions)
+        phone_formats = [phone_number]
+        if phone_number.startswith('+1'):
+            phone_formats.append(phone_number[2:])  # Remove +1
+        elif phone_number.startswith('1') and len(phone_number) == 11:
+            phone_formats.append(phone_number[1:])  # Remove leading 1
+        elif not phone_number.startswith('+'):
+            phone_formats.append(f"+1{phone_number}")  # Add +1
+            if phone_number.startswith('1'):
+                phone_formats.append(f"+{phone_number}")  # Add just +
+
+        # Try each phone format
+        for phone_format in phone_formats:
+            result = client.table('swap_history')\
+                .select('*')\
+                .eq('phone', phone_format)\
+                .eq('delivery_date', delivery_date)\
+                .order('detected_at', desc=True)\
+                .limit(limit)\
+                .execute()
+
+            if result.data:
+                print(f"📋 Retrieved {len(result.data)} swap records for {phone_format}")
+                return result.data
+
+        # No swaps found with any format
+        print(f"📋 No swap history found for {phone_number} on {delivery_date}")
+        return []
+
+    except Exception as e:
+        print(f"❌ Failed to get swap history: {e}")
+        return []
+
+
+def get_recent_swaps_for_phone(phone_number: str, days: int = 7, limit: int = 20) -> List[Dict[str, Any]]:
+    """
+    Get all recent swaps for a user across all deliveries.
+
+    Args:
+        phone_number: User's phone number
+        days: Number of days to look back
+        limit: Maximum number of swaps to return
+
+    Returns:
+        List of swap dictionaries
+    """
+    try:
+        client = get_client()
+
+        # Calculate date threshold
+        from datetime import datetime, timedelta
+        threshold_date = datetime.now() - timedelta(days=days)
+
+        # Handle multiple phone formats
+        phone_formats = [phone_number]
+        if phone_number.startswith('+1'):
+            phone_formats.append(phone_number[2:])
+        elif not phone_number.startswith('+'):
+            phone_formats.append(f"+1{phone_number}")
+
+        # Try each phone format
+        for phone_format in phone_formats:
+            result = client.table('swap_history')\
+                .select('*')\
+                .eq('phone', phone_format)\
+                .gte('detected_at', threshold_date.isoformat())\
+                .order('detected_at', desc=True)\
+                .limit(limit)\
+                .execute()
+
+            if result.data:
+                print(f"📋 Retrieved {len(result.data)} recent swaps for {phone_format}")
+                return result.data
+
+        return []
+
+    except Exception as e:
+        print(f"❌ Failed to get recent swaps: {e}")
+        return []
+
+

@@ -218,6 +218,94 @@ async def scrape_customize_modal(page):
         "alternatives_count": len(available_alternatives)
     }
 
+
+def detect_and_store_swaps(phone_number, new_cart_data, delivery_date):
+    """
+    Detect swaps by comparing new cart with previous cart data.
+    Only detects clear 1:1 swaps (one item removed, one item added in same box).
+
+    Args:
+        phone_number: User's phone number
+        new_cart_data: New cart data from scraper
+        delivery_date: Delivery date string
+
+    Returns:
+        List of detected swap dictionaries
+    """
+    if not supabase_client:
+        print("⚠️ Supabase not available - skipping swap detection")
+        return []
+
+    try:
+        # Get previous cart data
+        previous_cart = supabase_client.get_latest_cart_data(phone_number)
+        if not previous_cart or not previous_cart.get('cart_data'):
+            print("📦 No previous cart data found - skipping swap detection")
+            return []
+
+        old_cart_data = previous_cart['cart_data']
+        detected_swaps = []
+
+        # Check each box type for swaps
+        for box_type in ['customizable_boxes', 'non_customizable_boxes']:
+            old_boxes = old_cart_data.get(box_type, [])
+            new_boxes = new_cart_data.get(box_type, [])
+
+            # Match boxes by name
+            for new_box in new_boxes:
+                box_name = new_box.get('box_name', '')
+                if not box_name:
+                    continue
+
+                # Find corresponding old box
+                old_box = None
+                for ob in old_boxes:
+                    if ob.get('box_name') == box_name:
+                        old_box = ob
+                        break
+
+                if not old_box:
+                    continue  # New box, no comparison possible
+
+                # Compare selected items
+                old_items = set()
+                new_items = set()
+
+                for item in old_box.get('selected_items', []):
+                    old_items.add(item.get('name', ''))
+
+                for item in new_box.get('selected_items', []):
+                    new_items.add(item.get('name', ''))
+
+                # Find differences
+                removed_items = old_items - new_items
+                added_items = new_items - old_items
+
+                # Clear 1:1 swaps only (keeps it simple)
+                if len(removed_items) == 1 and len(added_items) == 1:
+                    from_item = list(removed_items)[0]
+                    to_item = list(added_items)[0]
+
+                    if from_item and to_item:  # Make sure neither is empty
+                        swap_data = {
+                            'phone': phone_number,
+                            'delivery_date': delivery_date[:10] if isinstance(delivery_date, str) else str(delivery_date),  # Ensure YYYY-MM-DD format
+                            'box_name': box_name,
+                            'from_item': from_item,
+                            'to_item': to_item
+                        }
+
+                        # Save to database
+                        if supabase_client.save_swap_history(swap_data):
+                            detected_swaps.append(swap_data)
+
+        return detected_swaps
+
+    except Exception as e:
+        print(f"❌ Error in swap detection: {e}")
+        return []
+
+
 async def main(credentials=None, return_data=False, phone_number=None, force_save=False):
     """
     Main scraper function.
@@ -992,8 +1080,20 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                         save_reason = "Unknown cart status with existing data - preserving existing data"
                 
                 print(f"💭 Save decision: {save_reason}")
-                
+
                 if should_save:
+                    # DETECT SWAPS: Compare new cart with previous before saving
+                    try:
+                        detected_swaps = detect_and_store_swaps(phone_number, complete_results, delivery_date_text)
+                        if detected_swaps:
+                            print(f"🔄 Detected {len(detected_swaps)} cart swaps:")
+                            for swap in detected_swaps:
+                                print(f"   • {swap['from_item']} → {swap['to_item']} ({swap['box_name']})")
+                        else:
+                            print(f"🔄 No cart swaps detected")
+                    except Exception as swap_error:
+                        print(f"⚠️ Swap detection failed (non-critical): {swap_error}")
+
                     success = supabase_client.save_latest_cart_data(phone_number, complete_results, delivery_date_text)
                     if success:
                         print(f"💾 Cart data saved to database for {phone_number}")
