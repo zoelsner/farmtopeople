@@ -1090,9 +1090,11 @@
                 });
 
                 const data = await response.json();
-                clearAnalysisTimers();
                 const apiTime = Date.now() - apiCallStart;
                 console.log(`⏱️ [UI T+${Date.now() - uiStartTime}ms] API response received (took ${apiTime}ms)`);
+
+                // Clear timers BEFORE processing success to prevent race conditions
+                clearAnalysisTimers();
 
                 if (data.success) {
                     console.log('✅ Cart analysis API response received:', {
@@ -1145,6 +1147,7 @@
 
         // Helper function to clear all analysis timers
         function clearAnalysisTimers() {
+            // Clear global timers
             if (statusInterval) {
                 clearInterval(statusInterval);
                 statusInterval = null;
@@ -1152,6 +1155,24 @@
             if (analysisTimeout) {
                 clearTimeout(analysisTimeout);
                 analysisTimeout = null;
+            }
+
+            // Also clear FarmDashboard state timers if they exist
+            if (typeof FarmDashboard !== 'undefined' && FarmDashboard.state) {
+                if (FarmDashboard.state.statusInterval) {
+                    clearInterval(FarmDashboard.state.statusInterval);
+                    FarmDashboard.state.statusInterval = null;
+                }
+                if (FarmDashboard.state.analysisTimeout) {
+                    clearTimeout(FarmDashboard.state.analysisTimeout);
+                    FarmDashboard.state.analysisTimeout = null;
+                }
+            }
+
+            // Clear any remaining loading status content
+            const loadingStatus = document.getElementById('loadingStatus');
+            if (loadingStatus) {
+                loadingStatus.innerHTML = '';
             }
         }
 
@@ -1477,6 +1498,9 @@
         }
         
         function showCartAnalysis(cartData, swaps = [], addons = [], freshScrape = false, cachedMeals = null) {
+            // CRITICAL: Clear all timers FIRST to stop any background updates
+            clearAnalysisTimers();
+
             currentState = 'complete';
 
             // Set global mealPlanData so meal calendar can access cart data
@@ -1491,6 +1515,12 @@
             const loadingSection = document.getElementById('loadingSection');
             loadingSection.classList.remove('active');
             loadingSection.style.display = 'none'; // Explicitly hide to prevent conflicts
+
+            // Clear the loading status content to prevent ghost updates
+            const loadingStatus = document.getElementById('loadingStatus');
+            if (loadingStatus) {
+                loadingStatus.innerHTML = ''; // Clear any remaining loading messages
+            }
 
             // Then show the cart analysis section
             document.getElementById('cartAnalysisSection').classList.add('active');
