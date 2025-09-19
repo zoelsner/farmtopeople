@@ -1498,23 +1498,33 @@
         }
         
         function showCartAnalysis(cartData, swaps = [], addons = [], freshScrape = false, cachedMeals = null) {
-            // CRITICAL: Clear all timers FIRST to stop any background updates
-            clearAnalysisTimers();
+            try {
+                // CRITICAL: Clear all timers FIRST to stop any background updates
+                clearAnalysisTimers();
 
-            currentState = 'complete';
+                currentState = 'complete';
 
-            // Set global mealPlanData so meal calendar can access cart data
-            mealPlanData = { cart_data: cartData };
+                // Set global mealPlanData so meal calendar can access cart data
+                mealPlanData = { cart_data: cartData };
 
             // Cart analysis complete (no localStorage caching - using Redis only)
             console.log('💾 Cart analysis complete - data served from Redis');
 
-            // CRITICAL FIX: Hide all other sections first (both class and inline styles)
-            document.getElementById('startSection').classList.remove('active');
+            // CRITICAL FIX: Hide all other sections first (with null checks to prevent crashes)
+            const startSection = document.getElementById('startSection');
+            if (startSection) {
+                startSection.classList.remove('active');
+            } else {
+                console.warn('⚠️ startSection element not found');
+            }
 
             const loadingSection = document.getElementById('loadingSection');
-            loadingSection.classList.remove('active');
-            loadingSection.style.display = 'none'; // Explicitly hide to prevent conflicts
+            if (loadingSection) {
+                loadingSection.classList.remove('active');
+                loadingSection.style.display = 'none'; // Explicitly hide to prevent conflicts
+            } else {
+                console.warn('⚠️ loadingSection element not found');
+            }
 
             // Clear the loading status content to prevent ghost updates
             const loadingStatus = document.getElementById('loadingStatus');
@@ -1522,9 +1532,19 @@
                 loadingStatus.innerHTML = ''; // Clear any remaining loading messages
             }
 
-            // Then show the cart analysis section
-            document.getElementById('cartAnalysisSection').classList.add('active');
-            document.getElementById('headerSubtitle').textContent = 'Cart analysis complete';
+            // Then show the cart analysis section (with null check)
+            const cartSection = document.getElementById('cartAnalysisSection');
+            if (cartSection) {
+                cartSection.classList.add('active');
+                cartSection.style.display = ''; // Ensure it's visible
+            } else {
+                console.error('❌ CRITICAL: cartAnalysisSection element not found - UI will not update!');
+            }
+
+            const headerSubtitle = document.getElementById('headerSubtitle');
+            if (headerSubtitle) {
+                headerSubtitle.textContent = 'Cart analysis complete';
+            }
 
             // Add diagnostic logging to track state
             console.log('🔍 Active sections after showCartAnalysis:', {
@@ -2071,6 +2091,30 @@
                 }
             }
         });
+            } catch (error) {
+                // If ANY error occurs, still hide loading and show cart
+                console.error('❌ Error in showCartAnalysis:', error);
+
+                // Force hide loading screen
+                const loadingSection = document.getElementById('loadingSection');
+                if (loadingSection) {
+                    loadingSection.classList.remove('active');
+                    loadingSection.style.display = 'none';
+                }
+
+                // Force show cart section anyway
+                const cartSection = document.getElementById('cartAnalysisSection');
+                if (cartSection) {
+                    cartSection.classList.add('active');
+                    cartSection.style.display = '';
+                }
+
+                // Clear any timers
+                clearAnalysisTimers();
+
+                console.log('⚠️ Recovered from error - cart should be visible');
+            }
+        }
 
         function updateMealSuggestions(meals) {
             // Update the meal suggestions container with new meals
@@ -3721,8 +3765,8 @@
             const simpleMealCard = document.getElementById('simpleMealCard');
 
             if (!mealTitle || !mealTime || !ingredientsList || !simpleMealCard) {
-                console.log('❌ Meal card elements not found');
-                return;
+                console.log('⏸️ Meal card elements not found - likely on Cart tab, will update when Meals tab is opened');
+                return; // This is OK - elements only exist on Meals tab
             }
 
             // Enhanced meal title with protein prominently displayed
