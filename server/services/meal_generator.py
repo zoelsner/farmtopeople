@@ -382,13 +382,15 @@ VEGETABLES: {', '.join(ingredients['vegetables']) if ingredients['vegetables'] e
 OTHER ITEMS: {', '.join(ingredients['other_items']) if ingredients['other_items'] else 'none'}
 
 SNACK REQUIREMENTS:
-- Quick prep time (under 20 minutes)
-- Under 20g protein per serving (snack-sized portions)
+- Quick prep time (under 10 minutes) OR can be prepped ahead and stored
+- Something you can eat on-the-go or between meals
 - Household size: {household_size}
 - Dietary restrictions: {', '.join(dietary_restrictions) if dietary_restrictions else 'None'}
 - Use only ingredients listed above
-- Creative but simple preparations
-- Do NOT use terms like "High-Protein" in names if protein is under 10g
+- Focus on grab-and-go convenience
+- Examples: deviled eggs, veggie bites, cheese plates, protein balls
+- Can be high protein - that's fine! Protein amount doesn't determine if it's a snack
+- The key: minimal prep when you want to eat it (prep-ahead is encouraged)
 
 Examples of good snacks:
 - Deviled eggs (if eggs available)

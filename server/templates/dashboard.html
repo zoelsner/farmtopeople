@@ -3464,12 +3464,24 @@
                     // await initializeMealLockingInterface(); // DISABLED: Causes competing views with syncMealsFromCart()
 
                     // Final safety check: if still no meals after initialization, generate them
+                    // BUT ONLY if cart analysis is NOT currently running
                     if (!currentMealSuggestions || currentMealSuggestions.length === 0) {
-                        console.log('🛡️ Safety check: No meals found after initialization, triggering generation...');
-                        try {
-                            await generateMealSuggestions();
-                        } catch (e) {
-                            console.error('❌ Safety generation failed:', e);
+                        // Check if cart analysis is in progress (isAnalyzing is a global flag)
+                        if (typeof isAnalyzing !== 'undefined' && isAnalyzing) {
+                            console.log('⏳ Cart analysis in progress, skipping meal generation for now...');
+                        } else {
+                            // Also check if we have cart data in localStorage before trying
+                            const hasCartData = localStorage.getItem('cartAnalysisData') !== null;
+                            if (hasCartData) {
+                                console.log('🛡️ Safety check: No meals found but cart data exists, triggering generation...');
+                                try {
+                                    await generateMealSuggestions();
+                                } catch (e) {
+                                    console.error('❌ Safety generation failed:', e);
+                                }
+                            } else {
+                                console.log('⏸️ No cart data available yet, waiting for cart analysis to complete...');
+                            }
                         }
                     } else {
                         console.log('✅ Meals tab ready with', currentMealSuggestions.length, 'meals');
