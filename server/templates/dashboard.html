@@ -77,7 +77,7 @@
     <link rel="stylesheet" href="/static/css/fitbod_meal_planning.css">
 
     <!-- Dashboard-specific styles (extracted for maintainability) -->
-    <link rel="stylesheet" href="/static/css/dashboard-styles.css">
+    <link rel="stylesheet" href="/static/css/dashboard-styles.css?v=20250918-grid-fix">
 
 </head>
 <body>
@@ -247,6 +247,20 @@
                             style="background: #faf8f2; color: #07261e; border: 1px solid #e6d8b5; border-radius: 8px; padding: 6px 14px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'" onmouseout="this.style.background='#faf8f2'">
                         🔄 New Suggestions
                     </button>
+                </div>
+
+                <!-- Weekly Summary Bar -->
+                <div id="weeklySummaryBar" style="background: #f8fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; gap: 16px; font-size: 13px; color: #6b7280; font-weight: 500;">
+                            <span id="summaryMealCount">5 meals</span>
+                            <span id="summaryProtein">155g protein</span>
+                            <span id="summaryTime">Avg 28 min</span>
+                        </div>
+                        <button id="generateShoppingListBtn" style="background: #f9fafb; border: 1px solid #d1d5db; border-radius: 6px; padding: 4px 12px; font-size: 12px; color: #374151; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='#f9fafb'">
+                            📝 Shopping List
+                        </button>
+                    </div>
                 </div>
 
                 <div id="mealSuggestionsGrid" class="meal-suggestions-grid">
@@ -1075,6 +1089,8 @@
 
                 const data = await response.json();
                 clearAnalysisTimers();
+                const apiTime = Date.now() - apiCallStart;
+                console.log(`⏱️ [UI T+${Date.now() - uiStartTime}ms] API response received (took ${apiTime}ms)`);
 
                 if (data.success) {
                     console.log('✅ Cart analysis API response received:', {
@@ -1094,8 +1110,10 @@
                     }
 
                     isAnalyzing = false; // Reset analyzing flag on success
+                    console.log(`⏱️ [UI T+${Date.now() - uiStartTime}ms] Rendering cart analysis UI`);
                     console.log('🎯 About to call showCartAnalysis()');
                     FarmDashboard.Cart.showAnalysis(data.cart_data, data.swaps, data.addons, data.fresh_scrape, data.meals);
+                    console.log(`⏱️ [UI T+${Date.now() - uiStartTime}ms] UI update complete`);
                 } else {
                     // Show error message instead of mock data
                     isAnalyzing = false; // Reset analyzing flag on error
@@ -1104,6 +1122,8 @@
             } catch (error) {
                 clearAnalysisTimers();
                 isAnalyzing = false; // Reset analyzing flag on network error
+                const totalTime = Date.now() - uiStartTime;
+                console.log(`⏱️ [UI T+${totalTime}ms] Error occurred during analysis`);
 
                 // Handle abort error specifically (user canceled)
                 if (error.name === 'AbortError') {
@@ -3629,7 +3649,7 @@
         }
 
         function populateSimpleMealCard(meal) {
-            console.log('🍽️ Populating Meals tab with GPT-generated meal:', meal);
+            console.log('🍽️ Populating enhanced Meals tab with assembly instructions:', meal);
 
             // Check if all required elements exist
             const mealTitle = document.getElementById('mealTitle');
@@ -3642,25 +3662,145 @@
                 return;
             }
 
-            // Update with actual meal data from GPT
-            mealTitle.textContent = meal.name;
-            mealTime.textContent = meal.time;
+            // Enhanced meal title with protein prominently displayed
+            const proteinText = meal.protein ? ` • ${meal.protein}g protein` : '';
+            mealTitle.innerHTML = `
+                <div style="font-size: 18px; font-weight: 600; color: #2d3748; margin-bottom: 4px;">
+                    ${meal.name}
+                </div>
+                <div style="font-size: 14px; color: #4169E1; font-weight: 500;">
+                    ${meal.time}${proteinText} • ${meal.servings || 2} servings
+                </div>
+            `;
 
-            // Show ingredients used (if available)
-            if (meal.ingredients_used && meal.ingredients_used.length > 0) {
-                const ingredientItems = meal.ingredients_used.map(ingredient => `
-                    <div class="ingredient-tag">${ingredient}</div>
-                `).join('');
-                ingredientsList.innerHTML = `<div>Uses from your cart:</div>${ingredientItems}`;
-            } else {
-                // Generic message if no specific ingredients listed
-                ingredientsList.innerHTML = `<div class="ingredient-tag">Uses ingredients from your cart</div>`;
-            }
+            // Generate assembly steps based on meal type
+            const assemblySteps = generateAssemblySteps(meal);
+
+            // Show enhanced content with assembly instructions
+            ingredientsList.innerHTML = `
+                <div style="margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px;">
+                        🔥 Quick Assembly (15 minutes)
+                    </div>
+                    <div style="background: #f7fafc; border-radius: 8px; padding: 12px;">
+                        ${assemblySteps.map((step, index) => `
+                            <div style="display: flex; align-items: flex-start; margin-bottom: ${index < assemblySteps.length - 1 ? '8px' : '0'};">
+                                <div style="background: #4169E1; color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 8px; flex-shrink: 0; margin-top: 1px;">
+                                    ${index + 1}
+                                </div>
+                                <div style="font-size: 13px; color: #4a5568; line-height: 1.4;">
+                                    ${step}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <div style="font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px;">
+                        📦 From Your Cart
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        ${getKeyIngredients(meal).map(ingredient => `
+                            <div style="background: #e6f3ff; color: #2b6cb0; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">
+                                ${ingredient}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div style="background: #fff5f5; border-left: 3px solid #fed7d7; padding: 8px 12px; border-radius: 4px;">
+                    <div style="font-size: 12px; color: #c53030; font-weight: 500;">
+                        💡 Storage Tip: ${getStorageTip(meal)}
+                    </div>
+                </div>
+            `;
+
+            // Clear the default mealTime since we moved it to title
+            mealTime.textContent = '';
 
             // Show the card
             showMealCard();
 
-            console.log('✅ Meals tab updated with GPT meal successfully');
+            console.log('✅ Enhanced meal card populated with assembly instructions');
+        }
+
+        function generateAssemblySteps(meal) {
+            const mealName = meal.name ? meal.name.toLowerCase() : '';
+
+            // Smart assembly steps based on meal type
+            if (mealName.includes('sheet-pan') || mealName.includes('sheet pan')) {
+                return [
+                    "Preheat oven to 425°F and line a sheet pan with parchment",
+                    "Season protein with salt, pepper, and olive oil; place on one side",
+                    "Toss vegetables with olive oil and arrange around protein; roast 18-22 min"
+                ];
+            } else if (mealName.includes('skillet') || mealName.includes('stir-fry')) {
+                return [
+                    "Heat 1 tbsp oil in a large skillet over medium-high heat",
+                    "Add protein and cook until browned (4-6 minutes), then remove",
+                    "Add vegetables, cook 3-4 minutes, return protein and toss to combine"
+                ];
+            } else if (mealName.includes('roasted') || mealName.includes('roast')) {
+                return [
+                    "Preheat oven to 400°F and prep a baking dish with oil",
+                    "Season ingredients with herbs, salt, and pepper; arrange in dish",
+                    "Roast 25-30 minutes until protein is cooked through and vegetables tender"
+                ];
+            } else if (mealName.includes('salad') || mealName.includes('bowl')) {
+                return [
+                    "Wash and chop all fresh vegetables into bite-sized pieces",
+                    "Prepare protein (cook if needed) and let cool slightly",
+                    "Combine in bowl, add dressing and toss gently to serve"
+                ];
+            } else {
+                // Generic cooking steps
+                return [
+                    "Prep all ingredients by washing, chopping, and seasoning as needed",
+                    "Cook protein first until done, then set aside while preparing vegetables",
+                    "Combine everything in final cooking step, adjust seasoning and serve hot"
+                ];
+            }
+        }
+
+        function getKeyIngredients(meal) {
+            // Extract likely ingredients from meal name
+            const mealName = meal.name ? meal.name.toLowerCase() : '';
+            const ingredients = [];
+
+            // Common proteins
+            if (mealName.includes('chicken')) ingredients.push('Chicken');
+            if (mealName.includes('salmon')) ingredients.push('Salmon');
+            if (mealName.includes('turkey')) ingredients.push('Turkey');
+
+            // Common vegetables
+            if (mealName.includes('zucchini')) ingredients.push('Zucchini');
+            if (mealName.includes('tomato')) ingredients.push('Tomatoes');
+            if (mealName.includes('carrot')) ingredients.push('Carrots');
+            if (mealName.includes('potato')) ingredients.push('Potatoes');
+            if (mealName.includes('onion')) ingredients.push('Onions');
+            if (mealName.includes('arugula')) ingredients.push('Arugula');
+
+            // Default if nothing found
+            if (ingredients.length === 0) {
+                ingredients.push('Protein', 'Vegetables', 'Seasonings');
+            }
+
+            return ingredients.slice(0, 4); // Max 4 ingredients to keep clean
+        }
+
+        function getStorageTip(meal) {
+            const mealName = meal.name ? meal.name.toLowerCase() : '';
+
+            if (mealName.includes('salmon') || mealName.includes('fish')) {
+                return "Use fish within 1-2 days for best quality";
+            } else if (mealName.includes('chicken') || mealName.includes('turkey')) {
+                return "Poultry keeps 3-4 days refrigerated";
+            } else if (mealName.includes('salad')) {
+                return "Keep greens crisp - store washed and dried";
+            } else {
+                return "Most vegetables keep 5-7 days in refrigerator";
+            }
         }
 
         // populateMealLockingGrid function - DELETED to eliminate competing views
@@ -3908,6 +4048,64 @@
                 const card = createMealSuggestionCard(meal, index);
                 grid.appendChild(card);
             });
+
+            // Update summary bar with actual meal data
+            updateSummaryBar(meals);
+        }
+
+        // Update the weekly summary bar with calculated stats
+        function updateSummaryBar(meals) {
+            const summaryBar = document.getElementById('weeklySummaryBar');
+            if (!summaryBar || !meals || meals.length === 0) {
+                if (summaryBar) summaryBar.style.display = 'none';
+                return;
+            }
+
+            // Calculate stats
+            const mealCount = meals.length;
+            const totalProtein = meals.reduce((sum, meal) => {
+                try {
+                    // Handle various protein data formats
+                    let proteinValue = 0;
+                    if (typeof meal.protein === 'number') {
+                        proteinValue = meal.protein;
+                    } else if (typeof meal.protein === 'object' && meal.protein && meal.protein.value) {
+                        proteinValue = meal.protein.value;
+                    } else if (meal.protein) {
+                        const proteinStr = String(meal.protein);
+                        const proteinMatch = proteinStr.match(/(\d+)/);
+                        proteinValue = proteinMatch ? parseInt(proteinMatch[1]) : 0;
+                    }
+                    return sum + proteinValue;
+                } catch (e) {
+                    console.warn('Error parsing protein for meal:', meal, e);
+                    return sum;
+                }
+            }, 0);
+            const avgTime = Math.round(meals.reduce((sum, meal) => {
+                try {
+                    let timeValue = 0;
+                    if (typeof meal.time === 'number') {
+                        timeValue = meal.time;
+                    } else if (meal.time) {
+                        const timeStr = String(meal.time);
+                        const timeMatch = timeStr.match(/(\d+)/);
+                        timeValue = timeMatch ? parseInt(timeMatch[1]) : 0;
+                    }
+                    return sum + timeValue;
+                } catch (e) {
+                    console.warn('Error parsing time for meal:', meal, e);
+                    return sum;
+                }
+            }, 0) / meals.length);
+
+            // Update display
+            document.getElementById('summaryMealCount').textContent = `${mealCount} meals`;
+            document.getElementById('summaryProtein').textContent = `${totalProtein}g protein`;
+            document.getElementById('summaryTime').textContent = `Avg ${avgTime} min`;
+
+            // Show the summary bar
+            summaryBar.style.display = 'block';
         }
 
         // Create a meal suggestion card
@@ -3926,19 +4124,17 @@
             const typeLabel = isSnack ? '🍿 Snack' : '🥘 Meal';
 
             card.innerHTML = `
-                <div class="meal-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                    <div class="meal-card-title" style="font-size: 16px; font-weight: 600; line-height: 1.3; flex: 1; margin-right: 8px;">${meal.name}</div>
-                    <button onclick="FarmDashboard.MealLocking.toggleLock(${index})" style="background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px; opacity: 0.7; transition: opacity 0.2s;" title="${isLocked ? 'Unlock meal' : 'Lock meal'}">
+                <div class="meal-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <div class="meal-card-title" style="font-size: 15px; font-weight: 600; line-height: 1.3; flex: 1; margin-right: 8px;">${meal.name}</div>
+                    <button onclick="FarmDashboard.MealLocking.toggleLock(${index})" style="background: none; border: none; cursor: pointer; font-size: 16px; padding: 2px; opacity: 0.7; transition: opacity 0.2s;" title="${isLocked ? 'Unlock meal' : 'Lock meal'}">
                         ${isLocked ? '🔒' : '🔓'}
                     </button>
                 </div>
-                <div class="meal-card-badges" style="display: flex; gap: 8px; margin-bottom: 16px;">
-                    <span style="background: #f8f6f0; color: #8b6914; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; white-space: nowrap;">⏱️ ${meal.time}</span>
-                    <span style="background: #f1f5f0; color: #4a5e3a; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; white-space: nowrap;">💪 ${meal.protein}</span>
-                    <span style="background: ${isSnack ? '#faf9f7' : '#f7f5f7'}; color: ${isSnack ? '#a67c52' : '#6b4c7a'}; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; white-space: nowrap;">${typeLabel}</span>
+                <div class="meal-card-meta" style="margin-bottom: 10px; font-size: 13px; color: #6b7280; line-height: 1.2;">
+                    ${meal.time} • ${meal.protein} • ${typeLabel}
                 </div>
                 <div class="meal-card-actions">
-                    <button onclick="regenerateSimpleMeal()" style="width: 100%; background: #faf8f2; border: 1px solid #e6d8b5; border-radius: 8px; padding: 8px; font-size: 14px; font-weight: 500; color: #07261e; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'; this.style.color='#07261e'" onmouseout="this.style.background='#faf8f2'; this.style.color='#07261e'">
+                    <button onclick="regenerateSimpleMeal()" style="width: 100%; background: #faf8f2; border: 1px solid #e6d8b5; border-radius: 6px; padding: 6px; font-size: 13px; font-weight: 500; color: #07261e; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'; this.style.color='#07261e'" onmouseout="this.style.background='#faf8f2'; this.style.color='#07261e'">
                         🔄 Regenerate
                     </button>
                 </div>

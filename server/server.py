@@ -1202,6 +1202,37 @@ async def get_saved_cart(force_refresh: bool = False):
         return {"error": str(e)}
 
 
+def categorize_item(item_name: str) -> str:
+    """
+    Categorize FTP items by Cook's Box categories for category-aware swaps.
+
+    Args:
+        item_name: Name of the item to categorize
+
+    Returns:
+        Category: 'protein', 'produce', or 'grocery'
+    """
+    item_lower = item_name.lower()
+
+    # Protein items (meat, fish, poultry, eggs)
+    if any(protein in item_lower for protein in [
+        'chicken', 'turkey', 'beef', 'pork', 'lamb', 'salmon', 'cod', 'halibut',
+        'redfish', 'tuna', 'shrimp', 'scallops', 'mussels', 'eggs', 'tofu'
+    ]):
+        return 'protein'
+
+    # Grocery items (grains, legumes, nuts, oils, dairy, pantry staples)
+    if any(grocery in item_lower for grocery in [
+        'quinoa', 'rice', 'pasta', 'beans', 'lentils', 'chickpeas', 'nuts', 'seeds',
+        'oil', 'vinegar', 'honey', 'maple syrup', 'flour', 'oats', 'barley',
+        'cheese', 'yogurt', 'milk', 'butter', 'cream', 'cottage cheese', 'ricotta'
+    ]):
+        return 'grocery'
+
+    # Everything else is produce (fruits, vegetables, herbs)
+    return 'produce'
+
+
 async def generate_swaps_async(cart_data: dict, user_preferences: dict, normalized_phone: str) -> list:
     """
     Generate swaps asynchronously for parallel execution.
@@ -1223,20 +1254,48 @@ async def generate_swaps_async(cart_data: dict, user_preferences: dict, normaliz
 
         client = openai.OpenAI(api_key=openai_key)
 
-        # Build context for GPT-5
+        # Build context for GPT-5 with category awareness
         selected_items = []
         available_alternatives = []
+        selected_by_category = {"protein": [], "produce": [], "grocery": []}
+        alternatives_by_category = {"protein": [], "produce": [], "grocery": []}
 
         # Collect from customizable_boxes array
         for box in cart_data.get("customizable_boxes", []):
-            selected_items.extend([item["name"] for item in box.get("selected_items", [])])
-            available_alternatives.extend([item["name"] for item in box.get("available_alternatives", [])])
+            for item in box.get("selected_items", []):
+                item_name = item["name"]
+                selected_items.append(item_name)
+                # Use scraped category if available, else fallback to guessing
+                category = item.get("category")
+                if not category:
+                    category = categorize_item(item_name)
+                selected_by_category[category].append(item_name)
+
+            for item in box.get("available_alternatives", []):
+                item_name = item["name"]
+                available_alternatives.append(item_name)
+                # Use scraped category if available, else fallback
+                category = item.get("category")
+                if not category:
+                    category = categorize_item(item_name)
+                alternatives_by_category[category].append(item_name)
 
         # ALSO collect from non_customizable_boxes for customizable ones
         for box in cart_data.get("non_customizable_boxes", []):
             if box.get("customizable") or box.get("available_alternatives"):
-                selected_items.extend([item["name"] for item in box.get("selected_items", [])])
-                available_alternatives.extend([item["name"] for item in box.get("available_alternatives", [])])
+                for item in box.get("selected_items", []):
+                    item_name = item["name"]
+                    selected_items.append(item_name)
+                    category = item.get("category")
+                    if not category:
+                        category = categorize_item(item_name)
+                    selected_by_category[category].append(item_name)
+
+                for item in box.get("available_alternatives", []):
+                    item_name = item["name"]
+                    available_alternatives.append(item_name)
+                    category = categorize_item(item_name)
+                    alternatives_by_category[category].append(item_name)
 
         # Extract key preferences
         liked_meals = user_preferences.get('liked_meals', [])
@@ -1265,13 +1324,28 @@ async def generate_swaps_async(cart_data: dict, user_preferences: dict, normaliz
             except Exception as swap_error:
                 print(f"⚠️ Could not retrieve swap history: {swap_error}")
 
+        # Build category-aware swap constraints
+        category_constraints = []
+        for category in ["protein", "produce", "grocery"]:
+            selected = selected_by_category[category]
+            alternatives = alternatives_by_category[category]
+            if selected and alternatives:
+                category_constraints.append(f"- {category.upper()}: {', '.join(selected)} can only swap with {', '.join(alternatives)}")
+
         prompt = f"""Analyze this Farm to People cart and suggest smart swaps.
 
-CURRENT CART:
-{', '.join(selected_items)}
+CURRENT CART BY CATEGORY:
+- Proteins: {', '.join(selected_by_category['protein']) if selected_by_category['protein'] else 'None'}
+- Produce: {', '.join(selected_by_category['produce']) if selected_by_category['produce'] else 'None'}
+- Grocery: {', '.join(selected_by_category['grocery']) if selected_by_category['grocery'] else 'None'}
 
-AVAILABLE ALTERNATIVES (can swap to these):
-{', '.join(available_alternatives)}
+CATEGORY SWAP CONSTRAINTS (CRITICAL - MUST FOLLOW):
+{chr(10).join(category_constraints) if category_constraints else 'No swappable items available'}
+
+⚠️ CRITICAL RULE: You can ONLY swap items within the same category:
+- Protein → Protein ONLY (chicken → turkey ✓, turkey → corn ✗)
+- Produce → Produce ONLY (kale → spinach ✓)
+- Grocery → Grocery ONLY (beans → cheese ✓, quinoa → yogurt ✓)
 
 USER PREFERENCES:
 - Household size: {household_size} (needs {servings_needed} servings per meal)
@@ -1285,6 +1359,7 @@ RECENT USER SWAPS (DO NOT REVERSE THESE):
 
 1. SWAPS: Suggest 1-5 swaps ONLY if they would SIGNIFICANTLY improve the cart:
    - NEVER suggest reversing a recent swap shown above (critical rule!)
+   - NEVER suggest cross-category swaps (turkey → corn is INVALID)
    - Violates dietary restrictions (ALWAYS suggest swapping)
    - Poor fit for health goals (high priority)
    - Better matches preferred cuisine/cooking methods
@@ -1334,28 +1409,35 @@ Return JSON format:
 async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
     """
     API endpoint for cart analysis from the dashboard.
-    
+
     Applying Design of Everyday Things principles:
     - Immediate feedback (returns quickly with status)
     - Visibility of system status (can poll for updates)
     - Error prevention (validates credentials first)
     """
+    import time
+    api_start_time = time.time()
+
     try:
         data = await request.json()
-        
+
         # Check if we should use mock data or real scraping
         use_mock = data.get('use_mock', False)
         phone = data.get('phone')
         force_refresh = data.get('force_refresh', False)  # New parameter!
         regenerate_only = data.get('regenerate_only', False)  # Skip scraping, just regenerate suggestions
-        
+
         cart_data = None
-        
+
+        print(f"\n{'='*60}")
+        print(f"🚀 [TIMING] Cart Analysis Start - Force refresh: {force_refresh}")
+        print(f"{'='*60}")
+
         if not use_mock and phone:
             # Try to get real cart data using stored credentials
             try:
-                print(f"[CART-ANALYSIS] Starting analysis for phone: {phone}")
-                
+                print(f"⏱️ [T+0.0s] Starting analysis for phone: {phone}")
+
                 # Use centralized phone service for consistent normalization
                 from services.phone_service import normalize_phone
                 normalized_phone = normalize_phone(phone)
@@ -1437,14 +1519,16 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                                 # Don't fail completely - maybe stored cart has data
                         
                         if email and password:
-                            print(f"🛒 Starting live scraper for {email} (force_refresh={force_refresh})")
+                            elapsed = time.time() - api_start_time
+                            print(f"⏱️ [T+{elapsed:.1f}s] Starting live scraper for {email} (force_refresh={force_refresh})")
                             # Run the actual scraper with return_data=True (properly isolated from async context)
                             credentials = {'email': email, 'password': password}
 
                             # Add timeout and comprehensive logging
                             import asyncio
                             try:
-                                print(f"⏱️ Starting scraper with 120 second timeout...")
+                                scraper_start = time.time()
+                                print(f"⏱️ [T+{elapsed:.1f}s] Starting scraper with 120 second timeout...")
                                 # Use async scraper directly with normalized phone
                                 cart_data = await asyncio.wait_for(
                                     run_cart_scraper(
@@ -1455,7 +1539,9 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                                     ),
                                     timeout=120.0  # 2 minute timeout
                                 )
-                                print(f"✅ Scraper completed successfully after timeout protection")
+                                scraper_duration = time.time() - scraper_start
+                                elapsed = time.time() - api_start_time
+                                print(f"✅ [T+{elapsed:.1f}s] Scraper completed in {scraper_duration:.1f}s")
                             except asyncio.TimeoutError:
                                 print(f"⏰ Scraper timed out after 120 seconds - using fallback data")
                                 cart_data = None
@@ -1583,6 +1669,10 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                 print(f"⚠️ Error loading preferences: {e}")
         
         # Use GPT-5 to generate smart swaps and add-ons
+        swaps_start_time = time.time()
+        elapsed = swaps_start_time - api_start_time
+        print(f"⏱️ [T+{elapsed:.1f}s] Starting swap generation...")
+
         # Check both arrays for boxes with alternatives (fixed from only checking customizable_boxes)
         has_alternatives = False
         if cart_data:
@@ -1596,11 +1686,14 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                     break
 
         if has_alternatives:
+            gpt_swap_start = time.time()
             try:
                 import openai
                 openai_key = os.getenv("OPENAI_API_KEY")
                 if openai_key:
                     client = openai.OpenAI(api_key=openai_key)
+                    elapsed = time.time() - api_start_time
+                    print(f"⏱️ [T+{elapsed:.1f}s] Building GPT-5 swap prompt...")
 
                     # Build context for GPT-5
                     selected_items = []
@@ -1703,6 +1796,9 @@ Return JSON format (generate appropriate suggestions based on cart):
                     api_params = build_api_params(AI_MODEL, max_tokens_value=token_limit, temperature_value=0.7)
                     print(f"📝 [CART ANALYSIS DEBUG] Using token limit: {token_limit} for {AI_MODEL}")
 
+                    elapsed = time.time() - api_start_time
+                    print(f"⏱️ [T+{elapsed:.1f}s] Calling GPT-5 API for swaps...")
+
                     response = client.chat.completions.create(
                         model=AI_MODEL,
                         messages=[
@@ -1711,6 +1807,10 @@ Return JSON format (generate appropriate suggestions based on cart):
                         ],
                         **api_params
                     )
+
+                    elapsed = time.time() - api_start_time
+                    gpt_time = time.time() - gpt_swap_start
+                    print(f"⏱️ [T+{elapsed:.1f}s] GPT-5 swap response received (API took {gpt_time:.1f}s)")
                     
                     # Parse response (swaps only now)
                     import json
@@ -1720,7 +1820,8 @@ Return JSON format (generate appropriate suggestions based on cart):
                     if json_match:
                         result = json.loads(json_match.group())
                         swaps = result.get("swaps", [])
-                        print(f"✅ Generated {len(swaps)} swaps via GPT-5")
+                        elapsed = time.time() - api_start_time
+                        print(f"⏱️ [T+{elapsed:.1f}s] Generated {len(swaps)} swaps via GPT-5")
                     
             except Exception as e:
                 print(f"⚠️ Could not generate AI swaps: {e}")
@@ -1728,29 +1829,54 @@ Return JSON format (generate appropriate suggestions based on cart):
                 pass
         
         # Handle meal suggestions
+        meals_start_time = time.time()
+        elapsed = meals_start_time - api_start_time
+        print(f"⏱️ [T+{elapsed:.1f}s] Starting meal generation phase...")
+
         meals = None
         if fresh_scrape and cart_data and normalized_phone:
             # Fresh scrape - generate new meals automatically
+            meal_gen_start = time.time()
             try:
                 from services.meal_generator import generate_meals
                 user_record = db.get_user_by_phone(normalized_phone)
                 user_preferences = user_record.get('preferences', {}) if user_record else {}
 
-                print(f"🔄 Fresh cart data detected - generating meal suggestions with GPT-5")
+                elapsed = time.time() - api_start_time
+                print(f"⏱️ [T+{elapsed:.1f}s] Fresh cart data detected - generating meal suggestions with GPT-5")
                 result = await generate_meals(cart_data, user_preferences)
                 if result['success']:
                     meals = result['meals']
+                    elapsed = time.time() - api_start_time
+                    meal_gen_time = time.time() - meal_gen_start
+                    print(f"⏱️ [T+{elapsed:.1f}s] Meal generation complete - {len(meals)} meals (took {meal_gen_time:.1f}s)")
+
                     # Cache the newly generated meals
+                    cache_start = time.time()
                     from services.cache_service import CacheService
                     CacheService.set_meals(normalized_phone, meals, ttl=7200)
-                    print(f"🔥 Cached {len(meals)} fresh meals to Redis")
+                    elapsed = time.time() - api_start_time
+                    print(f"⏱️ [T+{elapsed:.1f}s] Cached meals to Redis (took {time.time() - cache_start:.2f}s)")
+
+                    # Initialize meal locks data structure
+                    try:
+                        meal_count = len([m for m in meals if m.get('type') != 'snack'])
+                        snack_count = len([m for m in meals if m.get('type') == 'snack'])
+                        CacheService.initialize_meal_locks(normalized_phone, meals, cart_data, meal_count, snack_count)
+                        print(f"🔒 Initialized meal locks for {len(meals)} meals ({meal_count} meals, {snack_count} snacks)")
+                    except Exception as lock_error:
+                        print(f"⚠️ Error initializing meal locks: {lock_error}")
 
                     # Generate meal-aware add-ons after meals are created
+                    addons_start = time.time()
                     try:
-                        print(f"🔄 Generating meal-aware add-ons...")
+                        elapsed = time.time() - api_start_time
+                        print(f"⏱️ [T+{elapsed:.1f}s] Generating meal-aware add-ons...")
                         from services.meal_generator import generate_meal_addons
                         addons = await generate_meal_addons(meals, cart_data, user_preferences)
-                        print(f"✅ Generated {len(addons)} meal-aware add-ons")
+                        elapsed = time.time() - api_start_time
+                        addons_time = time.time() - addons_start
+                        print(f"⏱️ [T+{elapsed:.1f}s] Generated {len(addons)} meal-aware add-ons (took {addons_time:.1f}s)")
                     except Exception as addon_error:
                         print(f"⚠️ Error generating add-ons: {addon_error}")
                         # Fallback to basic add-ons
@@ -1775,6 +1901,10 @@ Return JSON format (generate appropriate suggestions based on cart):
                 print(f"⚠️ Error loading cached meals: {cache_error}")
 
         # Build complete response
+        response_start = time.time()
+        elapsed = response_start - api_start_time
+        print(f"⏱️ [T+{elapsed:.1f}s] Building complete response...")
+
         complete_response = {
             "success": True,
             "cart_data": cart_data,
@@ -1789,6 +1919,8 @@ Return JSON format (generate appropriate suggestions based on cart):
 
         # CRITICAL: Cache complete response to Redis (includes swaps & addons)
         # Validate cart_data contains valid customizable boxes before caching
+        cache_operations_start = time.time()
+
         def is_valid_cart_data(cart_data):
             """Validate that cart_data has customizable boxes with selected_items"""
             if not cart_data:
@@ -1808,14 +1940,49 @@ Return JSON format (generate appropriate suggestions based on cart):
 
         if (normalized_phone and cart_data and swaps is not None and addons is not None and
             is_valid_cart_data(cart_data)):
+            redis_cache_start = time.time()
             try:
                 from services.cache_service import CacheService
                 CacheService.set_cart_response(normalized_phone, complete_response, ttl=7200)
-                print(f"🔥 Complete cart response cached to Redis for {normalized_phone}")
+                elapsed = time.time() - api_start_time
+                print(f"⏱️ [T+{elapsed:.1f}s] Complete cart response cached to Redis (took {time.time() - redis_cache_start:.2f}s)")
             except Exception as cache_error:
                 print(f"⚠️ Complete response cache failed (non-critical): {cache_error}")
+
+            # Save analysis to database for persistence beyond Redis TTL
+            db_save_start = time.time()
+            try:
+                metadata = {
+                    "fresh_scrape": fresh_scrape,
+                    "force_refresh": force_refresh,
+                    "scraped_at": cart_data.get('scraped_timestamp'),
+                    "processing_time_seconds": time.time() - api_start_time
+                }
+                db.save_cart_analysis(
+                    phone_number=normalized_phone,
+                    cart_data=cart_data,
+                    meal_suggestions=meals if meals else [],
+                    add_ons=addons if addons else [],
+                    swaps=swaps if swaps else [],
+                    delivery_date=cart_data.get('delivery_date'),
+                    metadata=metadata
+                )
+                elapsed = time.time() - api_start_time
+                print(f"⏱️ [T+{elapsed:.1f}s] Cart analysis persisted to database (took {time.time() - db_save_start:.2f}s)")
+            except Exception as db_error:
+                print(f"⚠️ Database save failed (non-critical): {db_error}")
         elif normalized_phone:
             print(f"⚠️ Skipping cache - invalid cart_data structure (missing selected_items in customizable boxes)")
+
+        total_elapsed = time.time() - api_start_time
+        print(f"""⏱️ [T+{total_elapsed:.1f}s] ====== TOTAL API PROCESSING TIME ======
+        Breakdown:
+        - Scraping: {scrape_elapsed:.1f}s
+        - Swaps: {time.time() - swaps_start_time:.1f}s
+        - Meals: {time.time() - meals_start_time:.1f}s
+        - Cache ops: {time.time() - cache_operations_start:.1f}s
+        - Total: {total_elapsed:.1f}s
+        =========================================""")
 
         return complete_response
         
@@ -1860,8 +2027,14 @@ async def refresh_meal_suggestions(request: Request):
                 from services.cache_service import CacheService
                 CacheService.set_meals(normalized_phone, result['meals'], ttl=7200)
                 print(f"🔥 Cached {len(result['meals'])} refreshed meals to Redis")
+
+                # Re-initialize meal locks data structure (clears existing locks)
+                meal_count = len([m for m in result['meals'] if m.get('type') != 'snack'])
+                snack_count = len([m for m in result['meals'] if m.get('type') == 'snack'])
+                CacheService.initialize_meal_locks(normalized_phone, result['meals'], cart_data, meal_count, snack_count)
+                print(f"🔒 Re-initialized meal locks for {len(result['meals'])} refreshed meals")
             except Exception as cache_error:
-                print(f"⚠️ Failed to cache refreshed meals: {cache_error}")
+                print(f"⚠️ Failed to cache refreshed meals or initialize locks: {cache_error}")
 
             return {
                 "success": True,

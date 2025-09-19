@@ -526,17 +526,17 @@ body {
 
 /* Meal Suggestion Cards for Locking */
 .meal-suggestions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px;
     margin-top: 16px;
 }
 
 .meal-suggestion-card {
     background: white;
     border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 16px;
+    border-radius: 8px;
+    padding: 12px;
     transition: all 0.2s ease;
 }
 
@@ -1090,17 +1090,17 @@ body {
 }
 
 .meal-suggestions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px;
     margin-bottom: 32px;
 }
 
 .meal-suggestion-card {
     background: white;
     border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: 8px;
+    padding: 12px;
     transition: all 0.2s ease;
     cursor: pointer;
 }

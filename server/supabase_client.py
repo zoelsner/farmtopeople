@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import os
 import base64
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 # More explicit .env loading
 from dotenv import load_dotenv
@@ -497,6 +497,238 @@ def get_recent_swaps_for_phone(phone_number: str, days: int = 7, limit: int = 20
 
     except Exception as e:
         print(f"❌ Failed to get recent swaps: {e}")
+        return []
+
+
+def save_cart_analysis(
+    phone_number: str,
+    cart_data: Dict[str, Any],
+    meal_suggestions: List[Dict[str, Any]],
+    add_ons: List[Dict[str, Any]],
+    swaps: List[Dict[str, Any]],
+    delivery_date: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None
+) -> bool:
+    """
+    Save a cart analysis to the database for persistence beyond Redis TTL.
+
+    Args:
+        phone_number: User's phone number
+        cart_data: Raw cart data from scraper
+        meal_suggestions: The 5 GPT-generated meal suggestions
+        add_ons: Meal-aware add-on suggestions
+        swaps: Category-aware swap suggestions
+        delivery_date: Extracted delivery date from cart
+        metadata: Additional metadata (GPT model, processing time, etc.)
+
+    Returns:
+        True if save was successful, False otherwise
+    """
+    client = get_client()
+
+    try:
+        from datetime import datetime, timezone
+
+        # Prepare the analysis record
+        analysis = {
+            "user_phone": phone_number,
+            "analysis_date": datetime.now(timezone.utc).date().isoformat(),
+            "cart_data": cart_data,
+            "meal_suggestions": meal_suggestions,
+            "add_ons": add_ons or [],
+            "swaps": swaps or [],
+            "delivery_date": delivery_date,
+            "analysis_metadata": metadata or {}
+        }
+
+        # Upsert the analysis (update if exists for today, otherwise insert)
+        result = (
+            client.table("cart_analyses")
+            .upsert(analysis, on_conflict="user_phone,analysis_date")
+            .execute()
+        )
+
+        if result.data:
+            print(f"✅ Cart analysis saved to database for {phone_number}")
+            return True
+        else:
+            print(f"⚠️ Failed to save cart analysis - no data returned")
+            return False
+
+    except Exception as e:
+        print(f"❌ Failed to save cart analysis: {e}")
+        return False
+
+
+def get_latest_cart_analysis(phone_number: str) -> Optional[Dict[str, Any]]:
+    """
+    Retrieve the latest cart analysis for a user.
+
+    Args:
+        phone_number: User's phone number
+
+    Returns:
+        The latest cart analysis or None if not found
+    """
+    client = get_client()
+
+    try:
+        result = (
+            client.table("cart_analyses")
+            .select("*")
+            .eq("user_phone", phone_number)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+
+        if result.data and len(result.data) > 0:
+            return result.data[0]
+
+        return None
+
+    except Exception as e:
+        print(f"❌ Failed to get cart analysis: {e}")
+        return None
+
+
+def get_cart_analysis_for_date(phone_number: str, analysis_date: str) -> Optional[Dict[str, Any]]:
+    """
+    Retrieve cart analysis for a specific date.
+
+    Args:
+        phone_number: User's phone number
+        analysis_date: Date in YYYY-MM-DD format
+
+    Returns:
+        The cart analysis for that date or None if not found
+    """
+    client = get_client()
+
+    try:
+        result = (
+            client.table("cart_analyses")
+            .select("*")
+            .eq("user_phone", phone_number)
+            .eq("analysis_date", analysis_date)
+            .limit(1)
+            .execute()
+        )
+
+        if result.data and len(result.data) > 0:
+            return result.data[0]
+
+        return None
+
+    except Exception as e:
+        print(f"❌ Failed to get cart analysis for date: {e}")
+        return None
+
+
+def save_meal_locks(
+    phone_number: str,
+    locked_meals: List[int],
+    analysis_date: Optional[str] = None
+) -> bool:
+    """
+    Save which meals the user has locked/liked.
+
+    Args:
+        phone_number: User's phone number
+        locked_meals: List of meal indices (0-4) that are locked
+        analysis_date: Optional date of the analysis (defaults to today)
+
+    Returns:
+        True if save was successful, False otherwise
+    """
+    client = get_client()
+
+    try:
+        from datetime import datetime, timezone
+
+        # Get the analysis ID
+        if not analysis_date:
+            analysis_date = datetime.now(timezone.utc).date().isoformat()
+
+        analysis = get_cart_analysis_for_date(phone_number, analysis_date)
+        if not analysis:
+            print(f"⚠️ No analysis found for {phone_number} on {analysis_date}")
+            return False
+
+        analysis_id = analysis["id"]
+
+        # Prepare meal lock records
+        locks = []
+        for meal_index in range(5):  # Always handle all 5 meals
+            lock_record = {
+                "analysis_id": analysis_id,
+                "meal_index": meal_index,
+                "is_locked": meal_index in locked_meals,
+                "locked_at": datetime.now(timezone.utc).isoformat() if meal_index in locked_meals else None
+            }
+            locks.append(lock_record)
+
+        # Upsert all meal locks
+        result = (
+            client.table("meal_locks")
+            .upsert(locks, on_conflict="analysis_id,meal_index")
+            .execute()
+        )
+
+        if result.data:
+            print(f"✅ Meal locks saved for {phone_number}")
+            return True
+        else:
+            print(f"⚠️ Failed to save meal locks - no data returned")
+            return False
+
+    except Exception as e:
+        print(f"❌ Failed to save meal locks: {e}")
+        return False
+
+
+def get_meal_locks(phone_number: str, analysis_date: Optional[str] = None) -> List[int]:
+    """
+    Get which meals the user has locked.
+
+    Args:
+        phone_number: User's phone number
+        analysis_date: Optional date of the analysis (defaults to today)
+
+    Returns:
+        List of locked meal indices (0-4)
+    """
+    client = get_client()
+
+    try:
+        from datetime import datetime, timezone
+
+        # Get the analysis ID
+        if not analysis_date:
+            analysis_date = datetime.now(timezone.utc).date().isoformat()
+
+        analysis = get_cart_analysis_for_date(phone_number, analysis_date)
+        if not analysis:
+            return []
+
+        analysis_id = analysis["id"]
+
+        # Get locked meals
+        result = (
+            client.table("meal_locks")
+            .select("meal_index")
+            .eq("analysis_id", analysis_id)
+            .eq("is_locked", True)
+            .execute()
+        )
+
+        if result.data:
+            return [lock["meal_index"] for lock in result.data]
+
+        return []
+
+    except Exception as e:
+        print(f"❌ Failed to get meal locks: {e}")
         return []
 
 

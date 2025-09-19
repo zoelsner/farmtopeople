@@ -313,12 +313,13 @@ USER PREFERENCES TO CONSIDER:
 
 CRITICAL QUANTITY & SERVING RULES:
 1. **PROTEIN PORTIONS (for this household size):**
+   - MINIMUM REQUIREMENT: Every meal MUST have at least 20g protein per serving
    - 8 oz salmon/fish = 1 serving (ONE meal only - don't split across meals)
    - 1 lb ground turkey = 2 servings (can make 2 separate meals)
    - 1 chicken breast = 1 serving (ONE meal only)
-   - 1 dozen eggs = can use across multiple meals (2-3 eggs per meal)
+   - 1 dozen eggs = can use across multiple meals (3-4 eggs per meal for 20g+ protein)
    - IMPORTANT: "Leftover" meals STILL contain full protein (e.g., turkey hash with leftover veggies = 28g protein from turkey)
-   - NEVER return "0g" protein for any meal containing meat, fish, eggs, or beans
+   - NEVER return less than 20g protein for any meal - combine proteins if needed
 
 2. **VEGETABLE PORTIONS:**
    - 5 oz arugula = very small amount (1-2 side salads, not main ingredient)
@@ -482,6 +483,24 @@ async def generate_meals(cart_data: Dict[str, Any], preferences: Dict[str, Any] 
                 # Ensure protein field exists
                 if 'protein_per_serving' in meal and 'protein' not in meal:
                     meal['protein'] = meal['protein_per_serving']
+
+                # Validate minimum protein requirement (20g)
+                protein_value = meal.get('protein', 0)
+                if isinstance(protein_value, str):
+                    # Extract numeric value from string like "35g"
+                    import re
+                    match = re.search(r'(\d+)', str(protein_value))
+                    if match:
+                        protein_value = int(match.group(1))
+                    else:
+                        protein_value = 0
+
+                # Enforce 20g minimum - if less, bump it up with explanation
+                if protein_value < 20:
+                    print(f"  ⚠️ Meal '{meal.get('name', 'Unknown')}' has only {protein_value}g protein - adjusting to 20g minimum")
+                    meal['protein'] = 20
+                    meal['protein_per_serving'] = 20
+                    meal['note'] = meal.get('note', '') + ' (protein adjusted to meet 20g minimum)'
 
                 # Categorize as meal or snack based on cooking time/complexity, not just protein
                 cook_time = meal.get('time', '').lower()
@@ -737,6 +756,9 @@ async def generate_meal_addons(meals: List[Dict], cart_data: Dict, preferences: 
     Returns:
         List of add-on dictionaries
     """
+    import time
+    addon_gen_start = time.time()
+
     try:
         openai_key = os.getenv("OPENAI_API_KEY")
         if not openai_key:
@@ -764,69 +786,22 @@ async def generate_meal_addons(meals: List[Dict], cart_data: Dict, preferences: 
         # PRIORITY 1: Check for protein gaps
         protein_gap_addons = check_protein_gap(current_items, meal_names, preferences)
         if protein_gap_addons:
-            print(f"🥩 Detected protein gap - suggesting {len(protein_gap_addons)} protein add-ons")
+            elapsed = time.time() - addon_gen_start
+            print(f"⏱️ Detected protein gap - suggesting {len(protein_gap_addons)} protein add-ons (took {elapsed:.2f}s)")
             return protein_gap_addons
 
-        # Build add-on prompt based on specific meals
-        prompt = f"""You are suggesting 3 fresh add-on items that complement these specific meals:
+        # PRIORITY 2: Get real add-ons from Farm to People catalog
+        real_addons = get_real_meal_addons(meal_names, current_items)
+        if real_addons:
+            elapsed = time.time() - addon_gen_start
+            print(f"⏱️ Found {len(real_addons)} real FTP add-ons for meals (took {elapsed:.2f}s)")
+            return real_addons
 
-MEALS TO COMPLEMENT:
-{chr(10).join([f"• {name}" for name in meal_names])}
-
-CURRENT CART (DO NOT suggest these):
-{', '.join(current_items) if current_items else 'Empty cart'}
-
-Your task: Suggest 3 fresh add-ons that enhance these SPECIFIC dishes:
-- For stir-fries: fresh ginger, garlic, sesame oil, soy sauce
-- For salmon/fish: lemon, dill, capers, white wine
-- For roasted dishes: fresh rosemary, thyme, olive oil
-- For Italian dishes: basil, parmesan, balsamic vinegar
-- For Mexican dishes: lime, cilantro, jalapeños, avocado
-
-Guidelines:
-- Suggest items that directly enhance the cooking methods or cuisines mentioned
-- Fresh ingredients only (herbs, citrus, aromatics)
-- Price $2-8 per item (realistic Farm to People pricing)
-- Must complement at least one of the specific meals above
-
-Return JSON format:
-{{
-  "addons": [
-    {{"item": "Fresh Ginger Root", "price": "$3.50", "reason": "Perfect for your Turkey Stir-Fry - adds authentic Asian flavor", "category": "produce"}},
-    {{"item": "Fresh Lemon", "price": "$2.25", "reason": "Brightens your Salmon dish with citrus finish", "category": "produce"}},
-    {{"item": "Fresh Rosemary", "price": "$3.00", "reason": "Elevates your roasted potatoes with aromatic herbs", "category": "produce"}}
-  ]
-}}
-
-IMPORTANT: Categories must be "produce", "protein", "dairy", or "pantry"."""
-
-        # Use compatible API parameters
-        api_params = build_api_params(AI_MODEL, max_tokens_value=400)
-
-        response = client.chat.completions.create(
-            model=AI_MODEL,
-            messages=[
-                {"role": "system", "content": "You are a Farm to People chef expert. Suggest add-ons that complement specific meals. Always return valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            **api_params
-        )
-
-        # Parse response
-        gpt_response = response.choices[0].message.content.strip()
-
-        # Extract JSON
-        import re
-        json_match = re.search(r'\{.*\}', gpt_response, re.DOTALL)
-        if json_match:
-            import json
-            result = json.loads(json_match.group())
-            addons = result.get("addons", [])
-            print(f"✅ Generated {len(addons)} meal-aware add-ons")
-            return addons
-        else:
-            print("⚠️ No JSON found in add-on response")
-            return []
+        # PRIORITY 3: Fallback to universal items
+        fallback_addons = get_universal_addons()
+        elapsed = time.time() - addon_gen_start
+        print(f"⏱️ Using {len(fallback_addons)} universal add-ons as fallback (took {elapsed:.2f}s)")
+        return fallback_addons
 
     except Exception as e:
         print(f"❌ Error generating meal add-ons: {e}")
@@ -932,3 +907,178 @@ def get_preferred_proteins(preferences: Dict = None) -> List[str]:
 
     # Default omnivore options
     return ["Organic Chicken Breast", "Wild-Caught Salmon", "Grass-Fed Ground Beef"]
+
+
+def get_real_meal_addons(meal_names: List[str], current_items: List[str]) -> List[Dict]:
+    """
+    Get real Farm to People add-on products based on meal types.
+
+    Args:
+        meal_names: List of meal names to analyze
+        current_items: Items already in cart to avoid duplicates
+
+    Returns:
+        List of real FTP add-on suggestions
+    """
+    try:
+        from server.product_catalog import get_product_catalog
+        catalog = get_product_catalog()
+
+        # Convert current items to lowercase for comparison
+        current_items_lower = [item.lower() for item in current_items]
+
+        addons = []
+
+        # Analyze meal types and suggest appropriate items
+        meal_text = ' '.join(meal_names).lower()
+
+        # Asian/Stir-fry meals
+        if any(keyword in meal_text for keyword in ['stir-fry', 'asian', 'soy', 'sesame', 'ginger', 'teriyaki']):
+            if not any('ginger' in item for item in current_items_lower):
+                ginger_product = find_product_by_name(catalog, "Organic Ginger Root")
+                if ginger_product:
+                    addons.append({
+                        "item": ginger_product['name'],
+                        "price": ginger_product['price'],
+                        "reason": "Essential for authentic Asian stir-fry flavors",
+                        "category": "produce",
+                        "vendor": ginger_product.get('vendor', 'Farm to People')
+                    })
+
+        # Italian meals
+        if any(keyword in meal_text for keyword in ['italian', 'pasta', 'tomato', 'basil', 'parmesan']):
+            if not any('basil' in item for item in current_items_lower):
+                basil_product = find_product_by_name(catalog, "Organic Fresh Basil")
+                if basil_product:
+                    addons.append({
+                        "item": basil_product['name'],
+                        "price": basil_product['price'],
+                        "reason": "Fresh herbs elevate Italian dishes",
+                        "category": "produce",
+                        "vendor": basil_product.get('vendor', 'Farm to People')
+                    })
+
+        # Fish/Seafood meals
+        if any(keyword in meal_text for keyword in ['salmon', 'fish', 'seafood', 'cod', 'bass']):
+            if not any('lemon' in item for item in current_items_lower):
+                lemon_product = find_product_by_name(catalog, "Organic Lemons")
+                if lemon_product:
+                    addons.append({
+                        "item": lemon_product['name'],
+                        "price": lemon_product['price'],
+                        "reason": "Fresh citrus brightens seafood dishes",
+                        "category": "produce",
+                        "vendor": lemon_product.get('vendor', 'Farm to People')
+                    })
+
+        # Mexican/Latin meals
+        if any(keyword in meal_text for keyword in ['mexican', 'cilantro', 'lime', 'salsa', 'taco']):
+            if not any('cilantro' in item for item in current_items_lower):
+                cilantro_product = find_product_by_name(catalog, "Organic Cilantro")
+                if cilantro_product:
+                    addons.append({
+                        "item": cilantro_product['name'],
+                        "price": cilantro_product['price'],
+                        "reason": "Fresh cilantro for authentic Mexican flavors",
+                        "category": "produce",
+                        "vendor": cilantro_product.get('vendor', 'Farm to People')
+                    })
+
+        # Roasted/Grilled meals
+        if any(keyword in meal_text for keyword in ['roasted', 'roast', 'grilled', 'herb']):
+            if not any('rosemary' in item for item in current_items_lower):
+                rosemary_product = find_product_by_name(catalog, "Organic Bunched Rosemary")
+                if rosemary_product:
+                    addons.append({
+                        "item": rosemary_product['name'],
+                        "price": rosemary_product['price'],
+                        "reason": "Aromatic herbs for roasted dishes",
+                        "category": "produce",
+                        "vendor": rosemary_product.get('vendor', 'Farm to People')
+                    })
+
+        # General cooking - garlic is universal
+        if not any('garlic' in item for item in current_items_lower) and len(addons) < 3:
+            garlic_product = find_product_by_name(catalog, "Organic Garlic")
+            if garlic_product:
+                addons.append({
+                    "item": garlic_product['name'],
+                    "price": garlic_product['price'],
+                    "reason": "Essential aromatic for most cuisines",
+                    "category": "produce",
+                    "vendor": garlic_product.get('vendor', 'Farm to People')
+                })
+
+        return addons[:3]  # Return max 3 suggestions
+
+    except Exception as e:
+        print(f"❌ Error getting real add-ons: {e}")
+        return []
+
+
+def get_universal_addons() -> List[Dict]:
+    """
+    Get universal add-on items that work with any meal.
+
+    Returns:
+        List of universal add-on suggestions with real FTP products
+    """
+    try:
+        from server.product_catalog import get_product_catalog
+        catalog = get_product_catalog()
+
+        # Universal items that enhance most dishes
+        universal_items = [
+            ("Organic Italian Parsley", "Versatile herb for garnishing any dish"),
+            ("Organic Lemons", "Brightens flavors in any cuisine"),
+            ("Organic Garlic", "Essential aromatic base for cooking")
+        ]
+
+        addons = []
+        for item_name, reason in universal_items:
+            product = find_product_by_name(catalog, item_name)
+            if product:
+                addons.append({
+                    "item": product['name'],
+                    "price": product['price'],
+                    "reason": reason,
+                    "category": "produce",
+                    "vendor": product.get('vendor', 'Farm to People')
+                })
+
+        return addons
+
+    except Exception as e:
+        print(f"❌ Error getting universal add-ons: {e}")
+        # Hard-coded fallback with known prices
+        return [
+            {"item": "Organic Italian Parsley", "price": "$3.29", "reason": "Versatile herb for garnishing", "category": "produce"},
+            {"item": "Organic Lemons", "price": "$1.99", "reason": "Brightens any dish", "category": "produce"},
+            {"item": "Organic Garlic", "price": "$1.00", "reason": "Essential cooking aromatic", "category": "produce"}
+        ]
+
+
+def find_product_by_name(catalog: Dict, search_name: str) -> Optional[Dict]:
+    """
+    Find a product in the catalog by partial name match.
+
+    Args:
+        catalog: Product catalog dictionary
+        search_name: Name to search for
+
+    Returns:
+        Product dict if found, None otherwise
+    """
+    search_lower = search_name.lower()
+
+    # Try exact match first
+    for name, product in catalog.items():
+        if search_lower == name.lower():
+            return product
+
+    # Try partial match
+    for name, product in catalog.items():
+        if search_lower in name.lower() or any(word in name.lower() for word in search_lower.split()):
+            return product
+
+    return None

@@ -186,23 +186,56 @@ async def scrape_customize_modal(page):
                     except:
                         quantity = 1
                 
+                # Try to detect category from section header
+                category = "produce"  # default
+                try:
+                    # Look for section header above this item
+                    parent = await item.locator("..").first
+                    section_header = await parent.locator("xpath=preceding::h3[1]").first
+                    if await section_header.count() > 0:
+                        header_text = (await section_header.text_content()).strip().lower()
+                        if "protein" in header_text:
+                            category = "protein"
+                        elif "grocery" in header_text or "pantry" in header_text:
+                            category = "grocery"
+                        elif "produce" in header_text:
+                            category = "produce"
+                except:
+                    pass
+
                 selected_items.append({
                     "name": item_name,
                     "producer": producer,
                     "unit": unit_info,
                     "quantity": quantity,
-                    "selected": True
+                    "selected": True,
+                    "category": category
                 })
                 print(f"  ✅ Selected: {item_name} (qty: {quantity}) - {unit_info}")
                 
             elif await add_button.count() > 0:
                 # This is an available alternative
+                # Try to detect category from section header
+                category = "produce"  # default
+                try:
+                    parent = await item.locator("..").first
+                    section_header = await parent.locator("xpath=preceding::h3[1]").first
+                    if await section_header.count() > 0:
+                        header_text = (await section_header.text_content()).strip().lower()
+                        if "protein" in header_text:
+                            category = "protein"
+                        elif "grocery" in header_text or "pantry" in header_text:
+                            category = "grocery"
+                except:
+                    pass
+
                 available_alternatives.append({
                     "name": item_name,
                     "producer": producer,
                     "unit": unit_info,
                     "quantity": 0,
-                    "selected": False
+                    "selected": False,
+                    "category": category
                 })
                 print(f"  🔄 Available: {item_name} - {unit_info}")
                 
@@ -318,7 +351,19 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
         If return_data=True: Dict with scraped cart data
         Otherwise: None (saves to file)
     """
-    print(f"🚀 Starting comprehensive scraper for phone: {phone_number}")
+    import time
+    from datetime import datetime as dt
+
+    def log_progress(message, elapsed=None):
+        """Helper function to log with timestamp and elapsed time."""
+        timestamp = dt.now().strftime("%H:%M:%S.%f")[:-3]
+        if elapsed is not None:
+            print(f"[{timestamp}] {message} (elapsed: {elapsed:.1f}s)")
+        else:
+            print(f"[{timestamp}] {message}")
+
+    start_time = time.time()
+    log_progress(f"🚀 Starting comprehensive scraper for phone: {phone_number}")
 
     # CRITICAL: Extract credentials at the very beginning to prevent scope issues
     email = None
@@ -326,26 +371,27 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
     if credentials:
         email = credentials.get('email')
         password = credentials.get('password')
+        log_progress("📋 Using provided credentials")
     else:
         email = os.getenv("EMAIL") or os.getenv("FTP_EMAIL")
         password = os.getenv("PASSWORD") or os.getenv("FTP_PWD")
+        log_progress("📋 Using environment credentials")
 
-    print(f"🔐 Using email: {email}")
-    print(f"⏱️ Force save: {force_save}")
-    print(f"📊 Return data: {return_data}")
-
-    import time
-    start_time = time.time()
+    log_progress(f"🔐 Email: {email}")
+    log_progress(f"⚙️ Force save: {force_save}, Return data: {return_data}")
 
     output_dir = Path("../farm_box_data")
     output_dir.mkdir(exist_ok=True)
 
     async with async_playwright() as p:
-        print("🌐 Starting browser session...")
+        log_progress("🌐 Initializing Playwright...", time.time() - start_time)
         browser = await p.chromium.launch(headless=True)  # Must be headless in cloud environment
+        log_progress("🌐 Browser launched", time.time() - start_time)
         context = await browser.new_context(viewport={"width": 1920, "height": 1080})
+        log_progress("🌐 Browser context created", time.time() - start_time)
 
         page = await context.new_page()
+        log_progress("📄 New page created", time.time() - start_time)
 
         # Session caching disabled for debugging - always do fresh login
         # TODO: Re-enable session caching after fixing core issues
@@ -354,67 +400,82 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
         # Navigate and potentially login (always fresh for now)
         if not session_used:
             # Navigate to home where header/cart lives
+            log_progress("🔗 Navigating to farmtopeople.com/home...", time.time() - start_time)
             await page.goto("https://farmtopeople.com/home")
+            log_progress("✅ Page loaded", time.time() - start_time)
             await page.wait_for_load_state("domcontentloaded")
+            log_progress("✅ DOM content loaded", time.time() - start_time)
 
             # Smart wait: Look for either login elements or cart elements (indicates page is ready)
             try:
+                log_progress("⏳ Waiting for login or cart elements...", time.time() - start_time)
                 await page.wait_for_selector("input[placeholder='Enter email address'], .cart-button", timeout=5000)
-                print("✅ Page ready - found login or cart elements")
+                log_progress("✅ Page ready - found login or cart elements", time.time() - start_time)
             except:
                 # Fallback to shorter timeout if selectors not found
                 await page.wait_for_timeout(get_timeout(1500))  # Reduced from 2500ms
-                print("⚠️ Using fallback timeout for page settle")
+                log_progress("⚠️ Using fallback timeout for page settle", time.time() - start_time)
 
             # Check if we're on a login page or if login elements are visible
             current_url = page.url
+            log_progress(f"📍 Current URL: {current_url}", time.time() - start_time)
+
             login_form_visible = await page.locator("input[placeholder='Enter email address']").count() > 0
+            log_progress(f"🔍 Login form visible: {login_form_visible}", time.time() - start_time)
 
             # Also check if we see a "Log in" link/button which indicates we're not logged in
             login_link_visible = await page.locator("a:has-text('Log in'), button:has-text('Log in')").count() > 0
+            log_progress(f"🔍 Login link visible: {login_link_visible}", time.time() - start_time)
 
             if "login" in current_url or login_form_visible or login_link_visible:
-                print(f"🔐 Login page detected. Performing login... (elapsed: {time.time() - start_time:.1f}s)")
+                log_progress("🔐 Login required - starting authentication flow", time.time() - start_time)
             
             # Credentials already extracted at the top of the function
             if not email or not password:
-                print("❌ No credentials found in environment (EMAIL/PASSWORD)")
-                print("   Looking in .env at:", project_root / '.env')
+                log_progress("❌ No credentials found in environment (EMAIL/PASSWORD)")
+                log_progress(f"   Looking in .env at: {project_root / '.env'}")
                 await context.close()
                 return
-                
+
             try:
                 # Fill email
+                log_progress("📝 Looking for email input field...", time.time() - start_time)
                 email_input = page.locator("input[placeholder='Enter email address']").first
                 if await email_input.count() > 0:
                     await email_input.fill(email)
-                    print(f"✅ Email entered: {email}")
+                    log_progress(f"✅ Email entered: {email}", time.time() - start_time)
                     
                     # Click LOG IN to proceed to password
+                    log_progress("🔍 Looking for LOG IN button...", time.time() - start_time)
                     login_btn = page.locator("button:has-text('LOG IN')").first
                     if await login_btn.count() > 0:
+                        log_progress("👆 Clicking LOG IN to proceed to password...", time.time() - start_time)
                         await login_btn.click()
                         await page.wait_for_timeout(get_timeout(2500))  # Wait after login click (increased for reliability)
-                        
+                        log_progress("⏳ Waiting for password field to appear...", time.time() - start_time)
+
                         # Now fill password
                         password_input = page.locator("input[type='password']").first
                         if await password_input.count() > 0:
                             await password_input.fill(password)
-                            print("✅ Password entered")
+                            log_progress("✅ Password entered", time.time() - start_time)
                             
                             # Click LOG IN again
                             final_login_btn = page.locator("button:has-text('LOG IN')").first
                             if await final_login_btn.count() > 0:
+                                log_progress("👆 Clicking final LOG IN button...", time.time() - start_time)
                                 await final_login_btn.click()
-                                print("✅ Login submitted, waiting for navigation...")
+                                log_progress("⏳ Waiting for login to complete...", time.time() - start_time)
                                 await page.wait_for_timeout(get_timeout(4000))  # Wait for zipcode modal (increased for reliability)
 
                                 # Add additional wait for login to fully settle
+                                log_progress("⏳ Waiting for network idle...", time.time() - start_time)
                                 await page.wait_for_load_state("networkidle", timeout=10000)
-                                
+
                                 # Verify we're logged in
-                                if "login" not in page.url:
-                                    print("✅ Login successful!")
+                                new_url = page.url
+                                if "login" not in new_url:
+                                    log_progress(f"✅ Login successful! Now at: {new_url}", time.time() - start_time)
 
                                     # Save session cookies for future use
                                     if phone_number and email:
@@ -437,49 +498,55 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                                             print(f"⚠️ Failed to save session: {session_error}")
 
                                 else:
-                                    print("⚠️ Still on login page, may have failed")
+                                    log_progress("⚠️ Still on login page, may have failed", time.time() - start_time)
                             
             except Exception as e:
-                print(f"❌ Login error: {e}")
+                log_progress(f"❌ Login error: {e}", time.time() - start_time)
         else:
             # Not on login page, use the auth helper to verify session
-            print("🔐 Checking session status...")
+            log_progress("🔐 Checking session status...", time.time() - start_time)
             ensure_logged_in(page)  
         
         # The scraper can now proceed assuming it's logged in.
-        print(f"🛒 Opening cart... (elapsed: {time.time() - start_time:.1f}s)")
+        log_progress("🛒 Starting cart scraping phase...", time.time() - start_time)
         
-        # Prefer a cart button that isn’t inside any dialog
+        # Prefer a cart button that isn't inside any dialog
+        log_progress("🔍 Looking for cart button...", time.time() - start_time)
         cart_btn = page.locator("body > div:not([role='dialog']) >> div.cart-button.ml-auto.cursor-pointer").first
-        
+
         if await cart_btn.is_visible():
-            print("✅ Cart button is visible and not in a modal. Clicking it.")
+            log_progress("✅ Cart button found and visible", time.time() - start_time)
+            log_progress("👆 Clicking cart button...", time.time() - start_time)
             await cart_btn.click()
 
             # Smart wait: Look for cart articles to appear (indicates cart has loaded)
             try:
+                log_progress("⏳ Waiting for cart modal to load...", time.time() - start_time)
                 await page.wait_for_selector("article[class*='cart-order_cartOrderItem']", timeout=5000)
-                print("✅ Cart loaded - found cart articles")
+                log_progress("✅ Cart modal loaded - found cart articles", time.time() - start_time)
             except:
                 # Fallback timeout if cart articles not found
                 await page.wait_for_timeout(get_timeout(2000))  # Reduced from 3000ms
-                print("⚠️ Using fallback timeout for cart load")
+                log_progress("⚠️ Using fallback timeout for cart load", time.time() - start_time)
         else:
-            print("❌ Cart button not found or not visible. Trying direct navigation.")
+            log_progress("❌ Cart button not found - trying direct navigation", time.time() - start_time)
             await page.goto("https://farmtopeople.com/cart")
+            log_progress("📍 Navigated to /cart", time.time() - start_time)
 
             # Smart wait: Look for cart articles after direct navigation
             try:
+                log_progress("⏳ Waiting for cart page to load...", time.time() - start_time)
                 await page.wait_for_selector("article[class*='cart-order_cartOrderItem']", timeout=5000)
-                print("✅ Cart page loaded - found cart articles")
+                log_progress("✅ Cart page loaded - found cart articles", time.time() - start_time)
             except:
                 # Fallback timeout if cart articles not found
                 await page.wait_for_timeout(get_timeout(2000))  # Reduced from 3000ms
-                print("⚠️ Using fallback timeout for cart page load")
+                log_progress("⚠️ Using fallback timeout for cart page load", time.time() - start_time)
 
         # First, get individual cart items (non-customizable items like eggs, avocados, etc.)
-        print("🔍 Checking for individual cart items...")
+        log_progress("📦 Phase 1: Scraping individual cart items...", time.time() - start_time)
         articles = await page.locator("article[class*='cart-order_cartOrderItem']").all()
+        log_progress(f"🔍 Found {len(articles)} cart articles to process", time.time() - start_time)
         individual_items = []
         
         for article in articles:
@@ -620,7 +687,7 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
         print(f"🛒 Found {len(individual_items)} individual cart items")
         
         # Check for non-customizable boxes (like Seasonal Fruit Medley)
-        print(f"🔍 Checking for non-customizable boxes... (elapsed: {time.time() - start_time:.1f}s)")
+        log_progress("📦 Phase 2: Scraping non-customizable boxes...", time.time() - start_time)
         non_customizable_boxes = []
         
         for article in articles:
@@ -639,7 +706,7 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                         continue
                     
                     box_name = (await name_link.text_content()).strip()
-                    print(f"📦 Found non-customizable box: {box_name}")
+                    log_progress(f"📦 Found non-customizable box: {box_name}", time.time() - start_time)
                     
                     # Try to find price for non-customizable box
                     box_price = ""
@@ -651,7 +718,7 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                         price_match = re.search(r'\$[\d,]+\.?\d*', price_text)
                         if price_match:
                             box_price = price_match.group()
-                            print(f"💰 Found box price: {box_price}")
+                            log_progress(f"💰 Found box price: {box_price}", time.time() - start_time)
                     
                     # Get sub-items from the list
                     selected_items = []
@@ -684,7 +751,6 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                                 "quantity": quantity,
                                 "selected": True
                             })
-                            print(f"  ✅ Item: {clean_name} (qty: {quantity}) - {unit_info}")
                     
                     non_customizable_box = {
                         "box_name": box_name,
@@ -701,21 +767,21 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                     non_customizable_boxes.append(non_customizable_box)
                     
             except Exception as e:
-                print(f"  ⚠️ Error processing non-customizable box: {e}")
+                log_progress(f"  ⚠️ Error processing non-customizable box: {e}", time.time() - start_time)
                 continue
-        
-        print(f"📦 Found {len(non_customizable_boxes)} non-customizable boxes")
+
+        log_progress(f"✅ Found {len(non_customizable_boxes)} non-customizable boxes", time.time() - start_time)
 
         # Get all CUSTOMIZE buttons
-        print(f"🎯 Processing customizable boxes... (elapsed: {time.time() - start_time:.1f}s)")
+        log_progress("📦 Phase 3: Processing customizable boxes...", time.time() - start_time)
         customize_btns = await page.locator("button:has-text('CUSTOMIZE'), button:has-text('Customize')").all()
 
-        print(f"🔍 Found {len(customize_btns)} customizable boxes to process")
+        log_progress(f"🔍 Found {len(customize_btns)} customizable boxes to process", time.time() - start_time)
         all_box_data = []
         
         for i, customize_btn in enumerate(customize_btns):
             try:
-                print(f"📦 Processing customizable box {i+1}/{len(customize_btns)}... (elapsed: {time.time() - start_time:.1f}s)")
+                log_progress(f"📦 Processing customizable box {i+1}/{len(customize_btns)}...", time.time() - start_time)
                 # Get box name and price from the parent article
                 article = customize_btn.locator("xpath=ancestor::article").first
                 box_name = "Unknown Box"
@@ -734,7 +800,7 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                         price_match = re.search(r'\$[\d,]+\.?\d*', price_text)
                         if price_match:
                             box_price = price_match.group()
-                            print(f"💰 Found box price: {box_price}")
+                            log_progress(f"💰 Found box price: {box_price}", time.time() - start_time)
                 
                 print(f"\n=== PROCESSING BOX {i+1}: {box_name} ===")
                 
@@ -791,7 +857,7 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                         # Check if modal actually opened
                         modal_present = await page.locator("aside[aria-label*='Customize']").count() > 0
                         if modal_present:
-                            print("✅ Customize modal opened successfully")
+                            log_progress("✅ Customize modal opened successfully", time.time() - start_time)
 
                             # Wait for modal content to fully load (Farm to People loads dynamically)
                             await page.wait_for_timeout(3000)
@@ -810,20 +876,20 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                             box_data = await scrape_customize_modal(page)
                             break  # Success, exit retry loop
                         else:
-                            print("⚠️ Modal didn't open, retrying...")
+                            log_progress("⚠️ Modal didn't open, retrying...", time.time() - start_time)
                             await page.wait_for_timeout(get_timeout(2000))  # Wait before retry (increased for reliability)
                             
                     except Exception as e:
-                        print(f"❌ Attempt {attempt + 1} failed: {e}")
+                        log_progress(f"❌ Attempt {attempt + 1} failed: {e}", time.time() - start_time)
                         if attempt < max_retries - 1:
-                            print(f"🔄 Retrying in 3 seconds...")
+                            log_progress(f"🔄 Retrying in 3 seconds...", time.time() - start_time)
                             await page.wait_for_timeout(get_timeout(3500))  # Wait after failed attempt (increased for reliability)
                         else:
-                            print(f"❌ All {max_retries} attempts failed for {box_name}")
+                            log_progress(f"❌ All {max_retries} attempts failed for {box_name}", time.time() - start_time)
                 
                 # If we still don't have box_data, create empty structure
                 if box_data is None:
-                    print(f"⚠️ Could not get data for {box_name}, creating empty structure")
+                    log_progress(f"⚠️ Could not get data for {box_name}, creating empty structure", time.time() - start_time)
                     box_data = {
                         "selected_items": [],
                         "available_alternatives": [],
@@ -838,10 +904,7 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                 
                 all_box_data.append(box_data)
                 
-                print(f"\n📊 RESULTS for {box_name}:")
-                print(f"  • {box_data['selected_count']} selected items")
-                print(f"  • {box_data['alternatives_count']} available alternatives")
-                print(f"  • {box_data['total_items']} total items")
+                log_progress(f"📊 Box results: {box_name} - {box_data['selected_count']} selected, {box_data['alternatives_count']} alternatives", time.time() - start_time)
                 
                 # Close the modal (look for Close button)
                 close_btn = page.locator("button:has-text('Close')").first
@@ -854,13 +917,13 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                     await page.wait_for_timeout(get_timeout(500))  # Wait for ESC close
                 
             except Exception as e:
-                print(f"❌ Error processing box {i+1}: {e}")
+                log_progress(f"❌ Error processing box {i+1}: {e}", time.time() - start_time)
                 continue
         
         # Extract delivery date (just the raw date, handle logic downstream)
         delivery_info = {}
         try:
-            print("🔍 Searching for delivery date...")
+            log_progress("📅 Phase 4: Extracting delivery date...", time.time() - start_time)
             # Broader search for delivery date on cart page
             elements_locator = page.locator("h1, h2, h3, h4, p, span, div")
             elements = await elements_locator.all()
@@ -897,25 +960,25 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                         match = re.search(pattern, text)
                         if match:
                             extracted_date = match.group(1).strip()
-                            print(f"  📅 Extracted delivery date: '{extracted_date}' from: '{text[:100]}...'")
+                            log_progress(f"  📅 Extracted delivery date: '{extracted_date}' from: '{text[:100]}...'", time.time() - start_time)
                             break
 
                     # Use extracted date if found, otherwise use original text (but truncated)
                     if extracted_date:
                         delivery_info['delivery_text'] = extracted_date
-                        print(f"  ✅ Using extracted date for comparison: '{extracted_date}'")
+                        log_progress(f"  ✅ Using extracted date: '{extracted_date}'", time.time() - start_time)
                         found_date = True
                         break
                     else:
                         # Fallback: use original text but warn about potential parsing issues
                         delivery_info['delivery_text'] = text
-                        print(f"  ⚠️ Could not extract clean date, using full text: {text[:100]}...")
+                        log_progress(f"  ⚠️ Could not extract clean date, using full text: {text[:100]}...", time.time() - start_time)
                         found_date = True
                         break
 
                 # Also check for "Deliver" keyword with dates and apply same extraction
                 elif 'deliver' in text.lower() and any(char.isdigit() for char in text):
-                    print(f"  📅 Found delivery mention: {text[:100]}...")
+                    log_progress(f"  📅 Found delivery mention: {text[:100]}...", time.time() - start_time)
 
                     # Apply same regex extraction for delivery mentions
                     import re
@@ -932,34 +995,34 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                         match = re.search(pattern, text)
                         if match:
                             extracted_date = match.group(1).strip()
-                            print(f"  📅 Extracted delivery date from 'deliver' mention: '{extracted_date}' from: '{text[:100]}...'")
+                            log_progress(f"  📅 Extracted delivery date from 'deliver' mention: '{extracted_date}' from: '{text[:100]}...'", time.time() - start_time)
                             break
 
                     # Use extracted date if found, otherwise use original text
                     if extracted_date:
                         delivery_info['delivery_text'] = extracted_date
-                        print(f"  ✅ Using extracted date for comparison: '{extracted_date}'")
+                        log_progress(f"  ✅ Using extracted date: '{extracted_date}'", time.time() - start_time)
                     else:
                         delivery_info['delivery_text'] = text
-                        print(f"  ⚠️ Could not extract clean date from deliver mention, using full text: {text[:100]}...")
+                        log_progress(f"  ⚠️ Could not extract clean date from deliver mention, using full text: {text[:100]}...", time.time() - start_time)
 
                     found_date = True
                     break
                     
             if not found_date:
-                print("  ⚠️ No delivery date found on cart page")
+                log_progress("  ⚠️ No delivery date found on cart page", time.time() - start_time)
                 # Try looking at page title or other specific locations
                 try:
                     title = page.title()
                     if any(month in title for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
                                                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']):
                         delivery_info['delivery_text'] = title
-                        print(f"  📅 Found in page title: {title}")
+                        log_progress(f"  📅 Found in page title: {title}", time.time() - start_time)
                 except:
                     pass
                     
         except Exception as e:
-            print(f"⚠️ Could not extract delivery date: {e}")
+            log_progress(f"⚠️ Could not extract delivery date: {e}", time.time() - start_time)
         
         # Combine all data for output
         complete_results = {
@@ -990,12 +1053,12 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                 
                 # Get cart status based on delivery date
                 cart_status = get_cart_status(delivery_date_text) if delivery_date_text else {"status": "unknown"}
-                print(f"🕒 Cart status: {cart_status['status']} - {cart_status.get('reason', 'No reason')}")
-                
+                log_progress(f"🕒 Cart status: {cart_status['status']} - {cart_status.get('reason', 'No reason')}", time.time() - start_time)
+
                 if cart_status['status'] == 'active' and cart_status.get('minutes_until_lock'):
-                    print(f"⏰ Cart locks in {cart_status['minutes_until_lock']} minutes")
+                    log_progress(f"⏰ Cart locks in {cart_status['minutes_until_lock']} minutes", time.time() - start_time)
                 elif cart_status['status'] == 'locked' and cart_status.get('locked_ago_minutes'):
-                    print(f"🔒 Cart locked {cart_status['locked_ago_minutes']} minutes ago")
+                    log_progress(f"🔒 Cart locked {cart_status['locked_ago_minutes']} minutes ago", time.time() - start_time)
                 
                 # Decision logic for saving cart data
                 should_save = False
@@ -1035,9 +1098,9 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                                         print(f"✅ Parsed stored delivery date: {stored_parsed_date}")
                                     else:  # Text format
                                         stored_parsed_date = parse_delivery_date(stored_delivery)
-                                        print(f"✅ Parsed stored delivery date via parse_delivery_date: {stored_parsed_date}")
+                                        log_progress(f"✅ Parsed stored delivery date: {stored_parsed_date}", time.time() - start_time)
                                 except Exception as date_error:
-                                    print(f"⚠️ Could not parse stored delivery date: {stored_delivery} - Error: {date_error}")
+                                    log_progress(f"⚠️ Could not parse stored delivery date: {stored_delivery} - Error: {date_error}", time.time() - start_time)
                                     stored_parsed_date = None
 
                             # Compare dates (ignore time, just compare the date part)
@@ -1060,8 +1123,8 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
 
                         except Exception as date_comparison_error:
                             # If ANY part of date comparison fails, default to saving fresh data
-                            print(f"🚨 Date comparison completely failed: {date_comparison_error}")
-                            print("🔄 Defaulting to saving fresh cart data since comparison failed")
+                            log_progress(f"🚨 Date comparison failed: {date_comparison_error}", time.time() - start_time)
+                            log_progress("🔄 Defaulting to saving fresh cart data", time.time() - start_time)
                             should_save = True
                             save_reason = "Date comparison failed - saving fresh cart data"
                 
@@ -1079,64 +1142,62 @@ async def main(credentials=None, return_data=False, phone_number=None, force_sav
                         should_save = False
                         save_reason = "Unknown cart status with existing data - preserving existing data"
                 
-                print(f"💭 Save decision: {save_reason}")
+                log_progress(f"💭 Save decision: {save_reason}", time.time() - start_time)
 
                 if should_save:
                     # DETECT SWAPS: Compare new cart with previous before saving
                     try:
                         detected_swaps = detect_and_store_swaps(phone_number, complete_results, delivery_date_text)
                         if detected_swaps:
-                            print(f"🔄 Detected {len(detected_swaps)} cart swaps:")
+                            log_progress(f"🔄 Detected {len(detected_swaps)} cart swaps", time.time() - start_time)
                             for swap in detected_swaps:
-                                print(f"   • {swap['from_item']} → {swap['to_item']} ({swap['box_name']})")
+                                log_progress(f"   • {swap['from_item']} → {swap['to_item']} ({swap['box_name']})", time.time() - start_time)
                         else:
-                            print(f"🔄 No cart swaps detected")
+                            log_progress("🔄 No cart swaps detected", time.time() - start_time)
                     except Exception as swap_error:
-                        print(f"⚠️ Swap detection failed (non-critical): {swap_error}")
+                        log_progress(f"⚠️ Swap detection failed (non-critical): {swap_error}", time.time() - start_time)
 
                     success = supabase_client.save_latest_cart_data(phone_number, complete_results, delivery_date_text)
                     if success:
-                        print(f"💾 Cart data saved to database for {phone_number}")
+                        log_progress(f"💾 Cart data saved to database for {phone_number}", time.time() - start_time)
 
                         # CRITICAL: Cache fresh data to Redis immediately
                         try:
                             import sys
-                            import os
-                            sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-                            from server.services.cache_service import CacheService
+                            import os as os_module
+                            sys.path.append(os_module.path.join(os_module.path.dirname(__file__), '..'))
+                            sys.path.append(os_module.path.join(os_module.path.dirname(__file__), '..', 'server'))
+                            from services.cache_service import CacheService
 
                             # Cache for 2 hours (7200 seconds)
                             CacheService.set_cart(phone_number, complete_results, ttl=7200)
-                            print(f"🔥 Cart data cached to Redis for {phone_number} (2hr TTL)")
+                            log_progress(f"🔥 Cart data cached to Redis for {phone_number} (2hr TTL)", time.time() - start_time)
                         except Exception as cache_error:
-                            print(f"⚠️ Redis cache failed (non-critical): {cache_error}")
+                            log_progress(f"⚠️ Redis cache failed (non-critical): {cache_error}", time.time() - start_time)
                     else:
-                        print(f"⚠️ Failed to save cart data to database")
+                        log_progress("⚠️ Failed to save cart data to database", time.time() - start_time)
                 else:
-                    print(f"🔒 Skipping database save: {save_reason}")
+                    log_progress(f"🔒 Skipping database save: {save_reason}", time.time() - start_time)
                     
             except Exception as e:
-                print(f"⚠️ Database save error: {e}")
-        
-        print(f"\n🎉 COMPLETE! Results saved to: {output_file}")
-        
+                log_progress(f"⚠️ Database save error: {e}", time.time() - start_time)
+
+        log_progress(f"\n🎉 COMPLETE! Results saved to: {output_file}", time.time() - start_time)
+
         # Return data if requested
         if return_data:
-            print("📤 Returning cart data to caller...")
+            log_progress("📤 Returning cart data to caller...", time.time() - start_time)
             await context.close()
             await browser.close()
             return complete_results
-        print(f"\n📈 SUMMARY:")
+        log_progress("\n🎆 SCRAPING COMPLETE - Final Summary:", time.time() - start_time)
         if individual_items:
-            print(f"  Individual Items:")
-            print(f"    🛒 {len(individual_items)} items")
+            log_progress(f"  🛒 Individual Items: {len(individual_items)} items", time.time() - start_time)
         for box_data in non_customizable_boxes:
-            print(f"  {box_data['box_name']} (non-customizable):")
-            print(f"    ✅ {box_data['selected_count']} items")
+            log_progress(f"  📦 {box_data['box_name']} (non-customizable): {box_data['selected_count']} items", time.time() - start_time)
         for box_data in all_box_data:
-            print(f"  {box_data['box_name']} (customizable):")
-            print(f"    ✅ {box_data['selected_count']} selected")
-            print(f"    🔄 {box_data['alternatives_count']} alternatives")
+            log_progress(f"  📦 {box_data['box_name']} (customizable): {box_data['selected_count']} selected, {box_data['alternatives_count']} alternatives", time.time() - start_time)
+        log_progress(f"\n✅ Total scraping time: {time.time() - start_time:.1f}s\n", time.time() - start_time)
         
         await context.close()
         await browser.close()
