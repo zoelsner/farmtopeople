@@ -936,6 +936,8 @@
         // restoreCartLockTime();
 
         async function startAnalysis(forceRefresh = false) {
+            const uiStartTime = Date.now(); // Track UI timing for performance logs
+
             // Prevent overlapping analysis calls
             if (isAnalyzing) {
                 console.log('⚠️ Analysis already in progress, ignoring duplicate call');
