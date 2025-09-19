@@ -1051,7 +1051,7 @@
                         </button>
                     `;
                 }
-            }, 60000); // 60 second timeout
+            }, 120000); // 120 second timeout (2 minutes for production)
 
             try {
                 // Get user phone (from localStorage or prompt)
@@ -1153,8 +1153,8 @@
             }
         }
 
-        // Cancel analysis and go back to start
-        function cancelAnalysis() {
+        // Cancel analysis and go back to appropriate state
+        async function cancelAnalysis() {
             console.log('🚫 cancelAnalysis() called');
 
             // Abort the current request if it exists
@@ -1170,20 +1170,39 @@
             // Reset analyzing flag
             isAnalyzing = false;
 
-            // Clean up any conflicting inline styles first (same as startAnalysis)
+            // Clean up any conflicting inline styles first
             ['startSection', 'loadingSection', 'cartAnalysisSection'].forEach(id => {
                 const section = document.getElementById(id);
                 if (section) section.style.display = ''; // Clear inline styles
             });
 
-            // Reset to start state with clean transitions
+            // Check if we have existing cart data to show
+            try {
+                const response = await fetch('/api/get-saved-cart?force_refresh=false');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.cart_data && Object.keys(data.cart_data).length > 0) {
+                        // We have cart data - show it instead of start screen
+                        console.log('✅ Found existing cart data - showing cart view');
+                        currentState = 'complete';
+                        document.getElementById('loadingSection').classList.remove('active');
+                        document.getElementById('startSection').classList.remove('active');
+                        FarmDashboard.Cart.showAnalysis(data.cart_data, data.swaps || [], data.addons || [], false, data.meals || null);
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('⚠️ Error checking for existing cart:', error);
+            }
+
+            // No cart data - reset to start state
             currentState = 'start';
             document.getElementById('loadingSection').classList.remove('active');
             document.getElementById('cartAnalysisSection').classList.remove('active');
             document.getElementById('startSection').classList.add('active');
             document.getElementById('headerSubtitle').textContent = 'Ready to analyze';
 
-            console.log('✅ Analysis canceled and UI reset to start');
+            console.log('✅ Analysis canceled and UI reset');
         }
 
         // Go back to start from error state
