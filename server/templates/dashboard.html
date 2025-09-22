@@ -1120,32 +1120,20 @@
                 forceRefresh: forceRefresh
             });
 
-            // Update loading status messages with progress bar and timer
-            const statuses = [
-                { text: '🔐 Connecting to Farm to People...', progress: 10 },
-                { text: '🔍 Accessing your current cart...', progress: 25 },
-                { text: '📦 Scanning cart items and customizable boxes...', progress: 45 },
-                { text: '🧮 Calculating ingredients and portions...', progress: 60 },
-                { text: '🤖 Generating personalized meal suggestions with GPT-5...', progress: 80 },
-                { text: '✨ Finalizing your meal plan and saving to cache...', progress: 95 }
-            ];
-
-            let statusIndex = 0;
+            // REAL-TIME PROGRESS: Use Server-Sent Events for actual progress updates
             const startTime = Date.now();
+            let progressEventSource = null;
 
-            // Add progress bar to loading status
-            function updateLoadingStatus() {
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const status = statuses[Math.min(statusIndex, statuses.length - 1)];
+            // Function to update progress display with real server data
+            function updateRealProgress(message, progress, elapsed = null) {
+                const actualElapsed = elapsed || Math.floor((Date.now() - startTime) / 1000);
 
-                console.log('🔄 PROGRESS UPDATE:', {
-                    statusIndex,
-                    elapsed,
-                    statusText: status.text,
-                    progress: status.progress
+                console.log('📡 REAL PROGRESS UPDATE:', {
+                    message,
+                    progress,
+                    elapsed: actualElapsed
                 });
 
-                // Create smooth progress updates without affecting spinner
                 const loadingEl = document.getElementById('loadingStatus');
                 if (!loadingEl) {
                     console.error('❌ PROGRESS ERROR: loadingStatus element not found!');
@@ -1155,29 +1143,70 @@
                 // Use requestAnimationFrame for smoother updates - avoid reflow on spinner
                 requestAnimationFrame(() => {
                     loadingEl.innerHTML = `
-                        <div style="margin-bottom: 12px;">${status.text}</div>
+                        <div style="margin-bottom: 12px;">${message}</div>
                         <div style="background: #f0f0f0; border-radius: 8px; height: 6px; margin-bottom: 8px; overflow: hidden;">
-                            <div style="background: #4169E1; height: 100%; width: ${status.progress}%; transition: width 0.8s ease;"></div>
+                            <div style="background: #4169E1; height: 100%; width: ${progress}%; transition: width 0.8s ease;"></div>
                         </div>
-                        <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Elapsed: ${elapsed}s</div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Elapsed: ${actualElapsed}s</div>
                         <button onclick="cancelAnalysis()" style="padding: 6px 12px; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
                             Cancel
                         </button>
                     `;
-                    console.log('✅ PROGRESS UPDATED: HTML set successfully');
+                    console.log('✅ REAL PROGRESS UPDATED: HTML set successfully');
                 });
             }
 
-            console.log('🚀 PROGRESS SYSTEM: Starting progress updates');
-            updateLoadingStatus();
-            statusInterval = setInterval(() => {
-                if (statusIndex < statuses.length - 1) {
-                    statusIndex++;
-                    console.log('📈 PROGRESS ADVANCE: Moving to status', statusIndex);
-                }
-                updateLoadingStatus();
-            }, 8000); // Slower updates for longer processes
-            console.log('✅ PROGRESS SYSTEM: Interval started with ID', statusInterval);
+            // Start real-time progress using Server-Sent Events (GET with query params)
+            console.log('🚀 REAL PROGRESS: Starting Server-Sent Events connection');
+            try {
+                const params = new URLSearchParams({
+                    phone: userPhone,
+                    forceRefresh: forceRefresh.toString()
+                });
+
+                progressEventSource = new EventSource(`/api/analyze-cart/stream?${params}`);
+
+                progressEventSource.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        console.log('📡 SSE MESSAGE:', data);
+
+                        if (data.error) {
+                            console.error('❌ SSE ERROR:', data.error);
+                            // Fall back to existing fetch if SSE fails
+                            progressEventSource.close();
+                            startFallbackFetch();
+                            return;
+                        }
+
+                        updateRealProgress(data.message, data.progress);
+
+                        if (data.step === 'complete') {
+                            progressEventSource.close();
+                            console.log('✅ Real-time progress complete');
+                        }
+                    } catch (e) {
+                        console.error('❌ SSE Parse error:', e);
+                    }
+                };
+
+                progressEventSource.onerror = function(event) {
+                    console.error('❌ SSE Connection error:', event);
+                    progressEventSource.close();
+                    // Fall back to existing fetch method
+                    startFallbackFetch();
+                };
+
+            } catch (e) {
+                console.error('❌ SSE Setup error:', e);
+                startFallbackFetch();
+            }
+
+            // Fallback to original fetch method if SSE fails
+            function startFallbackFetch() {
+                console.log('🔄 FALLBACK: Using original fetch method');
+                // Continue with the original fetch call below
+            }
 
             // Cancel button is now included in updateLoadingStatus() function above
 

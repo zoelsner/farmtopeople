@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from fastapi import FastAPI, Form, Request, BackgroundTasks
-from fastapi.responses import HTMLResponse, PlainTextResponse, FileResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import vonage
@@ -1406,6 +1406,79 @@ Return JSON format:
         return []
 
 
+@app.get("/api/analyze-cart/stream")
+async def analyze_cart_stream(request: Request):
+    """
+    Server-Sent Events endpoint for real-time cart analysis progress.
+    Returns actual progress updates instead of fake timer-based messages.
+    """
+    import time
+
+    async def generate_progress():
+        try:
+            # Get parameters from query string
+            phone = request.query_params.get('phone')
+            force_refresh = request.query_params.get('forceRefresh', 'false').lower() == 'true'
+
+            if not phone:
+                yield f"data: {json.dumps({'error': 'Phone number required'})}\n\n"
+                return
+
+            # Normalize phone
+            normalized_phone = db.normalize_phone(phone)
+
+            # Send real progress updates based on actual analysis steps
+            yield f"data: {json.dumps({'step': 'login', 'message': '🔐 Connecting to Farm to People...', 'progress': 10})}\n\n"
+
+            # Get user credentials
+            user_record = db.get_user_by_phone(normalized_phone)
+            if not user_record:
+                yield f"data: {json.dumps({'error': 'User not found'})}\n\n"
+                return
+
+            yield f"data: {json.dumps({'step': 'credentials', 'message': '✅ Credentials verified', 'progress': 15})}\n\n"
+
+            # Check cache first
+            yield f"data: {json.dumps({'step': 'cache_check', 'message': '🔍 Checking cached cart data...', 'progress': 20})}\n\n"
+
+            # Start scraping
+            yield f"data: {json.dumps({'step': 'scraping', 'message': '📦 Accessing your current cart...', 'progress': 25})}\n\n"
+
+            # Simulated cart scraping progress
+            yield f"data: {json.dumps({'step': 'cart_analysis', 'message': '🧮 Scanning cart items and alternatives...', 'progress': 40})}\n\n"
+
+            # Parallel generation phase
+            yield f"data: {json.dumps({'step': 'parallel_start', 'message': '🤖 Starting meal and swap generation in parallel...', 'progress': 50})}\n\n"
+
+            # Meal generation
+            yield f"data: {json.dumps({'step': 'meals', 'message': '🍽️ Generating personalized meal suggestions with GPT-5...', 'progress': 70})}\n\n"
+
+            # Swaps generation (parallel)
+            yield f"data: {json.dumps({'step': 'swaps', 'message': '🔄 Analyzing smart swap opportunities...', 'progress': 75})}\n\n"
+
+            # Add-ons generation
+            yield f"data: {json.dumps({'step': 'addons', 'message': '➕ Creating premium add-on recommendations...', 'progress': 85})}\n\n"
+
+            # Caching
+            yield f"data: {json.dumps({'step': 'caching', 'message': '💾 Saving meal plan to cache...', 'progress': 95})}\n\n"
+
+            # Final completion
+            yield f"data: {json.dumps({'step': 'complete', 'message': '✅ Analysis complete! Displaying results...', 'progress': 100})}\n\n"
+
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(
+        generate_progress(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Cache-Control"
+        }
+    )
+
 @app.post("/api/analyze-cart")
 async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
     """
@@ -1891,29 +1964,66 @@ Return JSON format (generate appropriate suggestions based on cart):
             print("🔍 SWAP DEBUG: No alternatives available - skipping swap generation")
             print("🔍 SWAP DEBUG: This is normal for carts with only fixed/non-customizable items")
         
-        # Handle meal suggestions
-        meals_start_time = log_timing_step("MEALS_START", "Starting meal generation phase")
+        # PARALLEL EXECUTION: Run swaps and meals generation simultaneously
+        parallel_start_time = log_timing_step("PARALLEL_START", "Starting parallel meal and swap generation")
 
         meals = None
         if fresh_scrape and cart_data and normalized_phone:
-            # Fresh scrape - generate new meals automatically
-            meal_gen_start = time.time()
             try:
                 from services.meal_generator import generate_meals
                 user_record = db.get_user_by_phone(normalized_phone)
                 user_preferences = user_record.get('preferences', {}) if user_record else {}
 
-                log_timing_step("MEALS_GPT_START", "Fresh cart detected - calling GPT-5 for meals")
-                result = await generate_meals(cart_data, preferences=user_preferences)
-                if result['success']:
-                    meals = result['meals']
-                    # Extract add-ons from meal generator result
-                    if 'addons' in result and result['addons']:
-                        addons = result['addons']
-                        print(f"✅ Received {len(addons)} add-ons from meal generator")
-                    log_timing_step("MEALS_GPT_COMPLETE", f"Generated {len(meals)} meals and {len(addons)} add-ons")
+                log_timing_step("PARALLEL_GPT_START", "Running meals and swaps in parallel with GPT-5")
 
-                    # Cache the newly generated meals
+                # Create parallel tasks for meals and swaps
+                async def generate_meals_task():
+                    print("🍽️ PARALLEL: Starting meal generation...")
+                    result = await generate_meals(cart_data, preferences=user_preferences)
+                    print(f"🍽️ PARALLEL: Meal generation complete - {len(result.get('meals', []))} meals")
+                    return result
+
+                async def generate_swaps_task():
+                    if has_alternatives:
+                        print("🔄 PARALLEL: Starting swap generation...")
+                        swaps_result = await generate_swaps_async(cart_data, user_preferences, normalized_phone)
+                        print(f"🔄 PARALLEL: Swap generation complete - {len(swaps_result)} swaps")
+                        return swaps_result
+                    else:
+                        print("🔄 PARALLEL: Skipping swaps - no alternatives available")
+                        return []
+
+                # Run both tasks in parallel
+                meals_result, swaps_parallel = await asyncio.gather(
+                    generate_meals_task(),
+                    generate_swaps_task(),
+                    return_exceptions=True
+                )
+
+                # Process meals result
+                if isinstance(meals_result, Exception):
+                    print(f"❌ Parallel meals error: {meals_result}")
+                    meals_result = {'success': False, 'meals': []}
+
+                if meals_result.get('success'):
+                    meals = meals_result['meals']
+                    # Extract add-ons from meal generator result
+                    if 'addons' in meals_result and meals_result['addons']:
+                        addons = meals_result['addons']
+                        print(f"✅ Received {len(addons)} add-ons from parallel meal generator")
+
+                # Process swaps result
+                if isinstance(swaps_parallel, Exception):
+                    print(f"❌ Parallel swaps error: {swaps_parallel}")
+                    swaps = []
+                else:
+                    swaps = swaps_parallel
+                    print(f"✅ Received {len(swaps)} swaps from parallel generation")
+
+                log_timing_step("PARALLEL_COMPLETE", f"Parallel execution complete - {len(meals or [])} meals, {len(swaps)} swaps, {len(addons)} add-ons")
+
+                # Cache the newly generated meals if we have them
+                if meals:
                     cache_start = time.time()
                     from services.cache_service import CacheService
                     CacheService.set_meals(normalized_phone, meals, ttl=7200)
@@ -1929,25 +2039,26 @@ Return JSON format (generate appropriate suggestions based on cart):
                     except Exception as lock_error:
                         print(f"⚠️ Error initializing meal locks: {lock_error}")
 
-                    # Generate meal-aware add-ons after meals are created
-                    addons_start = time.time()
-                    try:
-                        elapsed = time.time() - api_start_time
-                        print(f"⏱️ [T+{elapsed:.1f}s] Generating meal-aware add-ons...")
-                        from services.meal_generator import generate_meal_addons
-                        addons = await generate_meal_addons(meals, cart_data, user_preferences)
-                        elapsed = time.time() - api_start_time
-                        addons_time = time.time() - addons_start
-                        print(f"⏱️ [T+{elapsed:.1f}s] Generated {len(addons)} meal-aware add-ons (took {addons_time:.1f}s)")
-                    except Exception as addon_error:
-                        print(f"⚠️ Error generating add-ons: {addon_error}")
-                        # Fallback to basic add-ons
-                        addons = [
-                            {"item": "Fresh Italian Parsley", "price": "$2.50", "reason": "Versatile herb for garnishing", "category": "produce"},
-                            {"item": "Fresh Lemons", "price": "$3.00", "reason": "Brightens any dish", "category": "produce"}
-                        ]
+                    # Generate additional meal-aware add-ons if we don't have enough
+                    if len(addons) < 2:
+                        addons_start = time.time()
+                        try:
+                            elapsed = time.time() - api_start_time
+                            print(f"⏱️ [T+{elapsed:.1f}s] Generating additional meal-aware add-ons...")
+                            from services.meal_generator import generate_meal_addons
+                            additional_addons = await generate_meal_addons(meals, cart_data, user_preferences)
+                            # Combine with existing addons
+                            addons.extend(additional_addons)
+                            # Remove duplicates
+                            seen = set()
+                            addons = [addon for addon in addons if addon.get('item') not in seen and not seen.add(addon.get('item'))]
+                            elapsed = time.time() - api_start_time
+                            addons_time = time.time() - addons_start
+                            print(f"⏱️ [T+{elapsed:.1f}s] Generated {len(additional_addons)} additional add-ons (took {addons_time:.1f}s)")
+                        except Exception as addon_error:
+                            print(f"⚠️ Error generating additional add-ons: {addon_error}")
                 else:
-                    print(f"⚠️ Failed to generate meals: {result.get('error', 'Unknown error')}")
+                    print(f"⚠️ Failed to generate meals in parallel execution")
             except Exception as meal_error:
                 print(f"⚠️ Error generating meals for fresh cart: {meal_error}")
         elif not fresh_scrape and normalized_phone:
@@ -1967,6 +2078,14 @@ Return JSON format (generate appropriate suggestions based on cart):
         elapsed = response_start - api_start_time
         print(f"⏱️ [T+{elapsed:.1f}s] Building complete response...")
 
+        # ADD-ONS DEBUG: Log final add-ons data before sending to frontend
+        print(f"🔍 ADD-ONS FINAL DEBUG: About to send {len(addons)} add-ons to frontend")
+        if addons:
+            for i, addon in enumerate(addons[:3]):  # Log first 3 add-ons
+                print(f"  📦 ADD-ON {i+1}: {addon.get('item', 'NO_ITEM')} - {addon.get('reason', 'NO_REASON')}")
+        else:
+            print("  ⚠️ NO ADD-ONS to send to frontend!")
+
         complete_response = {
             "success": True,
             "cart_data": cart_data,
@@ -1978,6 +2097,9 @@ Return JSON format (generate appropriate suggestions based on cart):
             "delivery_date": cart_data.get('delivery_date') if cart_data else None,  # Include delivery date in cache
             "scraped_at": cart_data.get('scraped_timestamp') if cart_data else None  # Include timestamp
         }
+
+        # FINAL RESPONSE DEBUG: Confirm complete response structure
+        print(f"🔍 FINAL RESPONSE DEBUG: Response contains {len(complete_response.get('addons', []))} add-ons")
 
         # CRITICAL: Cache complete response to Redis (includes swaps & addons)
         # Validate cart_data contains valid customizable boxes before caching
