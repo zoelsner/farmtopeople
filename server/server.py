@@ -1430,18 +1430,35 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
 
         cart_data = None
 
-        print(f"\n{'='*60}")
-        print(f"🚀 [TIMING] Cart Analysis Start - Force refresh: {force_refresh}")
-        print(f"{'='*60}")
+        print(f"\n{'='*80}")
+        print(f"🚀 [T+0.0s] CART ANALYSIS START - Force refresh: {force_refresh}")
+        print(f"{'='*80}")
+
+        # Enhanced timing variables for detailed breakdown
+        step_timings = {}
+        last_step_time = api_start_time
+
+        def log_timing_step(step_name, description=""):
+            """Log timing for each step with cumulative and step timing"""
+            nonlocal last_step_time
+            current_time = time.time()
+            cumulative = current_time - api_start_time
+            step_time = current_time - last_step_time
+            step_timings[step_name] = {'cumulative': cumulative, 'step': step_time}
+            desc_text = f" - {description}" if description else ""
+            print(f"⏱️ [T+{cumulative:.1f}s] {step_name} (+{step_time:.1f}s){desc_text}")
+            last_step_time = current_time
+            return current_time
 
         if not use_mock and phone:
             # Try to get real cart data using stored credentials
             try:
-                print(f"⏱️ [T+0.0s] Starting analysis for phone: {phone}")
+                log_timing_step("PHONE_INPUT", f"Starting analysis for phone: {phone}")
 
                 # Use centralized phone service for consistent normalization
                 from services.phone_service import normalize_phone
                 normalized_phone = normalize_phone(phone)
+                log_timing_step("PHONE_NORMALIZED", f"Normalized: {phone} -> {normalized_phone}")
                 
                 if not normalized_phone:
                     print(f"[CART-ERROR] Invalid phone format: {phone}")
@@ -1459,16 +1476,16 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                         from services.cache_service import CacheService
                         CacheService.invalidate_cart(normalized_phone)
                         CacheService.invalidate_cart_response(normalized_phone)
-                        print(f"🔄 Force refresh: Invalidated Redis cache and cart_response for {normalized_phone}")
+                        log_timing_step("CACHE_INVALIDATED", f"Redis cache cleared for {normalized_phone}")
                     except Exception as cache_error:
                         print(f"⚠️ Cache invalidation failed (non-critical): {cache_error}")
 
                 # Try to get stored cart data (but don't rely on it exclusively)
                 stored_cart = db.get_latest_cart_data(normalized_phone)
                 if stored_cart and stored_cart.get('cart_data'):
-                    print(f"📦 Found stored cart data for {normalized_phone}")
+                    log_timing_step("STORED_CART_FOUND", f"Found stored cart data for {normalized_phone}")
                 else:
-                    print(f"⚠️ No stored cart data for {normalized_phone}")
+                    log_timing_step("STORED_CART_MISSING", f"No stored cart data for {normalized_phone}")
                 
                 # If regenerate_only flag is set, just use stored data (no scraping)
                 if regenerate_only:
@@ -1520,16 +1537,14 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                                 # Don't fail completely - maybe stored cart has data
                         
                         if email and password:
-                            elapsed = time.time() - api_start_time
-                            print(f"⏱️ [T+{elapsed:.1f}s] Starting live scraper for {email} (force_refresh={force_refresh})")
+                            log_timing_step("SCRAPER_CREDENTIALS_READY", f"Starting live scraper for {email}")
                             # Run the actual scraper with return_data=True (properly isolated from async context)
                             credentials = {'email': email, 'password': password}
 
                             # Add timeout and comprehensive logging
                             import asyncio
                             try:
-                                scraper_start = time.time()
-                                print(f"⏱️ [T+{elapsed:.1f}s] Starting scraper with 120 second timeout...")
+                                scraper_start_time = log_timing_step("SCRAPER_START", "Starting scraper with 120s timeout")
                                 # Use async scraper directly with normalized phone
                                 cart_data = await asyncio.wait_for(
                                     run_cart_scraper(
@@ -1540,9 +1555,8 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                                     ),
                                     timeout=120.0  # 2 minute timeout
                                 )
-                                scraper_duration = time.time() - scraper_start
-                                elapsed = time.time() - api_start_time
-                                print(f"✅ [T+{elapsed:.1f}s] Scraper completed in {scraper_duration:.1f}s")
+                                scraper_duration = time.time() - scraper_start_time
+                                log_timing_step("SCRAPER_COMPLETE", f"Scraper completed in {scraper_duration:.1f}s")
                             except asyncio.TimeoutError:
                                 print(f"⏰ Scraper timed out after 120 seconds - using fallback data")
                                 cart_data = None
@@ -1670,9 +1684,7 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                 print(f"⚠️ Error loading preferences: {e}")
         
         # Use GPT-5 to generate smart swaps and add-ons
-        swaps_start_time = time.time()
-        elapsed = swaps_start_time - api_start_time
-        print(f"⏱️ [T+{elapsed:.1f}s] Starting swap generation...")
+        swaps_start_time = log_timing_step("SWAPS_START", "Starting swap generation")
 
         # Check both arrays for boxes with alternatives (fixed from only checking customizable_boxes)
         has_alternatives = False
@@ -1687,29 +1699,48 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                     break
 
         if has_alternatives:
-            gpt_swap_start = time.time()
             try:
                 import openai
                 openai_key = os.getenv("OPENAI_API_KEY")
                 if openai_key:
                     client = openai.OpenAI(api_key=openai_key)
-                    elapsed = time.time() - api_start_time
-                    print(f"⏱️ [T+{elapsed:.1f}s] Building GPT-5 swap prompt...")
+                    log_timing_step("SWAPS_PROMPT_BUILD", "Building GPT-5 swap prompt")
 
-                    # Build context for GPT-5
-                    selected_items = []
-                    available_alternatives = []
+                    # Build category-aware context for GPT-5 to prevent cross-category swaps
+                    from collections import defaultdict
 
-                    # Collect from customizable_boxes array
+                    def categorize_item_simple(item_name):
+                        """Quick categorization for swap context"""
+                        name_lower = item_name.lower()
+                        if any(protein in name_lower for protein in ['chicken', 'beef', 'turkey', 'fish', 'salmon', 'pork', 'sausage', 'egg']):
+                            return 'protein'
+                        elif any(produce in name_lower for produce in ['tomato', 'pepper', 'kale', 'lettuce', 'carrot', 'zucchini', 'onion', 'broccoli', 'spinach', 'arugula', 'cauliflower']):
+                            return 'produce'
+                        else:
+                            return 'grocery'  # Rice, beans, pasta, etc.
+
+                    # Category-aware collection
+                    selected_by_category = defaultdict(list)
+                    alternatives_by_category = defaultdict(list)
+
+                    # Collect from customizable_boxes array with categories
                     for box in cart_data.get("customizable_boxes", []):
-                        selected_items.extend([item["name"] for item in box.get("selected_items", [])])
-                        available_alternatives.extend([item["name"] for item in box.get("available_alternatives", [])])
+                        for item in box.get("selected_items", []):
+                            category = categorize_item_simple(item["name"])
+                            selected_by_category[category].append(item["name"])
+                        for item in box.get("available_alternatives", []):
+                            category = categorize_item_simple(item["name"])
+                            alternatives_by_category[category].append(item["name"])
 
                     # ALSO collect from non_customizable_boxes for customizable ones
                     for box in cart_data.get("non_customizable_boxes", []):
                         if box.get("customizable") or box.get("available_alternatives"):
-                            selected_items.extend([item["name"] for item in box.get("selected_items", [])])
-                            available_alternatives.extend([item["name"] for item in box.get("available_alternatives", [])])
+                            for item in box.get("selected_items", []):
+                                category = categorize_item_simple(item["name"])
+                                selected_by_category[category].append(item["name"])
+                            for item in box.get("available_alternatives", []):
+                                category = categorize_item_simple(item["name"])
+                                alternatives_by_category[category].append(item["name"])
 
                     # Extract key preferences
                     liked_meals = user_preferences.get('liked_meals', [])
@@ -1738,13 +1769,23 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
                         except Exception as swap_error:
                             print(f"⚠️ Could not retrieve swap history: {swap_error}")
 
-                    prompt = f"""Analyze this Farm to People cart and suggest smart swaps and fresh add-ons.
+                    # Build category-separated context for the prompt
+                    cart_summary = []
+                    swap_options = []
 
-CURRENT CART:
-{', '.join(selected_items)}
+                    for category in ['protein', 'produce', 'grocery']:
+                        if selected_by_category[category]:
+                            cart_summary.append(f"{category.upper()}: {', '.join(selected_by_category[category])}")
+                        if alternatives_by_category[category]:
+                            swap_options.append(f"{category.upper()} alternatives: {', '.join(alternatives_by_category[category])}")
 
-AVAILABLE ALTERNATIVES (can swap to these):
-{', '.join(available_alternatives)}
+                    prompt = f"""Analyze this Farm to People cart and suggest smart swaps.
+
+CURRENT CART BY CATEGORY:
+{chr(10).join(cart_summary)}
+
+AVAILABLE SWAP OPTIONS BY CATEGORY:
+{chr(10).join(swap_options)}
 
 USER PREFERENCES:
 - Household size: {household_size} (needs {servings_needed} servings per meal)
@@ -1756,16 +1797,16 @@ USER PREFERENCES:
 RECENT USER SWAPS (DO NOT REVERSE THESE):
 {[f"{swap['from_item']} → {swap['to_item']}" for swap in recent_swaps] if recent_swaps else ['None - this is the first analysis']}
 
-IMPORTANT CONTEXT FOR ANALYSIS:
+CRITICAL SWAP RULES:
+- **ONLY SWAP WITHIN SAME CATEGORY**: Protein → Protein, Produce → Produce, Grocery → Grocery
+- **NEVER cross categories**: Don't swap cauliflower (produce) for rice (grocery)
+- **NEVER swap protein for produce or grocery items**
 - Portion sizes: 0.6-1lb chicken thighs serves 2 people for ONE meal only
 - 1lb sausage serves 3-4 people for one meal
 - Don't suggest swapping items that were already swapped
-- If making multiple meals, check if there's enough protein (may need to suggest adding more)
-- CONSOLIDATION: Consider swapping variety for simplicity
-  Example: If they have zucchini and kale, suggest swapping kale for another zucchini
+- CONSOLIDATION: Consider swapping variety for simplicity within same category
+  Example: If they have zucchini and kale (both produce), suggest swapping kale for another zucchini
   This gives them 2 units of zucchini instead of 1 each of different vegetables
-  Simplifies meal planning with fewer different ingredients
-  NOTE: Cannot double up on proteins (portions are fixed per package)
 
 TASK:
 First, analyze if the current cart already aligns well with the user's preferences:
@@ -1798,8 +1839,7 @@ Return JSON format (generate appropriate suggestions based on cart):
                     api_params = build_api_params(AI_MODEL, max_tokens_value=token_limit, temperature_value=0.7)
                     print(f"📝 [CART ANALYSIS DEBUG] Using token limit: {token_limit} for {AI_MODEL}")
 
-                    elapsed = time.time() - api_start_time
-                    print(f"⏱️ [T+{elapsed:.1f}s] Calling GPT-5 API for swaps...")
+                    log_timing_step("SWAPS_GPT_CALL", "Calling GPT-5 API for swaps")
 
                     response = client.chat.completions.create(
                         model=AI_MODEL,
@@ -1831,9 +1871,7 @@ Return JSON format (generate appropriate suggestions based on cart):
                 pass
         
         # Handle meal suggestions
-        meals_start_time = time.time()
-        elapsed = meals_start_time - api_start_time
-        print(f"⏱️ [T+{elapsed:.1f}s] Starting meal generation phase...")
+        meals_start_time = log_timing_step("MEALS_START", "Starting meal generation phase")
 
         meals = None
         if fresh_scrape and cart_data and normalized_phone:
@@ -1844,14 +1882,11 @@ Return JSON format (generate appropriate suggestions based on cart):
                 user_record = db.get_user_by_phone(normalized_phone)
                 user_preferences = user_record.get('preferences', {}) if user_record else {}
 
-                elapsed = time.time() - api_start_time
-                print(f"⏱️ [T+{elapsed:.1f}s] Fresh cart data detected - generating meal suggestions with GPT-5")
+                log_timing_step("MEALS_GPT_START", "Fresh cart detected - calling GPT-5 for meals")
                 result = await generate_meals(cart_data, preferences=user_preferences)
                 if result['success']:
                     meals = result['meals']
-                    elapsed = time.time() - api_start_time
-                    meal_gen_time = time.time() - meal_gen_start
-                    print(f"⏱️ [T+{elapsed:.1f}s] Meal generation complete - {len(meals)} meals (took {meal_gen_time:.1f}s)")
+                    log_timing_step("MEALS_GPT_COMPLETE", f"Generated {len(meals)} meals successfully")
 
                     # Cache the newly generated meals
                     cache_start = time.time()
@@ -1976,20 +2011,19 @@ Return JSON format (generate appropriate suggestions based on cart):
         elif normalized_phone:
             print(f"⚠️ Skipping cache - invalid cart_data structure (missing selected_items in customizable boxes)")
 
-        total_elapsed = time.time() - api_start_time
-        # Calculate scrape_elapsed (was undefined causing NameError)
-        scrape_elapsed = 0  # Default if no scraping happened
-        if 'scrape_start_time' in locals():
-            scrape_elapsed = scrape_end_time - scrape_start_time if 'scrape_end_time' in locals() else 0
+        total_elapsed = log_timing_step("ANALYSIS_COMPLETE", "Cart analysis finished")
 
-        print(f"""⏱️ [T+{total_elapsed:.1f}s] ====== TOTAL API PROCESSING TIME ======
-        Breakdown:
-        - Scraping: {scrape_elapsed:.1f}s
-        - Swaps: {time.time() - swaps_start_time:.1f}s
-        - Meals: {time.time() - meals_start_time:.1f}s
-        - Cache ops: {time.time() - cache_operations_start:.1f}s
-        - Total: {total_elapsed:.1f}s
-        =========================================""")
+        # Enhanced timing summary with detailed breakdown
+        print(f"\n{'='*80}")
+        print(f"⏱️ DETAILED TIMING BREAKDOWN (Total: {total_elapsed:.1f}s)")
+        print(f"{'='*80}")
+
+        for step_name, timing in step_timings.items():
+            print(f"  {step_name:<25} : {timing['cumulative']:>6.1f}s (+{timing['step']:>5.1f}s)")
+
+        print(f"{'='*80}")
+        print(f"🎯 PERFORMANCE TARGET: Under 35s (Current: {total_elapsed:.1f}s)")
+        print(f"{'='*80}\n")
 
         return complete_response
         

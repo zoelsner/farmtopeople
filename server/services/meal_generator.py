@@ -803,12 +803,19 @@ async def generate_meal_addons(meals: List[Dict], cart_data: Dict, preferences: 
 
         # PRIORITY 1: Check for protein gaps
         protein_gap_addons = check_protein_gap(current_items, meal_names, preferences)
-        if protein_gap_addons:
-            elapsed = time.time() - addon_gen_start
-            print(f"⏱️ Detected protein gap - suggesting {len(protein_gap_addons)} protein add-ons (took {elapsed:.2f}s)")
-            return protein_gap_addons
 
-        # PRIORITY 2: Get real add-ons from Farm to People catalog
+        # PRIORITY 2: Always generate meal-enhancing add-ons regardless of protein gap
+        meal_enhancing_addons = generate_universal_meal_addons(meal_names, current_items)
+
+        # Combine both types of add-ons
+        all_addons = protein_gap_addons + meal_enhancing_addons
+
+        if all_addons:
+            elapsed = time.time() - addon_gen_start
+            print(f"⏱️ Generated {len(all_addons)} add-ons ({len(protein_gap_addons)} protein + {len(meal_enhancing_addons)} enhancing) (took {elapsed:.2f}s)")
+            return all_addons[:3]  # Cap at 3 total add-ons
+
+        # FALLBACK: Get real add-ons from Farm to People catalog
         real_addons = get_real_meal_addons(meal_names, current_items)
         if real_addons:
             elapsed = time.time() - addon_gen_start
@@ -906,6 +913,70 @@ def is_protein_item(item_name: str) -> bool:
         'kielbasa', 'bacon', 'ham', 'duck', 'goat', 'bison'
     ]
     return any(keyword in name for keyword in protein_keywords)
+
+
+def generate_universal_meal_addons(meal_names: List[str], current_items: List[str]) -> List[Dict]:
+    """
+    Generate meal-enhancing add-ons that complement any meals.
+    These are universal ingredients that improve flavor and presentation.
+    """
+    try:
+        # Convert current items to lowercase for checking
+        current_lower = [item.lower() for item in current_items]
+
+        addons = []
+
+        # Fresh herbs for garnishing and flavor
+        if not any('parsley' in item for item in current_lower):
+            addons.append({
+                "item": "Organic Italian Parsley",
+                "price": "$3.29",
+                "reason": "Versatile herb for garnishing",
+                "category": "produce"
+            })
+
+        # Citrus for brightness
+        if not any('lemon' in item for item in current_lower):
+            addons.append({
+                "item": "Organic Lemons (3 count)",
+                "price": "$4.50",
+                "reason": "Brightens any dish",
+                "category": "produce"
+            })
+
+        # Quality finishing oil
+        if not any('olive oil' in item for item in current_lower):
+            addons.append({
+                "item": "Extra Virgin Olive Oil",
+                "price": "$12.99",
+                "reason": "Premium finishing oil for drizzling",
+                "category": "grocery"
+            })
+
+        # For chicken dishes - enhance with herbs
+        if any('chicken' in meal.lower() for meal in meal_names):
+            if not any('rosemary' in item for item in current_lower) and len(addons) < 2:
+                addons.append({
+                    "item": "Fresh Rosemary",
+                    "price": "$2.99",
+                    "reason": "Perfect herb pairing for chicken dishes",
+                    "category": "produce"
+                })
+
+        # For any savory dishes - add garlic if missing
+        if not any('garlic' in item for item in current_lower) and len(addons) < 2:
+            addons.append({
+                "item": "Organic Garlic Bulbs (3 count)",
+                "price": "$3.50",
+                "reason": "Essential flavor base for cooking",
+                "category": "produce"
+            })
+
+        return addons[:2]  # Return max 2 universal add-ons
+
+    except Exception as e:
+        print(f"❌ Error generating universal add-ons: {e}")
+        return []
 
 
 def get_preferred_proteins(preferences: Dict = None) -> List[str]:

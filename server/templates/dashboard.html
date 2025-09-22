@@ -129,7 +129,7 @@
 
         <!-- Loading Screen - Shows During Analysis -->
         <div class="loading-screen section" id="loadingSection">
-            <div class="loading-animation"></div>
+            <div class="loading-animation" style="animation: spin 1s linear infinite !important; -webkit-animation: spin 1s linear infinite !important;"></div>
             <h2 class="loading-title">Analyzing Your Cart</h2>
             <p class="loading-status" id="loadingStatus">Logging into Farm to People...</p>
 
@@ -159,14 +159,20 @@
                     <div style="display: flex; gap: 8px;">
                         <button id="refreshSuggestionsButton" onclick="refreshSuggestions()"
                                 style="background: #faf8f2; color: #07261e; border: 1px solid #e6d8b5; border-radius: 8px; padding: 6px 14px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'" onmouseout="this.style.background='#faf8f2'">
-                            ✨ New Suggestions
+                            New Suggestions
                         </button>
                         <button id="refreshCartButton" onclick="FarmDashboard.Cart.refreshCartData()"
                                 style="background: #faf8f2; color: #07261e; border: 1px solid #e6d8b5; border-radius: 8px; padding: 6px 14px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#f3a208'" onmouseout="this.style.background='#faf8f2'">
-                            🔄 Refresh Cart
+                            Refresh Cart
                         </button>
                     </div>
                 </div>
+
+                <!-- Cart Overview - Protein and Fruit Counts -->
+                <div id="cartOverview" style="padding: 0 20px; margin-bottom: 15px;">
+                    <!-- Protein/fruit counts will be inserted here -->
+                </div>
+
                 <div id="suggestedMeals">
                     <!-- Suggested meals based on preferences will be inserted here -->
                 </div>
@@ -175,7 +181,7 @@
             <!-- Smart Swaps - MOVED UP for better visibility -->
             <div class="cart-section" id="swapsSection">
                 <h3 class="section-header">
-                    🔄 Smart Swaps
+                    Smart Swaps
                     <span style="font-size: 14px; color: #666; font-weight: normal; margin-left: 8px;">
                         (Based on your preferences)
                     </span>
@@ -2093,7 +2099,11 @@
             
             // Remove add-ons from summary for cleaner look
             
-            document.getElementById('cartSummary').innerHTML = summaryItems.join('');
+            // Populate cart overview under Suggested Meals
+            const cartOverview = document.getElementById('cartOverview');
+            if (cartOverview && summaryItems.length > 0) {
+                cartOverview.innerHTML = summaryItems.join('');
+            }
 
             // Show individual items with category tags
             if (cartData.individual_items && cartData.individual_items.length > 0) {
