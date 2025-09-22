@@ -1,0 +1,935 @@
+/* =============================================== */
+/* FITBOD-INSPIRED MEAL PLANNING UI              */
+/* Professional, Clean, Modern Design System      */
+/* =============================================== */
+
+/* ------------------- */
+/* -- CSS VARIABLES -- */
+/* ------------------- */
+
+:root {
+    /* Light Mode Color Palette */
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f5f6f7;
+    --border-subtle: rgba(0, 0, 0, 0.08);
+    --border-medium: rgba(0, 0, 0, 0.12);
+    --text-primary: #1a1a1a;
+    --text-secondary: #666666;
+    --text-tertiary: #999999;
+    --accent-blue: #007AFF;
+    --accent-green: #28a745;
+    --accent-orange: #ff9500;
+    --accent-red: #ff3b30;
+    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
+    --shadow-card-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
+    --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --radius-small: 8px;
+    --radius-medium: 12px;
+    --radius-large: 16px;
+    --transition-fast: 0.15s ease;
+    --transition-medium: 0.25s ease;
+}
+
+/* ------------------- */
+/* -- BASE STYLES -- */
+/* ------------------- */
+
+.meal-calendar-container * {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.meal-calendar-container {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+    letter-spacing: -0.01em;
+}
+
+/* ==================== */
+/* -- ENHANCED MEAL CARDS -- */
+/* ==================== */
+
+.meal-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-medium);
+    padding: 16px;
+    cursor: grab;
+    transition: all var(--transition-medium);
+    box-shadow: var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    z-index: 1;
+}
+
+.meal-card:hover {
+    background-color: var(--bg-card-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: var(--border-medium);
+}
+
+.meal-card:active {
+    cursor: grabbing;
+    transform: translateY(-1px);
+}
+
+/* Drag Handle Indicator */
+.meal-card::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 20px;
+    background: linear-gradient(to bottom, 
+        var(--text-tertiary) 0%, 
+        var(--text-tertiary) 25%, 
+        transparent 25%, 
+        transparent 50%, 
+        var(--text-tertiary) 50%, 
+        var(--text-tertiary) 75%, 
+        transparent 75%);
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.meal-card:hover::before {
+    opacity: 1;
+}
+
+.meal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    padding-left: 8px;
+}
+
+.meal-name {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 1.3;
+    letter-spacing: -0.2px;
+    margin: 0;
+    flex: 1;
+}
+
+.protein-badge {
+    background: linear-gradient(135deg, var(--accent-green) 0%, #34d058 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+.meal-details {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    padding-left: 8px;
+}
+
+.meal-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+}
+
+.cooking-time {
+    color: var(--accent-orange);
+}
+
+.servings {
+    color: var(--accent-blue);
+}
+
+.ingredients-used {
+    margin-top: 8px;
+    padding-left: 8px;
+}
+
+.ingredients-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ingredient-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.ingredient-chip {
+    background-color: var(--bg-primary);
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid var(--border-subtle);
+    transition: all var(--transition-fast);
+}
+
+.ingredient-chip:hover {
+    background-color: var(--accent-blue);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Action Buttons */
+.meal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-left: 8px;
+}
+
+.meal-action-btn {
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-small);
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.meal-action-btn:hover {
+    background: var(--bg-primary);
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.meal-action-btn.regenerate {
+    color: var(--accent-blue);
+    border-color: var(--accent-blue);
+}
+
+.meal-action-btn.regenerate:hover {
+    background: var(--accent-blue);
+    color: white;
+}
+
+.meal-action-btn.remove {
+    color: var(--accent-red);
+    border-color: var(--accent-red);
+}
+
+.meal-action-btn.remove:hover {
+    background: var(--accent-red);
+    color: white;
+}
+
+/* ========================== */
+/* -- DRAG & DROP FEEDBACK -- */
+/* ========================== */
+
+.meal-card.dragging {
+    opacity: 0.8;
+    transform: rotate(3deg) scale(1.05);
+    z-index: 1000;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    cursor: grabbing;
+    pointer-events: none;
+    border-color: var(--accent-blue);
+    background: var(--bg-card);
+}
+
+.meal-card.drag-ghost {
+    opacity: 0.3;
+    transform: scale(0.95);
+    background: var(--bg-primary);
+    border: 2px dashed var(--border-medium);
+    color: var(--text-tertiary);
+    pointer-events: none;
+    position: relative;
+}
+
+.meal-card.drag-ghost::after {
+    content: 'Moving...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-align: center;
+}
+
+.day-column {
+    background: var(--bg-card);
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-medium);
+    overflow: hidden;
+    transition: all var(--transition-medium);
+    position: relative;
+}
+
+.day-column.drag-over {
+    border-color: var(--accent-green);
+    background: linear-gradient(135deg, 
+        rgba(40, 167, 69, 0.08) 0%, 
+        rgba(52, 208, 88, 0.05) 100%);
+    transform: scale(1.02);
+    box-shadow: 0 8px 32px rgba(40, 167, 69, 0.2);
+}
+
+.day-column.drag-over::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid var(--accent-green);
+    border-radius: var(--radius-medium);
+    pointer-events: none;
+    animation: dragOverPulse 1.5s infinite;
+}
+
+@keyframes dragOverPulse {
+    0%, 100% { 
+        opacity: 0.6; 
+        transform: scale(1); 
+    }
+    50% { 
+        opacity: 1; 
+        transform: scale(1.01); 
+    }
+}
+
+/* ================================ */
+/* -- VISUAL INGREDIENT POOL -- */
+/* ================================ */
+
+.ingredient-panel {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-medium);
+    padding: 24px;
+    box-shadow: var(--shadow-card);
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.ingredient-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ingredient-panel::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border-radius: 3px;
+}
+
+.ingredient-panel::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 3px;
+}
+
+.ingredient-panel h3 {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 20px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--border-subtle);
+    letter-spacing: -0.4px;
+}
+
+.ingredient-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-small);
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: all var(--transition-medium);
+    position: relative;
+    overflow: hidden;
+}
+
+.ingredient-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-subtle);
+    border-color: var(--border-medium);
+}
+
+.ingredient-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--ingredient-status-color, var(--border-subtle));
+    transition: background var(--transition-medium);
+}
+
+.ingredient-visual {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.progress-circle-container {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+}
+
+.progress-circle {
+    width: 64px;
+    height: 64px;
+    transform: rotate(-90deg);
+}
+
+.progress-circle-bg {
+    fill: none;
+    stroke: var(--border-subtle);
+    stroke-width: 6;
+    r: 26;
+    cx: 32;
+    cy: 32;
+}
+
+.progress-circle-fill {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
+    r: 26;
+    cx: 32;
+    cy: 32;
+    stroke-dasharray: 163.36;
+    stroke-dashoffset: 163.36;
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                stroke 0.3s ease;
+}
+
+.progress-circle-fill.plenty {
+    stroke: var(--accent-green);
+}
+
+.progress-circle-fill.half {
+    stroke: var(--accent-orange);
+}
+
+.progress-circle-fill.low {
+    stroke: var(--accent-red);
+}
+
+.progress-percentage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    line-height: 1;
+}
+
+.ingredient-info {
+    flex: 1;
+}
+
+.ingredient-name {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+}
+
+.ingredient-quantity {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.ingredient-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ingredient-status-badge.plenty {
+    background: linear-gradient(135deg, var(--accent-green) 0%, #34d058 100%);
+}
+
+.ingredient-status-badge.half {
+    background: linear-gradient(135deg, var(--accent-orange) 0%, #ffb340 100%);
+}
+
+.ingredient-status-badge.low {
+    background: linear-gradient(135deg, var(--accent-red) 0%, #ff6b6b 100%);
+}
+
+/* ======================== */
+/* -- IMPROVED EMPTY STATES -- */
+/* ======================== */
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+    background: var(--bg-card);
+    border-radius: var(--radius-medium);
+    border: 2px dashed var(--border-medium);
+    transition: all var(--transition-medium);
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+}
+
+.empty-state::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(0, 122, 255, 0.05), 
+        transparent);
+    transition: left 0.6s ease;
+}
+
+.empty-state:hover {
+    border-color: var(--accent-blue);
+    background: rgba(0, 122, 255, 0.02);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-subtle);
+}
+
+.empty-state:hover::before {
+    left: 100%;
+}
+
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.6;
+    transition: all var(--transition-medium);
+    animation: floatIcon 3s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
+
+.empty-state:hover .empty-icon {
+    opacity: 1;
+    transform: scale(1.1);
+    animation-play-state: paused;
+}
+
+.empty-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+}
+
+.empty-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.5;
+    max-width: 300px;
+}
+
+.add-meal-prompt {
+    border: 2px dashed var(--border-medium);
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    border-radius: var(--radius-small);
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-medium);
+    position: relative;
+    overflow: hidden;
+}
+
+.add-meal-prompt:hover {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    background: rgba(0, 122, 255, 0.05);
+    transform: translateY(-2px);
+}
+
+.add-icon {
+    display: block;
+    font-size: 32px;
+    margin-bottom: 8px;
+    opacity: 0.7;
+    transition: all var(--transition-fast);
+}
+
+.add-meal-prompt:hover .add-icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* ======================== */
+/* -- DAY HEADERS -- */
+/* ======================== */
+
+.day-header {
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-card) 100%);
+    padding: 16px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.day-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    letter-spacing: -0.3px;
+}
+
+.day-date {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* ======================== */
+/* -- BUTTONS & CONTROLS -- */
+/* ======================== */
+
+.fitbod-btn {
+    background: var(--accent-blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-small);
+    padding: 12px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.fitbod-btn:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+}
+
+.fitbod-btn:active {
+    transform: scale(0.96);
+    transition-duration: 0.1s;
+}
+
+.fitbod-btn.success {
+    background: var(--accent-green);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+}
+
+.fitbod-btn.success:hover {
+    background: #218838;
+    box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+}
+
+.fitbod-btn.warning {
+    background: var(--accent-orange);
+    box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
+}
+
+.fitbod-btn.warning:hover {
+    background: #ff8c00;
+    box-shadow: 0 4px 16px rgba(255, 149, 0, 0.3);
+}
+
+.fitbod-btn.full-width {
+    width: 100%;
+    justify-content: center;
+}
+
+/* ======================== */
+/* -- MICRO-INTERACTIONS -- */
+/* ======================== */
+
+.interactive-element {
+    transition: all var(--transition-fast);
+    transform-origin: center;
+    will-change: transform;
+}
+
+.interactive-element:active {
+    transform: scale(0.96);
+    transition-duration: 0.1s;
+}
+
+.lift-on-hover {
+    transition: all var(--transition-medium);
+}
+
+.lift-on-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+}
+
+/* Loading animations */
+.skeleton-wave {
+    background: linear-gradient(90deg, 
+        var(--bg-primary) 25%, 
+        var(--bg-card) 50%, 
+        var(--bg-primary) 75%);
+    background-size: 200% 100%;
+    animation: wave 1.6s ease-in-out infinite;
+}
+
+@keyframes wave {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-subtle);
+    border-top: 2px solid var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Success animations */
+.success-animation {
+    animation: success 0.6s ease;
+}
+
+@keyframes success {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* ======================== */
+/* -- LAYOUT OVERRIDES -- */
+/* ======================== */
+
+.meal-calendar-container .calendar-container {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+    margin-top: 20px;
+}
+
+.meal-calendar-container .calendar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.meal-calendar-container .day-row {
+    background: var(--bg-card);
+    border-radius: var(--radius-medium);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    transition: all var(--transition-medium);
+}
+
+.meal-calendar-container .day-row:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.meal-calendar-container .meal-slot {
+    padding: 20px;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ======================== */
+/* -- MOBILE OPTIMIZATIONS -- */
+/* ======================== */
+
+@media (max-width: 768px) {
+    .meal-card {
+        padding: 20px;
+        margin-bottom: 16px;
+        min-height: 120px;
+        touch-action: manipulation;
+    }
+    
+    .meal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .protein-badge {
+        align-self: flex-start;
+    }
+    
+    .meal-details {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .ingredient-chips {
+        gap: 6px;
+    }
+    
+    .ingredient-chip {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    
+    .meal-calendar-container .calendar-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .ingredient-panel {
+        position: static;
+        margin-top: 16px;
+        max-height: none;
+        order: 2;
+    }
+    
+    .meal-calendar-container .calendar-grid {
+        order: 1;
+        gap: 12px;
+    }
+    
+    .meal-slot {
+        min-height: 100px;
+        padding: 16px;
+    }
+    
+    .empty-state {
+        padding: 40px 20px;
+        min-height: 140px;
+    }
+    
+    .empty-icon {
+        font-size: 56px;
+    }
+    
+    /* Enhanced touch feedback */
+    .meal-card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+    
+    .fitbod-btn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+}
+
+/* ======================== */
+/* -- ACCESSIBILITY -- */
+/* ======================== */
+
+.meal-card:focus,
+.empty-state:focus,
+.fitbod-btn:focus {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (prefers-contrast: high) {
+    .meal-card,
+    .ingredient-card,
+    .empty-state {
+        border-width: 2px;
+    }
+    
+    .progress-circle-fill {
+        stroke-width: 8;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .skeleton-wave,
+    .spinner,
+    .empty-icon {
+        animation: none;
+    }
+}

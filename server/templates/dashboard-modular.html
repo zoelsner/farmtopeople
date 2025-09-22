@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard - Farm to People</title>
+    
+    <!-- PWA Configuration -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="theme-color" content="#007AFF">
+    
+    <!-- External Styles -->
+    <link rel="stylesheet" href="/static/css/dashboard-base.css">
+    <link rel="stylesheet" href="/static/css/navigation.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1>Cart Analysis</h1>
+                <p class="subtitle" id="headerSubtitle">Ready to analyze your cart</p>
+            </div>
+            <div id="deliveryDate" style="display: none; text-align: right;">
+                <div style="color: #007AFF; font-weight: 600; font-size: 16px;" id="deliveryDateText"></div>
+                <div style="color: #6c757d; font-size: 12px;">Delivery Date</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="content">
+        <!-- Box/Cart Tab -->
+        <div class="tab-content active" id="boxTab">
+            <div id="cartContainer"></div>
+        </div>
+        
+        <!-- Plan/Meals Tab -->
+        <div class="tab-content" id="planTab">
+            <div id="mealsContainer"></div>
+        </div>
+        
+        <!-- Settings Tab -->
+        <div class="tab-content" id="settingsTab">
+            <div style="padding: 20px; max-width: 600px; margin: 0 auto;">
+                <div id="settingsLoading" style="text-align: center; padding: 40px; display: none;">
+                    <div class="loading-animation"></div>
+                    <p>Loading your preferences...</p>
+                </div>
+                <div id="settingsCategories" class="categories-grid"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-tab active" data-tab="box">
+            <svg class="nav-tab-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <div class="nav-tab-label">Cart</div>
+        </div>
+        <div class="nav-tab" data-tab="plan">
+            <svg class="nav-tab-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
+                <path d="M7 2v20"></path>
+                <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
+            </svg>
+            <div class="nav-tab-label">Meals</div>
+        </div>
+        <div class="nav-tab" data-tab="settings">
+            <svg class="nav-tab-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"></path>
+            </svg>
+            <div class="nav-tab-label">Settings</div>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Edit Preference</h2>
+                <button class="modal-close" onclick="window.settingsManager.closeModal()">&times;</button>
+            </div>
+            <div id="modalContent" class="modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="window.settingsManager.closeModal()">Cancel</button>
+                <button class="btn-primary" onclick="window.settingsManager.saveChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load JavaScript Modules -->
+    <script type="module">
+        // Import modules
+        import { NavigationManager } from '/static/js/modules/navigation-manager.js';
+        import { SettingsManager } from '/static/js/modules/settings-manager.js';
+        import { CartManager } from '/static/js/modules/cart-manager-simple.js';
+        import { MealsManager } from '/static/js/modules/meals-manager.js';
+        
+        // Initialize managers
+        window.navigationManager = new NavigationManager();
+        window.settingsManager = new SettingsManager();
+        window.cartManager = new CartManager();
+        window.mealsManager = new MealsManager();
+        
+        // Initialize app when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            window.navigationManager.init();
+            
+            // Load saved cart data if exists
+            window.cartManager.loadSavedCart();
+            
+            // Initialize meals view
+            window.mealsManager.init();
+        });
+    </script>
+</body>
+</html>

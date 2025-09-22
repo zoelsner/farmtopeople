@@ -95,7 +95,6 @@
 
         .category-icon {
             font-size: 24px;
-            color: #4169E1; /* Penny blue */
         }
 
         .category-arrow {
@@ -436,7 +435,7 @@
                 <div class="category-header">
                     <div class="category-title">
                         <span class="category-icon">🍽️</span>
-                        Meal Preferences
+                        Meal Timing
                     </div>
                     <span class="category-arrow">›</span>
                 </div>
@@ -445,11 +444,25 @@
                 </div>
             </div>
 
+            <!-- Dish Preferences Category -->
+            <div class="category-card" data-category="dishes">
+                <div class="category-header">
+                    <div class="category-title">
+                        <span class="category-icon">⭐</span>
+                        Dish Preferences
+                    </div>
+                    <span class="category-arrow">›</span>
+                </div>
+                <div class="category-preview loading" id="dishesPreview">
+                    Loading...
+                </div>
+            </div>
+
             <!-- Cooking Style Category -->
             <div class="category-card" data-category="cooking">
                 <div class="category-header">
                     <div class="category-title">
-                        <span class="category-icon">🍳</span>
+                        <span class="category-icon">👨‍🍳</span>
                         Cooking Style
                     </div>
                     <span class="category-arrow">›</span>
@@ -463,7 +476,7 @@
             <div class="category-card" data-category="dietary">
                 <div class="category-header">
                     <div class="category-title">
-                        <span class="category-icon">🥗</span>
+                        <span class="category-icon">📋</span>
                         Dietary Restrictions
                     </div>
                     <span class="category-arrow">›</span>
@@ -541,6 +554,26 @@
     </div>
 
     <!-- JavaScript for Settings Functionality -->
-    <script src="/static/settings.js"></script>
+    <script src="/static/settings.js?v=20250914-debug"></script>
+
+    <!-- Hide navigation when loaded in iframe -->
+    <script>
+        // Check if page is loaded in iframe or with iframe parameter
+        const isInIframe = window.self !== window.top;
+        const urlParams = new URLSearchParams(window.location.search);
+        const iframeParam = urlParams.get('iframe') === 'true';
+
+        if (isInIframe || iframeParam) {
+            console.log('Settings page loaded in iframe - hiding bottom navigation');
+            // Wait for DOM to be ready
+            document.addEventListener('DOMContentLoaded', function() {
+                const bottomTabs = document.querySelector('.bottom-tabs');
+                if (bottomTabs) {
+                    bottomTabs.style.display = 'none';
+                    console.log('Bottom navigation hidden');
+                }
+            });
+        }
+    </script>
 </body>
 </html>

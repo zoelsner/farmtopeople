@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard - Farm to People</title>
+    
+    <!-- PWA Configuration -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="theme-color" content="#007AFF">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #212529;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .content {
+            min-height: calc(100vh - 140px);
+            padding-bottom: 80px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #6c757d;
+            position: relative;
+        }
+
+        .nav-tab-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-tab-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .nav-tab.active {
+            color: #007AFF;
+        }
+
+        .nav-tab::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: #007AFF;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab.active::before {
+            opacity: 1;
+            left: 10%;
+            right: 10%;
+        }
+
+        /* Loading animation */
+        .loading-animation {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 16px;
+            border: 3px solid #e9ecef;
+            border-top: 3px solid #007AFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn-primary {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #212529;
+            border: 1px solid #e9ecef;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+        }
+
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #007AFF;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 id="headerTitle">Cart Analysis</h1>
+                <p class="subtitle" id="headerSubtitle">Ready to analyze your cart</p>
+            </div>
+            <div id="deliveryDate" style="display: none; text-align: right;">
+                <div style="color: #007AFF; font-weight: 600; font-size: 16px;" id="deliveryDateText"></div>
+                <div style="color: #6c757d; font-size: 12px;">Delivery Date</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="content">
+        <!-- Cart Tab -->
+        <div class="tab-content active" id="boxTab">
+            <div id="cartContainer" style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 48px; margin-bottom: 20px;">📦</div>
+                <h2 style="font-size: 24px; margin-bottom: 8px;">Cart Analysis</h2>
+                <p style="color: #6c757d; margin-bottom: 24px;">
+                    See what's in your Farm to People cart, suggested swaps, and add-ons.
+                </p>
+                <button onclick="startAnalysis()" class="btn-primary">
+                    Analyze My Cart
+                </button>
+            </div>
+        </div>
+        
+        <!-- Meals Tab -->
+        <div class="tab-content" id="planTab">
+            <div id="mealsContainer" style="padding: 20px;">
+                <h2>This Week's Meals</h2>
+                <p style="color: #6c757d;">Your weekly meal plan will appear here after analyzing your cart.</p>
+            </div>
+        </div>
+        
+        <!-- Settings Tab -->
+        <div class="tab-content" id="settingsTab">
+            <div style="padding: 20px; max-width: 600px; margin: 0 auto;">
+                <div id="settingsLoading" style="text-align: center; padding: 40px; display: none;">
+                    <div class="loading-animation"></div>
+                    <p>Loading your preferences...</p>
+                </div>
+                <div id="settingsCategories">
+                    <!-- Settings will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-tab active" data-tab="box" onclick="switchTab('box')">
+            <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <div class="nav-tab-label">Cart</div>
+        </div>
+        <div class="nav-tab" data-tab="plan" onclick="switchTab('plan')">
+            <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
+                <path d="M7 2v20"></path>
+                <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
+            </svg>
+            <div class="nav-tab-label">Meals</div>
+        </div>
+        <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')">
+            <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"></path>
+            </svg>
+            <div class="nav-tab-label">Settings</div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables
+        let currentTab = 'box';
+        let cartData = null;
+        let userSettings = {};
+        const phone = localStorage.getItem('userPhone') || '4254955323';
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+            
+            // Update header
+            const headerTitle = document.getElementById('headerTitle');
+            const headerSubtitle = document.getElementById('headerSubtitle');
+            
+            if (tabName === 'box') {
+                headerTitle.textContent = 'Cart Analysis';
+                headerSubtitle.textContent = 'Ready to analyze your cart';
+            } else if (tabName === 'plan') {
+                headerTitle.textContent = 'Meal Planning';
+                headerSubtitle.textContent = 'Plan your weekly meals';
+                if (cartData) {
+                    loadMealPlan();
+                }
+            } else if (tabName === 'settings') {
+                headerTitle.textContent = 'Settings';
+                headerSubtitle.textContent = 'Update your preferences';
+                loadSettings();
+            }
+            
+            currentTab = tabName;
+        }
+
+        // Cart Analysis
+        async function startAnalysis() {
+            const container = document.getElementById('cartContainer');
+            container.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px;">
+                    <div class="loading-animation"></div>
+                    <h3>Analyzing Your Cart</h3>
+                    <p style="color: #6c757d;">This may take 20-30 seconds...</p>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/analyze-cart', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ phone: phone })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    cartData = data.cart_data;
+                    displayCart(data);
+                } else {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 60px 20px;">
+                            <p style="color: #dc3545;">Failed to analyze cart</p>
+                            <button onclick="startAnalysis()" class="btn-primary" style="margin-top: 20px;">
+                                Try Again
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <p style="color: #dc3545;">Error analyzing cart</p>
+                        <button onclick="startAnalysis()" class="btn-primary" style="margin-top: 20px;">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function displayCart(data) {
+            const container = document.getElementById('cartContainer');
+            
+            // Show delivery date
+            if (data.cart_data && data.cart_data.delivery_date) {
+                const deliveryEl = document.getElementById('deliveryDate');
+                const deliveryTextEl = document.getElementById('deliveryDateText');
+                deliveryTextEl.textContent = formatDeliveryDate(data.cart_data.delivery_date);
+                deliveryEl.style.display = 'block';
+            }
+            
+            // Display cart analysis
+            let html = '<div style="padding: 20px;">';
+            
+            // Meal suggestions
+            if (data.meals && data.meals.length > 0) {
+                html += '<h3>Suggested Meals</h3>';
+                html += '<div style="margin-bottom: 30px;">';
+                data.meals.forEach(meal => {
+                    html += `
+                        <div style="padding: 16px; background: white; border-radius: 12px; margin-bottom: 12px; border: 1px solid #e9ecef;">
+                            <h4 style="margin-bottom: 8px;">${meal.name}</h4>
+                            <div style="color: #007AFF; font-weight: 600;">
+                                ${meal.protein || 0}g protein
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            // Cart items
+            if (data.cart_data) {
+                html += '<h3>Your Cart</h3>';
+                if (data.cart_data.individual_items) {
+                    html += '<h4>Individual Items</h4>';
+                    data.cart_data.individual_items.forEach(item => {
+                        html += `<p>${item.name} - ${item.price}</p>`;
+                    });
+                }
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function formatDeliveryDate(dateStr) {
+            if (!dateStr) return '';
+            const match = dateStr.match(/([A-Za-z]+,\s+[A-Za-z]+\s+\d+)/);
+            return match ? match[1] : dateStr;
+        }
+
+        // Settings
+        async function loadSettings() {
+            const container = document.getElementById('settingsCategories');
+            const loading = document.getElementById('settingsLoading');
+            
+            loading.style.display = 'block';
+            container.innerHTML = '';
+            
+            try {
+                const response = await fetch(`/api/settings/${phone}`);
+                const data = await response.json();
+                userSettings = data;
+                
+                displaySettings();
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                container.innerHTML = '<p style="text-align: center; color: #dc3545;">Failed to load settings</p>';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function displaySettings() {
+            const container = document.getElementById('settingsCategories');
+            
+            const categories = [
+                { key: 'household_size', title: 'Household Size', value: userSettings.household_size || '1-2 people' },
+                { key: 'meal_timing', title: 'Meal Preferences', value: userSettings.meal_timing || 'Dinner' },
+                { key: 'dietary_restrictions', title: 'Dietary Restrictions', value: userSettings.dietary_restrictions || 'None' }
+            ];
+            
+            let html = '';
+            categories.forEach(cat => {
+                const value = Array.isArray(cat.value) ? cat.value.join(', ') : cat.value;
+                html += `
+                    <div class="category-card">
+                        <div style="font-size: 18px; font-weight: 600;">${cat.title}</div>
+                        <div style="color: #6c757d; font-size: 14px; margin-top: 4px;">${value}</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Meal Plan
+        function loadMealPlan() {
+            const container = document.getElementById('mealsContainer');
+            
+            if (!cartData) {
+                container.innerHTML = '<p style="padding: 20px;">Please analyze your cart first to see meal plans.</p>';
+                return;
+            }
+            
+            container.innerHTML = `
+                <div style="padding: 20px;">
+                    <h2>This Week's Meals</h2>
+                    <p style="color: #6c757d;">Your personalized meal plan based on your cart contents.</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 20px;">
+                        ${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => `
+                            <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e9ecef;">
+                                <h4 style="margin-bottom: 12px; color: #007AFF;">${day}</h4>
+                                <div style="min-height: 100px; border: 2px dashed #e9ecef; border-radius: 8px; padding: 12px;">
+                                    <p style="color: #adb5bd; text-align: center;">No meal assigned</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load saved cart if exists
+            fetch('/api/get-saved-cart')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.cart_data) {
+                        cartData = data.cart_data;
+                        displayCart({ success: true, cart_data: data.cart_data, meals: data.meals });
+                    }
+                })
+                .catch(error => console.error('Error loading saved cart:', error));
+        });
+    </script>
+</body>
+</html>

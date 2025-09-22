@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSS Fix Test</title>
+    <style>
+        /* Original problematic CSS */
+        .loading-screen {
+            text-align: center;
+            padding: 60px 20px;
+            /* This was the problem - conflicting with .section.active */
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Testing CSS Fix</h1>
+
+    <div class="loading-screen section" id="loadingSection">
+        <h2>Loading Screen (should be hidden)</h2>
+    </div>
+
+    <div class="section active" id="cartSection">
+        <h2>Cart Section (should be visible)</h2>
+    </div>
+
+    <button onclick="testVisibility()">Check Visibility</button>
+    <button onclick="toggleSections()">Toggle Sections</button>
+
+    <div id="output"></div>
+
+    <script>
+        function testVisibility() {
+            const loading = document.getElementById('loadingSection');
+            const cart = document.getElementById('cartSection');
+
+            const output = document.getElementById('output');
+            output.innerHTML = `
+                <h3>Current State:</h3>
+                <p>Loading screen classes: ${loading.className}</p>
+                <p>Loading screen computed display: ${window.getComputedStyle(loading).display}</p>
+                <p>Cart section classes: ${cart.className}</p>
+                <p>Cart section computed display: ${window.getComputedStyle(cart).display}</p>
+            `;
+        }
+
+        function toggleSections() {
+            const loading = document.getElementById('loadingSection');
+            const cart = document.getElementById('cartSection');
+
+            // Simulate what showCartAnalysis does
+            loading.classList.remove('active');
+            loading.style.display = ''; // Clear inline styles
+
+            cart.classList.add('active');
+            cart.style.display = ''; // Clear inline styles
+
+            testVisibility();
+        }
+
+        // Test on load
+        window.onload = testVisibility;
+    </script>
+</body>
+</html>

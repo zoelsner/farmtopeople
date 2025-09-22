@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard v3 Module Test</title>
+</head>
+<body>
+    <h1>Testing Dashboard v3 Modules</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        const results = document.getElementById('results');
+        const modules = [
+            '/static/js/modules/core.js',
+            '/static/js/modules/navigation-v2.js',
+            '/static/js/modules/api-client.js',
+            '/static/js/modules/cart-v3.js',
+            '/static/js/modules/settings-v3.js'
+        ];
+
+        async function testModules() {
+            for (const modulePath of modules) {
+                try {
+                    const module = await import(modulePath);
+                    results.innerHTML += `<p style="color: green;">✅ ${modulePath} - Loaded successfully</p>`;
+
+                    // Check exports
+                    const exports = Object.keys(module);
+                    if (exports.length > 0) {
+                        results.innerHTML += `<p style="margin-left: 20px;">Exports: ${exports.join(', ')}</p>`;
+                    }
+                } catch (error) {
+                    results.innerHTML += `<p style="color: red;">❌ ${modulePath} - Error: ${error.message}</p>`;
+                    console.error(error);
+                }
+            }
+        }
+
+        testModules();
+    </script>
+</body>
+</html>

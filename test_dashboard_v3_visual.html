@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard v3 Visual Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #333;
+        }
+        iframe {
+            width: 100%;
+            height: 800px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checklist li:last-child {
+            border-bottom: none;
+        }
+        .check-icon {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .check-icon.checked {
+            background: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #333;">Dashboard v3 Visual Comparison</h1>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Original Dashboard</h2>
+            <div class="status success">✅ Production version - known working</div>
+            <iframe src="/dashboard" id="originalFrame"></iframe>
+        </div>
+
+        <div class="panel">
+            <h2>Dashboard v3 (Refactored)</h2>
+            <div class="status warning">⚠️ Testing version - checking visual parity</div>
+            <iframe src="/dashboard-v3" id="v3Frame"></iframe>
+        </div>
+    </div>
+
+    <div style="max-width: 1200px; margin: 40px auto;">
+        <div class="panel">
+            <h2>Visual Parity Checklist</h2>
+            <ul class="checklist">
+                <li>
+                    <div class="check-icon" onclick="toggleCheck(this)"></div>
+                    <span><strong>Suggested Meals Section:</strong> Shows at top with refresh buttons</span>
+                </li>
+                <li>
+                    <div class="check-icon" onclick="toggleCheck(this)"></div>
+                    <span><strong>Cart Summary:</strong> Shows only protein and fruit counts</span>
+                </li>
+                <li>
+                    <div class="check-icon" onclick="toggleCheck(this)"></div>
+                    <span><strong>Individual Items:</strong> Shows with category tags and colors</span>
+                </li>
+                <li>
+                    <div class="check-icon" onclick="toggleCheck(this)"></div>
+                    <span><strong>Box Layout:</strong> Customizable and Fixed boxes separated correctly</span>
+                </li>
+                <li>
+                    <div class="check-icon" onclick="toggleCheck(this)"></div>
+                    <span><strong>Item Styling:</strong> Names, quantities, producers match original</span>
+                </li>
+                <li>
+                    <div class="check-icon" onclick="toggleCheck(this)"></div>
+                    <span><strong>Category Tags:</strong> Colored tags appear on right side</span>
+                </li>
+                <li>
+                    <div class="check-icon" onclick="toggleCheck(this)"></div>
+                    <span><strong>Swaps Section:</strong> Blue background with swap icon</span>
+                </li>
+                <li>
+                    <div class="check-icon" onclick="toggleCheck(this)"></div>
+                    <span><strong>Add-ons Section:</strong> Green background with plus icon</span>
+                </li>
+                <li>
+                    <div class="check-icon" onclick="toggleCheck(this)"></div>
+                    <span><strong>Settings Tab:</strong> Opens modal instead of navigating</span>
+                </li>
+                <li>
+                    <div class="check-icon" onclick="toggleCheck(this)"></div>
+                    <span><strong>Overall Feel:</strong> Clean, professional, same as original</span>
+                </li>
+            </ul>
+
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h3 style="margin-top: 0; color: #333;">Test Steps:</h3>
+                <ol style="color: #666; line-height: 1.6;">
+                    <li>Click "Analyze My Cart" on both dashboards</li>
+                    <li>Wait for analysis to complete</li>
+                    <li>Compare the visual output side by side</li>
+                    <li>Check each item in the checklist above</li>
+                    <li>Test Settings tab to ensure modal works (v3 only)</li>
+                    <li>Test tab switching - should be instant with no refresh</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleCheck(element) {
+            element.classList.toggle('checked');
+            if (element.classList.contains('checked')) {
+                element.innerHTML = '✓';
+            } else {
+                element.innerHTML = '';
+            }
+
+            // Update progress
+            const total = document.querySelectorAll('.check-icon').length;
+            const checked = document.querySelectorAll('.check-icon.checked').length;
+            console.log(`Progress: ${checked}/${total} items match`);
+        }
+
+        // Auto-refresh frames every 30 seconds to pick up changes
+        setInterval(() => {
+            const v3Frame = document.getElementById('v3Frame');
+            v3Frame.src = v3Frame.src;
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Planning Integration Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 10px;
+        }
+        
+        .cart-data {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        
+        .ingredient-pool {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .ingredient-item {
+            background: white;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+        
+        .meal-plan {
+            margin: 20px 0;
+        }
+        
+        .meal-day {
+            background: #f0f9ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #10b981;
+        }
+        
+        .btn {
+            background: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            background: #059669;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        #output {
+            white-space: pre-wrap;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status.info {
+            background: #dbeafe;
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Meal Planning Integration Test</h1>
+    
+    <div class="test-container">
+        <h2>Test Cart Data</h2>
+        <div class="cart-data">
+            <p>Simulating a cart with realistic FarmTopeople items:</p>
+            <ul id="cart-items">
+                <!-- Will be populated by JavaScript -->
+            </ul>
+        </div>
+        
+        <button class="btn" onclick="runTest()">Run Integration Test</button>
+        <button class="btn btn-secondary" onclick="clearOutput()">Clear Output</button>
+    </div>
+    
+    <div class="test-container">
+        <h2>Ingredient Pool</h2>
+        <div id="ingredient-pool-display" class="ingredient-pool">
+            <!-- Will be populated after test -->
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Generated Meal Plan</h2>
+        <div id="meal-plan-display" class="meal-plan">
+            <!-- Will be populated after test -->
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Test Output</h2>
+        <div id="output"></div>
+    </div>
+    
+    <!-- Load modules -->
+    <script type="module">
+        import { ingredientCleaner } from '/static/js/modules/ingredient-cleaner.js';
+        import { ingredientAllocator } from '/static/js/modules/ingredient-allocator.js';
+        
+        // Make available globally for testing
+        window.ingredientCleaner = ingredientCleaner;
+        window.ingredientAllocator = ingredientAllocator;
+        
+        // Mock AppState
+        window.AppState = {
+            mealPlanData: {
+                cart_data: {
+                    individual_items: [
+                        {
+                            name: "Pasture Raised Eggs",
+                            quantity: 12,
+                            unit: "pieces",
+                            price: "$8.00",
+                            type: "individual"
+                        }
+                    ],
+                    customizable_boxes: [
+                        {
+                            box_name: "The Cook's Box - Paleo",
+                            selected_items: [
+                                {
+                                    name: "Boneless, Skinless Organic Chicken Breast",
+                                    quantity: 0.7,
+                                    unit: "lbs"
+                                },
+                                {
+                                    name: "Grass-Fed Ground Beef",
+                                    quantity: 1.0,
+                                    unit: "lbs"
+                                },
+                                {
+                                    name: "Organic Heirloom Tomatoes",
+                                    quantity: 2,
+                                    unit: "pieces"
+                                },
+                                {
+                                    name: "Organic Bunched Rainbow Carrots",
+                                    quantity: 12,
+                                    unit: "pieces"
+                                },
+                                {
+                                    name: "Organic Yellow Onions",
+                                    quantity: 3,
+                                    unit: "pieces"
+                                },
+                                {
+                                    name: "Organic Bell Peppers",
+                                    quantity: 4,
+                                    unit: "pieces"
+                                }
+                            ],
+                            selected_count: 6,
+                            customizable: true
+                        }
+                    ],
+                    non_customizable_boxes: [
+                        {
+                            box_name: "Seasonal Fruit Box",
+                            selected_items: [
+                                {
+                                    name: "Organic Peaches",
+                                    quantity: 6,
+                                    unit: "pieces"
+                                },
+                                {
+                                    name: "Organic Nectarines", 
+                                    quantity: 4,
+                                    unit: "pieces"
+                                }
+                            ],
+                            selected_count: 2,
+                            customizable: false
+                        }
+                    ]
+                }
+            }
+        };
+        
+        // Display cart items
+        const displayCartItems = () => {
+            const cartList = document.getElementById('cart-items');
+            const cartData = window.AppState.mealPlanData.cart_data;
+            let html = '';
+            
+            // Individual items
+            cartData.individual_items.forEach(item => {
+                html += `<li>${item.name} - ${item.quantity} ${item.unit}</li>`;
+            });
+            
+            // Customizable boxes
+            cartData.customizable_boxes.forEach(box => {
+                box.selected_items.forEach(item => {
+                    html += `<li>${item.name} - ${item.quantity} ${item.unit}</li>`;
+                });
+            });
+            
+            // Non-customizable boxes
+            cartData.non_customizable_boxes.forEach(box => {
+                box.selected_items.forEach(item => {
+                    html += `<li>${item.name} - ${item.quantity} ${item.unit}</li>`;
+                });
+            });
+            
+            cartList.innerHTML = html;
+        };
+        
+        displayCartItems();
+        
+        window.runTest = async function() {
+            const output = document.getElementById('output');
+            const log = (msg, type = 'info') => {
+                const timestamp = new Date().toLocaleTimeString();
+                const statusClass = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+                output.innerHTML += `[${timestamp}] ${statusClass} ${msg}\n`;
+                output.scrollTop = output.scrollHeight;
+            };
+            
+            try {
+                log('Starting integration test...');
+                
+                // Step 1: Build ingredient pool
+                log('Building ingredient pool from cart data...');
+                const ingredientPool = buildIngredientPool();
+                displayIngredientPool(ingredientPool);
+                log(`Created pool with ${Object.keys(ingredientPool).length} ingredients`, 'success');
+                
+                // Step 2: Test name cleaning
+                log('\nTesting ingredient name cleaning...');
+                Object.keys(ingredientPool).forEach(name => {
+                    const cleaned = window.ingredientCleaner.cleanIngredientName(name);
+                    const cleanedForPool = window.ingredientCleaner.cleanForIngredientPool(name);
+                    log(`  "${name}" → "${cleaned}" (meal) / "${cleanedForPool}" (pool)`);
+                });
+                
+                // Step 3: Generate meal plan
+                log('\nGenerating 5-day meal plan...');
+                const mealPlan = generateTestMealPlan(ingredientPool);
+                displayMealPlan(mealPlan, ingredientPool);
+                log(`Generated ${mealPlan.length} meals`, 'success');
+                
+                // Step 4: Check allocation
+                log('\nChecking ingredient allocation...');
+                Object.entries(ingredientPool).forEach(([name, info]) => {
+                    const usage = window.ingredientAllocator.calculateUsagePercentage(info);
+                    log(`  ${name}: ${usage}% used (${info.allocated}/${info.total} ${info.unit})`);
+                });
+                
+                log('\n✅ Integration test completed successfully!', 'success');
+                
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        };
+        
+        window.clearOutput = function() {
+            document.getElementById('output').innerHTML = '';
+            document.getElementById('ingredient-pool-display').innerHTML = '';
+            document.getElementById('meal-plan-display').innerHTML = '';
+        };
+        
+        function buildIngredientPool() {
+            const pool = {};
+            const cartData = window.AppState.mealPlanData.cart_data;
+            
+            // Process all items
+            const allItems = [
+                ...cartData.individual_items,
+                ...cartData.customizable_boxes.flatMap(box => box.selected_items),
+                ...cartData.non_customizable_boxes.flatMap(box => box.selected_items)
+            ];
+            
+            allItems.forEach(item => {
+                pool[item.name] = {
+                    total: item.quantity,
+                    unit: item.unit,
+                    allocated: 0,
+                    remaining: item.quantity
+                };
+            });
+            
+            return pool;
+        }
+        
+        function generateTestMealPlan(ingredientPool) {
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            const meals = [];
+            
+            // Simulate meal generation
+            days.forEach((day, index) => {
+                // Pick a protein for the day
+                const proteins = Object.entries(ingredientPool)
+                    .filter(([name, info]) => {
+                        const category = window.ingredientAllocator.categorizeIngredient(name);
+                        return category === 'protein' && info.remaining > 0;
+                    });
+                
+                let mealName = 'Seasonal Vegetables';
+                if (proteins.length > 0 && index < proteins.length) {
+                    const [proteinName] = proteins[index % proteins.length];
+                    const cleanName = window.ingredientCleaner.cleanIngredientName(proteinName);
+                    const methods = ['Pan-Seared', 'Grilled', 'Roasted', 'Baked', 'Herb-Crusted'];
+                    const method = methods[index % methods.length];
+                    mealName = `${method} ${cleanName}`;
+                }
+                
+                const meal = {
+                    day: day.toLowerCase(),
+                    name: mealName,
+                    servings: 2,
+                    protein: '30g',
+                    cook_time: '30 min'
+                };
+                
+                // Allocate ingredients
+                const allocated = window.ingredientAllocator.allocateForMeal(meal, ingredientPool);
+                meal.ingredients_used = allocated;
+                
+                // Add vegetables to meal name
+                const veggies = allocated
+                    .filter(ing => window.ingredientAllocator.categorizeIngredient(ing.name) === 'vegetable')
+                    .map(ing => window.ingredientCleaner.cleanIngredientName(ing.name));
+                
+                if (veggies.length > 0) {
+                    meal.name += ` with ${veggies.slice(0, 2).join(' and ')}`;
+                }
+                
+                meals.push(meal);
+            });
+            
+            return meals;
+        }
+        
+        function displayIngredientPool(pool) {
+            const container = document.getElementById('ingredient-pool-display');
+            let html = '';
+            
+            Object.entries(pool).forEach(([name, info]) => {
+                const cleanName = window.ingredientCleaner.cleanForIngredientPool(name);
+                const usage = window.ingredientAllocator.calculateUsagePercentage(info);
+                const remaining = window.ingredientAllocator.formatRemaining(info);
+                
+                html += `
+                    <div class="ingredient-item">
+                        <strong>${cleanName}</strong><br>
+                        Total: ${info.total} ${info.unit}<br>
+                        Remaining: ${remaining}<br>
+                        Usage: ${usage}%
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function displayMealPlan(meals, pool) {
+            const container = document.getElementById('meal-plan-display');
+            let html = '';
+            
+            meals.forEach(meal => {
+                html += `
+                    <div class="meal-day">
+                        <h3>${meal.day.charAt(0).toUpperCase() + meal.day.slice(1)}</h3>
+                        <strong>${meal.name}</strong><br>
+                        Protein: ${meal.protein} | Cook Time: ${meal.cook_time} | Servings: ${meal.servings}<br>
+                        <small>Ingredients: ${meal.ingredients_used.map(i => 
+                            `${i.amount} ${i.unit} ${window.ingredientCleaner.cleanForIngredientPool(i.name)}`
+                        ).join(', ')}</small>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

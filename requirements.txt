@@ -21,4 +21,8 @@ jinja2
 
 # Vonage for SMS (replaced Twilio)
 vonage
-vonage-http-client 
+vonage-http-client
+
+# Security and caching
+cryptography==43.0.3
+redis==5.2.1

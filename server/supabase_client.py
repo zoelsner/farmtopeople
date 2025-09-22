@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import os
 import base64
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 # More explicit .env loading
 from dotenv import load_dotenv
@@ -38,24 +38,42 @@ def get_client() -> Client:
 
 
 def _encode_password(plain_text: str) -> str:
-    """Lightweight reversible encoding.
+    """Secure password encryption using Fernet.
 
-    NOTE: This is NOT cryptographic encryption. Replace with a KMS-based
-    envelope encryption scheme for production. For now we avoid new
-    dependencies and simply avoid storing cleartext.
+    This replaces the insecure base64 encoding with proper
+    symmetric encryption using cryptography library.
     """
     if plain_text is None:
         return ""
-    return base64.b64encode(plain_text.encode("utf-8")).decode("ascii")
+    
+    try:
+        from services.encryption_service import PasswordEncryption
+        return PasswordEncryption.encrypt_password(plain_text)
+    except ImportError:
+        # Fallback to base64 if encryption service not available
+        print("⚠️ Using fallback base64 encoding - encryption service not available")
+        return base64.b64encode(plain_text.encode("utf-8")).decode("ascii")
 
 
 def _decode_password(encoded_text: str) -> str:
+    """Decrypt password using proper encryption.
+    
+    Handles both new Fernet encryption and legacy base64 encoding
+    for backward compatibility during migration.
+    """
     if not encoded_text:
         return ""
+    
     try:
-        return base64.b64decode(encoded_text.encode("ascii")).decode("utf-8")
-    except Exception:
-        return encoded_text
+        from services.encryption_service import PasswordEncryption
+        decrypted = PasswordEncryption.decrypt_password(encoded_text)
+        return decrypted if decrypted else encoded_text
+    except ImportError:
+        # Fallback to base64 if encryption service not available
+        try:
+            return base64.b64decode(encoded_text.encode("ascii")).decode("utf-8")
+        except Exception:
+            return encoded_text
 
 
 def upsert_user_credentials(
@@ -92,18 +110,37 @@ def upsert_user_credentials(
 
 def get_user_by_phone(phone_number: str) -> Optional[Dict[str, Any]]:
     client = get_client()
-    res = (
-        client.table("users")
-        .select("id, phone_number, ftp_email, ftp_password_encrypted, preferences")
-        .eq("phone_number", phone_number)
-        .limit(1)
-        .execute()
-    )
-    if not res.data:
-        return None
-    row = res.data[0]
-    row["ftp_password"] = _decode_password(row.get("ftp_password_encrypted", ""))
-    return row
+    
+    # Try multiple phone formats to handle inconsistencies
+    phone_formats = []
+    
+    # If it starts with +1, also try without it
+    if phone_number.startswith('+1'):
+        phone_formats.append(phone_number)  # +14254955323
+        phone_formats.append(phone_number[2:])  # 4254955323
+    # If it doesn't start with +1, also try with it  
+    elif len(phone_number) == 10 and phone_number[0] != '1':
+        phone_formats.append(phone_number)  # 4254955323
+        phone_formats.append(f'+1{phone_number}')  # +14254955323
+    else:
+        phone_formats.append(phone_number)
+    
+    # Try each format
+    for phone_format in phone_formats:
+        res = (
+            client.table("users")
+            .select("id, phone_number, ftp_email, ftp_password_encrypted, preferences")
+            .eq("phone_number", phone_format)
+            .limit(1)
+            .execute()
+        )
+        if res.data:
+            row = res.data[0]
+            row["ftp_password"] = _decode_password(row.get("ftp_password_encrypted", ""))
+            return row
+    
+    # No user found with any format
+    return None
 
 
 def get_user_by_email(ftp_email: str) -> Optional[Dict[str, Any]]:
@@ -122,7 +159,48 @@ def get_user_by_email(ftp_email: str) -> Optional[Dict[str, Any]]:
     return row
 
 
-def save_latest_cart_data(phone_number: str, cart_data: Dict[str, Any], delivery_date = None) -> bool:
+def update_user_preferences(phone_number: str, preferences: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Update only the preferences for a user, without touching credentials.
+
+    Args:
+        phone_number: User's phone number
+        preferences: Updated preferences dictionary
+
+    Returns:
+        Updated user record or None if update failed
+    """
+    client = get_client()
+
+    # Try multiple phone formats
+    phone_formats = []
+    if phone_number.startswith('+1'):
+        phone_formats.append(phone_number)
+        phone_formats.append(phone_number[2:])
+    elif len(phone_number) == 10 and phone_number[0] != '1':
+        phone_formats.append(phone_number)
+        phone_formats.append(f'+1{phone_number}')
+    else:
+        phone_formats.append(phone_number)
+
+    # Try each format to find and update user
+    for phone_format in phone_formats:
+        try:
+            res = (
+                client.table("users")
+                .update({"preferences": preferences})
+                .eq("phone_number", phone_format)
+                .execute()
+            )
+            if res.data:
+                return res.data[0]
+        except Exception as e:
+            continue
+
+    return None
+
+
+def save_latest_cart_data(phone_number: str, cart_data: Dict[str, Any], delivery_date = None, meal_suggestions = None) -> bool:
     """
     Save latest cart data for a user (overwrites previous data).
     
@@ -130,6 +208,7 @@ def save_latest_cart_data(phone_number: str, cart_data: Dict[str, Any], delivery
         phone_number: User's phone number
         cart_data: Complete cart data from scraper
         delivery_date: Optional delivery date (datetime object, ISO string, or raw text)
+        meal_suggestions: Optional meal suggestions from AI analysis
         
     Returns:
         True if successful, False otherwise
@@ -153,11 +232,17 @@ def save_latest_cart_data(phone_number: str, cart_data: Dict[str, Any], delivery
         if clean_delivery_date:
             payload["delivery_date"] = clean_delivery_date
         
+        # Add meal suggestions if provided
+        if meal_suggestions:
+            payload["meal_suggestions"] = meal_suggestions
+        
         result = client.table("latest_cart_data").upsert(payload).execute()
         
         print(f"✅ Saved cart data for {phone_number}")
         if clean_delivery_date:
             print(f"📅 Delivery date: {clean_delivery_date}")
+        if meal_suggestions:
+            print(f"🍽️ Saved {len(meal_suggestions)} meal suggestions")
         return True
         
     except Exception as e:
@@ -245,18 +330,405 @@ def get_latest_cart_data(phone_number: str) -> Optional[Dict[str, Any]]:
     """
     try:
         client = get_client()
-        result = client.table("latest_cart_data").select("*").eq("phone_number", phone_number).execute()
         
-        if result.data:
-            stored_data = result.data[0]
-            print(f"📦 Retrieved stored cart data for {phone_number} (scraped: {stored_data.get('scraped_at')})")
-            return stored_data
+        # Try multiple phone formats to handle inconsistencies
+        phone_formats = []
+        
+        # If it starts with +1, also try without it
+        if phone_number.startswith('+1'):
+            phone_formats.append(phone_number)  # +14254955323
+            phone_formats.append(phone_number[2:])  # 4254955323
+        # If it doesn't start with +1, also try with it
+        elif len(phone_number) == 10 and phone_number[0] != '1':
+            phone_formats.append(phone_number)  # 4254955323
+            phone_formats.append(f'+1{phone_number}')  # +14254955323
         else:
-            print(f"⚠️ No stored cart data found for {phone_number}")
-            return None
+            phone_formats.append(phone_number)
+        
+        # Try each format
+        for phone_format in phone_formats:
+            result = client.table("latest_cart_data").select("*").eq("phone_number", phone_format).execute()
+            
+            if result.data:
+                stored_data = result.data[0]
+                print(f"📦 Retrieved stored cart data for {phone_format} (scraped: {stored_data.get('scraped_at')})")
+                return stored_data
+        
+        # No data found with any format
+        print(f"⚠️ No stored cart data found for {phone_number} (tried: {', '.join(phone_formats)})")
+        return None
             
     except Exception as e:
         print(f"❌ Failed to retrieve cart data: {e}")
         return None
+
+
+# ==========================================
+# SWAP HISTORY FUNCTIONS
+# For tracking user cart changes and preventing ping-pong suggestions
+# ==========================================
+
+def save_swap_history(swap_data: Dict[str, Any]) -> bool:
+    """
+    Save a detected swap to the history table.
+
+    Args:
+        swap_data: Dict with phone, delivery_date, box_name, from_item, to_item
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        client = get_client()
+
+        # Prepare the data for insertion
+        insert_data = {
+            'phone': swap_data['phone'],
+            'delivery_date': swap_data['delivery_date'],
+            'box_name': swap_data.get('box_name'),
+            'from_item': swap_data['from_item'],
+            'to_item': swap_data['to_item']
+        }
+
+        result = client.table('swap_history').insert(insert_data).execute()
+
+        if result.data:
+            print(f"✅ Saved swap: {swap_data['from_item']} → {swap_data['to_item']} for {swap_data['phone']}")
+            return True
+        else:
+            print(f"⚠️ No data returned when saving swap")
+            return False
+
+    except Exception as e:
+        print(f"❌ Failed to save swap history: {e}")
+        return False
+
+
+def get_swap_history(phone_number: str, delivery_date: str, limit: int = 10) -> List[Dict[str, Any]]:
+    """
+    Get recent swap history for a user and delivery date.
+
+    Args:
+        phone_number: User's phone number
+        delivery_date: Delivery date (YYYY-MM-DD format)
+        limit: Maximum number of swaps to return
+
+    Returns:
+        List of swap dictionaries with from_item, to_item, box_name, detected_at
+    """
+    try:
+        client = get_client()
+
+        # Handle multiple phone formats (consistent with other functions)
+        phone_formats = [phone_number]
+        if phone_number.startswith('+1'):
+            phone_formats.append(phone_number[2:])  # Remove +1
+        elif phone_number.startswith('1') and len(phone_number) == 11:
+            phone_formats.append(phone_number[1:])  # Remove leading 1
+        elif not phone_number.startswith('+'):
+            phone_formats.append(f"+1{phone_number}")  # Add +1
+            if phone_number.startswith('1'):
+                phone_formats.append(f"+{phone_number}")  # Add just +
+
+        # Try each phone format
+        for phone_format in phone_formats:
+            result = client.table('swap_history')\
+                .select('*')\
+                .eq('phone', phone_format)\
+                .eq('delivery_date', delivery_date)\
+                .order('detected_at', desc=True)\
+                .limit(limit)\
+                .execute()
+
+            if result.data:
+                print(f"📋 Retrieved {len(result.data)} swap records for {phone_format}")
+                return result.data
+
+        # No swaps found with any format
+        print(f"📋 No swap history found for {phone_number} on {delivery_date}")
+        return []
+
+    except Exception as e:
+        print(f"❌ Failed to get swap history: {e}")
+        return []
+
+
+def get_recent_swaps_for_phone(phone_number: str, days: int = 7, limit: int = 20) -> List[Dict[str, Any]]:
+    """
+    Get all recent swaps for a user across all deliveries.
+
+    Args:
+        phone_number: User's phone number
+        days: Number of days to look back
+        limit: Maximum number of swaps to return
+
+    Returns:
+        List of swap dictionaries
+    """
+    try:
+        client = get_client()
+
+        # Calculate date threshold
+        from datetime import datetime, timedelta
+        threshold_date = datetime.now() - timedelta(days=days)
+
+        # Handle multiple phone formats
+        phone_formats = [phone_number]
+        if phone_number.startswith('+1'):
+            phone_formats.append(phone_number[2:])
+        elif not phone_number.startswith('+'):
+            phone_formats.append(f"+1{phone_number}")
+
+        # Try each phone format
+        for phone_format in phone_formats:
+            result = client.table('swap_history')\
+                .select('*')\
+                .eq('phone', phone_format)\
+                .gte('detected_at', threshold_date.isoformat())\
+                .order('detected_at', desc=True)\
+                .limit(limit)\
+                .execute()
+
+            if result.data:
+                print(f"📋 Retrieved {len(result.data)} recent swaps for {phone_format}")
+                return result.data
+
+        return []
+
+    except Exception as e:
+        print(f"❌ Failed to get recent swaps: {e}")
+        return []
+
+
+def save_cart_analysis(
+    phone_number: str,
+    cart_data: Dict[str, Any],
+    meal_suggestions: List[Dict[str, Any]],
+    add_ons: List[Dict[str, Any]],
+    swaps: List[Dict[str, Any]],
+    delivery_date: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None
+) -> bool:
+    """
+    Save a cart analysis to the database for persistence beyond Redis TTL.
+
+    Args:
+        phone_number: User's phone number
+        cart_data: Raw cart data from scraper
+        meal_suggestions: The 5 GPT-generated meal suggestions
+        add_ons: Meal-aware add-on suggestions
+        swaps: Category-aware swap suggestions
+        delivery_date: Extracted delivery date from cart
+        metadata: Additional metadata (GPT model, processing time, etc.)
+
+    Returns:
+        True if save was successful, False otherwise
+    """
+    client = get_client()
+
+    try:
+        from datetime import datetime, timezone
+
+        # Prepare the analysis record
+        analysis = {
+            "user_phone": phone_number,
+            "analysis_date": datetime.now(timezone.utc).date().isoformat(),
+            "cart_data": cart_data,
+            "meal_suggestions": meal_suggestions,
+            "add_ons": add_ons or [],
+            "swaps": swaps or [],
+            "delivery_date": delivery_date,
+            "analysis_metadata": metadata or {}
+        }
+
+        # Upsert the analysis (update if exists for today, otherwise insert)
+        result = (
+            client.table("cart_analyses")
+            .upsert(analysis, on_conflict="user_phone,analysis_date")
+            .execute()
+        )
+
+        if result.data:
+            print(f"✅ Cart analysis saved to database for {phone_number}")
+            return True
+        else:
+            print(f"⚠️ Failed to save cart analysis - no data returned")
+            return False
+
+    except Exception as e:
+        print(f"❌ Failed to save cart analysis: {e}")
+        return False
+
+
+def get_latest_cart_analysis(phone_number: str) -> Optional[Dict[str, Any]]:
+    """
+    Retrieve the latest cart analysis for a user.
+
+    Args:
+        phone_number: User's phone number
+
+    Returns:
+        The latest cart analysis or None if not found
+    """
+    client = get_client()
+
+    try:
+        result = (
+            client.table("cart_analyses")
+            .select("*")
+            .eq("user_phone", phone_number)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+
+        if result.data and len(result.data) > 0:
+            return result.data[0]
+
+        return None
+
+    except Exception as e:
+        print(f"❌ Failed to get cart analysis: {e}")
+        return None
+
+
+def get_cart_analysis_for_date(phone_number: str, analysis_date: str) -> Optional[Dict[str, Any]]:
+    """
+    Retrieve cart analysis for a specific date.
+
+    Args:
+        phone_number: User's phone number
+        analysis_date: Date in YYYY-MM-DD format
+
+    Returns:
+        The cart analysis for that date or None if not found
+    """
+    client = get_client()
+
+    try:
+        result = (
+            client.table("cart_analyses")
+            .select("*")
+            .eq("user_phone", phone_number)
+            .eq("analysis_date", analysis_date)
+            .limit(1)
+            .execute()
+        )
+
+        if result.data and len(result.data) > 0:
+            return result.data[0]
+
+        return None
+
+    except Exception as e:
+        print(f"❌ Failed to get cart analysis for date: {e}")
+        return None
+
+
+def save_meal_locks(
+    phone_number: str,
+    locked_meals: List[int],
+    analysis_date: Optional[str] = None
+) -> bool:
+    """
+    Save which meals the user has locked/liked.
+
+    Args:
+        phone_number: User's phone number
+        locked_meals: List of meal indices (0-4) that are locked
+        analysis_date: Optional date of the analysis (defaults to today)
+
+    Returns:
+        True if save was successful, False otherwise
+    """
+    client = get_client()
+
+    try:
+        from datetime import datetime, timezone
+
+        # Get the analysis ID
+        if not analysis_date:
+            analysis_date = datetime.now(timezone.utc).date().isoformat()
+
+        analysis = get_cart_analysis_for_date(phone_number, analysis_date)
+        if not analysis:
+            print(f"⚠️ No analysis found for {phone_number} on {analysis_date}")
+            return False
+
+        analysis_id = analysis["id"]
+
+        # Prepare meal lock records
+        locks = []
+        for meal_index in range(5):  # Always handle all 5 meals
+            lock_record = {
+                "analysis_id": analysis_id,
+                "meal_index": meal_index,
+                "is_locked": meal_index in locked_meals,
+                "locked_at": datetime.now(timezone.utc).isoformat() if meal_index in locked_meals else None
+            }
+            locks.append(lock_record)
+
+        # Upsert all meal locks
+        result = (
+            client.table("meal_locks")
+            .upsert(locks, on_conflict="analysis_id,meal_index")
+            .execute()
+        )
+
+        if result.data:
+            print(f"✅ Meal locks saved for {phone_number}")
+            return True
+        else:
+            print(f"⚠️ Failed to save meal locks - no data returned")
+            return False
+
+    except Exception as e:
+        print(f"❌ Failed to save meal locks: {e}")
+        return False
+
+
+def get_meal_locks(phone_number: str, analysis_date: Optional[str] = None) -> List[int]:
+    """
+    Get which meals the user has locked.
+
+    Args:
+        phone_number: User's phone number
+        analysis_date: Optional date of the analysis (defaults to today)
+
+    Returns:
+        List of locked meal indices (0-4)
+    """
+    client = get_client()
+
+    try:
+        from datetime import datetime, timezone
+
+        # Get the analysis ID
+        if not analysis_date:
+            analysis_date = datetime.now(timezone.utc).date().isoformat()
+
+        analysis = get_cart_analysis_for_date(phone_number, analysis_date)
+        if not analysis:
+            return []
+
+        analysis_id = analysis["id"]
+
+        # Get locked meals
+        result = (
+            client.table("meal_locks")
+            .select("meal_index")
+            .eq("analysis_id", analysis_id)
+            .eq("is_locked", True)
+            .execute()
+        )
+
+        if result.data:
+            return [lock["meal_index"] for lock in result.data]
+
+        return []
+
+    except Exception as e:
+        print(f"❌ Failed to get meal locks: {e}")
+        return []
 
 

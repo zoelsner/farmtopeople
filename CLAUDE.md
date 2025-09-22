@@ -1,455 +1,330 @@
-# 🤖 CLAUDE.md - Farm to People AI Assistant Development Guide
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## 🎯 PROJECT OVERVIEW
 
-**Farm to People AI Assistant** transforms weekly produce boxes into personalized meal plans through intelligent SMS conversations. The system learns user preferences, analyzes cart contents, and delivers actionable cooking guidance.
+**Farm to People AI Assistant** transforms weekly produce boxes into personalized meal plans through intelligent cart scraping and AI-powered meal generation. Users complete onboarding, connect their Farm to People accounts, and receive meal suggestions based on their actual cart contents and preferences.
 
-**Current Status:** Production Ready - Web app deployed with full onboarding and cart integration  
-**Last Updated:** August 28, 2025  
-**Version:** 2.3.0  
-**Branch:** `feature/customer-automation`  
-**Primary Contact:** SMS `18334391183` (Vonage)  
 **Live URL:** https://farmtopeople-production.up.railway.app
+**Branch:** `feature/customer-automation`
+**Status:** Production ready with recent mobile UI fixes (Sept 2025)
 
 ---
 
-## 🚀 QUICK START
+## 🚀 ESSENTIAL DEVELOPMENT COMMANDS
 
-### **Test the System**
+### **Initial Setup (One-Time)**
 ```bash
-# 1. Production Web App (LIVE)
-open https://farmtopeople-production.up.railway.app/onboard
-
-# 2. Local Development
+# Clone and setup
+git clone https://github.com/zoelsner/farmtopeople.git
+cd farmtopeople
+python3 -m venv venv
 source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+playwright install chromium  # Required for cart scraping
+
+# Environment setup
+cp .env.example .env  # Edit with your credentials
+```
+
+### **Daily Development Workflow**
+```bash
+# Activate environment (ALWAYS REQUIRED)
+source venv/bin/activate
+
+# Start server
 python server/server.py
-open http://localhost:8000/onboard
 
-# 3. Test cart scraping with real data
-cd scrapers && python comprehensive_scraper.py
+# Test critical paths
+cd scrapers && python comprehensive_scraper.py  # Test cart scraping
+curl http://localhost:8000/api/get-saved-cart?phone=YOUR_PHONE  # Test API
 
-# 4. Dashboard testing (requires onboarding first)
-open http://localhost:8000/dashboard
+# Open application
+open http://localhost:8000/onboard  # Start onboarding flow
+open http://localhost:8000/dashboard  # Main dashboard
 ```
 
-### **Critical Development Rules**
-- ✅ ALWAYS activate venv before running Python code
-- ✅ Use GPT-5 (model="gpt-5") - it works in production!
-- ✅ Test comprehensive_scraper.py before making changes
-- ✅ Restart server after code modifications
-- ✅ Best PDF design: `generators/templates/meal_plan_minimal.html` (Penny-style)
-- ✅ **Protein in titles:** "38g protein" must be prominent under each meal name
-- ✅ NEVER use GPT-3.5 - use GPT-5 or gpt-4o-mini only
+### **Process Management**
+```bash
+# Find server process
+ps aux | grep "python.*server.py" | grep -v grep
+
+# Kill server by PID
+kill [PID]
+
+# Check port usage
+lsof -i :8000
+
+# Check Redis (if running locally)
+redis-cli ping
+```
+
+### **Debugging Commands**
+```bash
+# Test phone number lookup (most common issue)
+python -c "
+import sys; sys.path.insert(0, 'server')
+import supabase_client as db
+from services.phone_service import normalize_phone
+phone = 'YOUR_PHONE_NUMBER'
+normalized = normalize_phone(phone)
+user = db.get_user_by_phone(normalized)
+print(f'Normalized: {normalized}')
+print(f'User found: {bool(user)}')"
+
+# Check Redis cache
+python -c "
+import sys; sys.path.insert(0, 'server')
+from services.cache_service import CacheService
+phone = 'YOUR_PHONE_NUMBER'
+cart = CacheService.get_cart(phone)
+meals = CacheService.get_meals(phone)
+print(f'Cached cart: {bool(cart)}')
+print(f'Cached meals: {len(meals) if meals else 0}')"
+```
 
 ---
 
-## 📚 DOCUMENTATION INDEX
+## 🏗️ HIGH-LEVEL ARCHITECTURE
 
-### **Business & Product Docs**
-- [`docs/complete_business_flow.md`](docs/complete_business_flow.md) - End-to-end customer journey with confirmation flow
-- [`docs/updated_business_flow.md`](docs/updated_business_flow.md) - Latest requirements (high-protein, meal calendar)
-- [`docs/system_gap_analysis.md`](docs/system_gap_analysis.md) - Current gaps and improvement roadmap
-- [`docs/ONBOARDING_SYSTEM.md`](docs/ONBOARDING_SYSTEM.md) - Preference collection implementation
-
-### **Technical Documentation**
-- [`docs/refactoring_opportunities.md`](docs/refactoring_opportunities.md) - Architecture improvements & conversation state management
-- [`docs/conversational_ai_architecture.md`](docs/conversational_ai_architecture.md) - AI system design patterns
-- [`DEBUGGING_PROTOCOL.md`](DEBUGGING_PROTOCOL.md) - Scraper troubleshooting guide
-- [`CRITICAL_SCRAPING_LESSONS_LEARNED.md`](CRITICAL_SCRAPING_LESSONS_LEARNED.md) - Historical failures & solutions
-
----
-
-## 🏗️ SYSTEM ARCHITECTURE
-
+### **Service Layer (12 Modular Services)**
 ```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   WEB APP    │────▶│   DASHBOARD  │────▶│   SETTINGS   │
-│ (7-step flow)│     │ (Live Cart)  │     │ (CRUD Prefs) │
-└──────────────┘     └──────────────┘     └──────────────┘
-        │                    │                     │
-        ▼                    ▼                     ▼
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   SUPABASE   │◀────│   SCRAPER    │────▶│   GPT-5      │
-│ (User+Prefs) │     │ (Real Cart)  │     │ (Meal Plans) │
-└──────────────┘     └──────────────┘     └──────────────┘
+server/services/
+├── phone_service.py       # E.164 normalization (CRITICAL for data isolation)
+├── cache_service.py       # Redis with 2hr TTL for cart, 24hr for meals
+├── meal_generator.py      # GPT-5 integration (NEVER use GPT-3.5!)
+├── cart_service.py        # Cart analysis orchestration
+├── encryption_service.py  # Fernet encryption for FTP credentials
+├── account_service.py     # User lookup and management
+├── scraper_service.py     # Browser automation coordination
+├── sms_handler.py         # Vonage SMS routing
+├── meal_flow_service.py   # Complete meal generation flow
+├── data_isolation_service.py  # User data separation
+├── notification_service.py   # SMS notifications
+└── pdf_service.py         # Recipe PDF generation
 ```
 
----
+### **Frontend Architecture (Monolithic Challenge)**
+- **dashboard.html**: 4094 lines containing ALL frontend logic
+- **Two `updateMealSuggestions()` functions**: Line 3089 is the active one (Line 2713 is orphaned)
+- **State Management Pattern**: Unified classList + style.display usage
+- **PWA Navigation**: iframe modal pattern for Settings to prevent page refresh
 
-## 🌐 PRIMARY WEB APP FLOW
-
-### **7-Step Onboarding (Phone Number First)**
+### **Data Flow Architecture**
 ```
-Step 1: Phone Number Entry
-  ├─ Existing User? → Skip to Step 7 (FTP)
-  └─ New User? → Continue to Step 2
-
-Step 2: Household Size + Meal Timing
-Step 3: Meal Preferences (pick 3+ dishes)
-Step 4: Cooking Styles (optional, 2+ methods)
-Step 5: Dietary Restrictions (multiple selection)
-Step 6: Health Goals (up to 2 outcomes)
-Step 7: FTP Account Credentials → Dashboard
+Phone Input → E.164 Normalization → Supabase Query → Redis Check → Database Fallback
+Cart Scrape → Redis Cache (2hr TTL) → Frontend State → Both Tabs Update
+User Action → Service Layer → Cache Update → Real-time Frontend Sync
 ```
 
-### **Dashboard Navigation**
-- **Cart Tab:** Live cart analysis with delivery date
-- **Meals Tab:** AI-generated meal suggestions with refresh (3x limit)
-- **Settings Tab:** Update any preferences via modal editing
+### **Critical Patterns**
 
-### **Settings System (Full CRUD)**
-- **Household Size:** 1-7+ people grid selection
-- **Meal Preferences:** Familiar vs adventurous dishes
-- **Cooking Style:** Quick, comfort, international methods
-- **Dietary Restrictions:** Allergies, lifestyle choices
-- **Health Goals:** Quick dinners, family meals, etc.
-
----
-
-## 📱 SMS FLOW (Secondary - Future Enhancement)
-
-### **Message Routing (server.py:455-498)**
+#### **Phone Number Normalization (Most Common Debug Issue)**
 ```python
-if "hello" in user_message:
-    reply = format_sms_with_help(
-        "Hi there! I'm your Farm to People meal planning assistant.", 
-        'greeting'
-    )
-
-elif "plan" in user_message:
-    reply = format_sms_with_help(
-        "📦 Analyzing your Farm to People cart...", 
-        'analyzing'
-    )
-    background_tasks.add_task(run_full_meal_plan_flow, user_phone_number)
-
-elif "new" in user_message:
-    # User registration with secure login link + onboarding help
-
-elif "login" in user_message or "email" in user_message:
-    # Secure credential collection link + login help
+# System tries these formats in order to prevent "user not found" errors:
+normalized_phone = normalize_phone(phone)  # → +14254955323
+variants = [phone, f"+{phone}", f"+1{phone}", f"1{phone}"]
+# All data lookups MUST use normalized phone to prevent cross-user contamination
 ```
 
-### **SMS Help Text System (NEW - Aug 26, 2025)**
-Every SMS now includes contextual help text to guide users:
-
-**Example Output:**
-```
-📦 Analyzing your cart...
-━━━━━━━━━
-⏳ This takes 20-30 seconds...
-```
-
-**Available States:**
-- `analyzing` - Progress indicator during processing  
-- `plan_ready` - Action options after meal plan delivery
-- `greeting` - Basic navigation for new users
-- `error` - Recovery options when issues occur
-- `default` - General help for unrecognized input
-
-**Implementation:** `format_sms_with_help(message, state)` in server.py:111-178
-
-### **Progress SMS Updates**
+#### **Cache-First Strategy**
 ```python
-# Background flow sends these messages:
-1. "🔍 Looking up your account..."
-2. "🔐 Found your account! Logging into Farm to People..."  
-3. "📦 Analyzing your current cart and customizable boxes..."
-4. "🤖 Generating personalized meal plans with your ingredients..."
-5. [Final meal plan SMS]
+# Pattern: Always check Redis before database/API calls
+cached_response = CacheService.get_cart_response(phone)
+if cached_response and not force_refresh:
+    return cached_response
+# Fallback preserves swaps/addons/meals during cart lock scenarios
 ```
 
----
-
-## 🛒 COMPREHENSIVE SCRAPER FUNCTIONALITY
-
-### **Primary Scraper: comprehensive_scraper.py**
-
-**Captures ALL Cart Types:**
-1. **Individual Items** (eggs, avocados, bananas)
-2. **Non-customizable Boxes** (Seasonal Fruit Medley)  
-3. **Customizable Boxes** (Cook's Box - Paleo with alternatives)
-
-**Current JSON Output Structure:**
-```json
-{
-  "individual_items": [
-    {
-      "name": "Organic Hass Avocados",
-      "quantity": 5,
-      "unit": "1 piece", 
-      "price": "$12.50",
-      "type": "individual"
-    }
-  ],
-  "non_customizable_boxes": [
-    {
-      "box_name": "Seasonal Fruit Medley",
-      "selected_items": [...],
-      "selected_count": 3,
-      "customizable": false
-    }
-  ],
-  "customizable_boxes": [
-    {
-      "box_name": "The Cook's Box - Paleo",
-      "selected_items": [...],
-      "available_alternatives": [...],
-      "selected_count": 9,
-      "alternatives_count": 10
-    }
-  ]
+#### **Dynamic DOM Management (Recent Fix)**
+```javascript
+// Pattern: Create missing containers dynamically
+let grid = document.getElementById('mealSuggestionsGrid');
+if (!grid) {
+    grid = document.createElement('div');
+    grid.id = 'mealSuggestionsGrid';
+    container.appendChild(grid);
 }
 ```
 
 ---
 
-## 📊 CURRENT IMPLEMENTATION STATUS
+## 🔧 CRITICAL BUSINESS RULES
 
-### ✅ **COMPLETED FEATURES (as of 8/28)**
-- **✅ Web App Foundation** - Complete 7-step onboarding with smart user detection
-- **✅ Settings System** - Full CRUD operations for all user preferences
-- **✅ Dashboard Integration** - Live cart data with meal suggestions and refresh functionality
-- **✅ Cart Scraping** - Comprehensive capture including delivery date extraction
-- **✅ User Management** - Phone-first flow with existing user skip logic
-- **✅ Database Schema** - Supabase user/preference storage with encrypted credentials
-- **✅ Live Cart → Dashboard** - Real FTP data integration with fallback to mock data
-- **✅ Navigation System** - Clean tab structure (Cart/Meals/Settings) with proper routing
-- **✅ GPT-5 Implementation** - Production-ready meal plan generation
-- **✅ Deployment** - Live on Railway with environment variables configured
+### **Cart Lock Logic**
+- Carts lock at **11:59 AM ET the day before delivery**
+- Thursday delivery → Wednesday 11:59 AM lock
+- System falls back to cached cart data during lock period
+- **Known Issue**: Date calculation shows wrong day (Sun instead of Wed)
 
-### ✅ **COMPLETED THIS WEEK (8/26-8/28)**
-- **✅ Monday:** Settings page with 5 preference categories and modal editing
-- **✅ Tuesday:** Dashboard navigation refactor (Home→Cart, Cart→Meals)
-- **✅ Wednesday:** Live scraper integration with database credential lookup
-- **✅ Wednesday:** Delivery date extraction from cart pages
-- **✅ Wednesday:** Meal refresh functionality with 3x daily limit
-- **✅ Thursday:** Onboarding flow refactor - phone number first with user detection
-- **✅ Thursday:** Production deployment with full end-to-end testing
-
-### 📝 **FUTURE FEATURES**
-- **Confirmation Flow** - User approval before recipe generation
-- **Cart Total Calculation** - Pricing transparency
-- **Weekly Feedback Loop** - Recipe rating system
-- **Seasonal Intelligence** - Produce availability awareness
-- **Preference Evolution** - Learning from user behavior
-
----
-
-## 🚨 CRITICAL GAPS & HANDOFF ISSUES
-
-### **Gap 1: Preferences → Meal Planning**
-**Issue**: Collected preferences not utilized in GPT prompts  
-**Impact**: Missing personalization opportunity despite data collection  
-**Solution**:
-```python
-# In server.py run_full_meal_plan_flow():
-user_record = db.get_user_by_phone(phone_number)
-preferences = user_record.get('preferences', {})
-
-# Pass to meal_planner:
-plan = meal_planner.run_main_planner(preferences)  # ADD THIS
-```
-
-### **Gap 2: Live Cart → Real Analysis**
-**Issue**: Scraper works but test data still used  
-**Impact**: Recommendations don't reflect actual purchased ingredients  
-**Solution**: Ensure meal_planner uses actual scraped JSON data
-
-### **Gap 3: Goals → Ranking Logic**
-**Issue**: Goal weights defined but not implemented  
-**Impact**: "Quick dinners" goal doesn't prioritize fast recipes  
-**Solution**: Implement ranking adjustments based on goals
-
----
-
-## 💻 KEY CODE COMPONENTS
-
-### **Core Files (Reorganized 8/26)**
-```
-server/
-├── server.py                 # FastAPI webhook & orchestration ✅
-├── meal_planner.py          # GPT-5 integration ✅
-├── onboarding.py            # Preference analysis engine ✅
-├── supabase_client.py       # Database operations ✅
-└── templates/               # HTML templates
-
-generators/                  # NEW: PDF/HTML generation
-├── pdf_minimal.py           # Penny-style PDF generator ✅
-├── html_meal_plan_generator.py # HTML meal plans ✅
-└── templates/
-    └── meal_plan_minimal.html # BEST DESIGN: Clean, no emojis ✅
-
-scrapers/
-├── comprehensive_scraper.py  # PRIMARY: Full cart extraction ✅
-└── auth_helper.py           # Authentication handling ✅
-
-tests/                       # NEW: All test files moved here
-docs/                        # Consolidated documentation
-├── ARCHITECTURE.md          # System design
-├── BUSINESS_FLOW.md         # User journey
-└── DEVELOPMENT.md           # Setup & deployment
-```
-
----
-
-## 🔧 DEVELOPMENT COMMANDS
-
-### **Essential Testing**
-```bash
-# ALWAYS activate venv first:
-source venv/bin/activate
-
-# Test primary scraper:
-cd scrapers
-python comprehensive_scraper.py
-
-# Check latest output:
-ls -lt ../farm_box_data/customize_results_*.json | head -1
-
-# Verify JSON structure:
-head -20 ../farm_box_data/customize_results_20250822_093323.json
-```
-
-### **Server Operations**
-```bash
-# Start server:
-python server/server.py
-
-# Check running processes:
-ps aux | grep "python.*server.py"
-
-# Kill server (use actual PID):
-kill [PID]
-
-# Test SMS flow:
-curl -X POST http://localhost:8000/test-full-flow
-```
-
----
-
-## 🚨 CRITICAL ENVIRONMENT VARIABLES
-
-```bash
-# Required in .env file
-EMAIL=your@email.com              # Farm to People login (or FTP_EMAIL)
-PASSWORD=yourpassword             # Farm to People password (or FTP_PWD)
-VONAGE_API_KEY=xxx               # SMS service
-VONAGE_API_SECRET=xxx            
-VONAGE_PHONE_NUMBER=18334391183  # System phone number
-YOUR_PHONE_NUMBER=+1234567890    # Test recipient
-OPENAI_API_KEY=xxx               # GPT-4 access
-SUPABASE_URL=xxx                 # Database URL
-SUPABASE_KEY=xxx                 # Database key
-```
-
----
-
-## 📈 KEY METRICS & TARGETS
-
-### **Web App Performance**
-- Onboarding Completion: >85% target (7-step flow)
-- Existing User Recognition: >95% accuracy
-- Cart Scraping Speed: <30 seconds with real credentials
-- Dashboard Load Time: <3 seconds
-- Settings Update Success: >99%
-
-### **Technical Performance**
-- Scraper Success Rate: >95% (✅ tested with real data)
-- Database Operations: >99% uptime (Supabase)
-- Railway Deployment: >99.5% availability
-- AI Response Quality: GPT-5 production ready
-
-### **Protein Requirements (NEW)**
+### **Protein Requirements**
 - Women: 30g minimum per meal
 - Men: 35-40g minimum per meal
-- All meals must show protein content
+- Protein content is displayed in meal cards (not in meal titles)
+
+### **Meal Categorization**
+- **Snacks**: <20 minutes cooking time + specific ingredients (yogurt, fruit, nuts)
+- **Meals**: Everything else
+- **Parsing Bug Fixed**: "10-12 min" was parsed as 1012 minutes - now uses `time_part.split('-')[0]`
+
+### **Data Architecture**
+- **Phone numbers**: E.164 format (+14254955323) for all storage and lookups
+- **Redis TTLs**: Cart data (2 hours), Meal data (24 hours)
+- **GPT Model**: Always use GPT-5, never GPT-3.5
 
 ---
 
-## 🎯 NEXT SPRINT GOALS (Priority Order)
+## 🚨 KNOWN ARCHITECTURAL DEBT
 
-### **✅ Sprint 1: Web App Foundation (COMPLETED 8/28)**
-1. ✅ Complete 7-step onboarding with user detection
-2. ✅ Build settings system with full CRUD operations  
-3. ✅ Connect live cart data to dashboard
-4. ✅ Deploy to production on Railway
+### **High Priority Issues**
+1. **dashboard.html Monolith**: 4094 lines, all frontend logic in one file
+   - Contains duplicate functions
+   - State management scattered throughout
+   - Difficult to maintain and debug
 
-### **🚧 Sprint 2: Meal Planning Integration (Week of 9/2)**
-1. Connect user preferences to GPT-5 meal generation
-2. Generate recipe PDFs with full cooking instructions
-3. Add cart total calculations with pricing transparency
-4. Implement confirmation flow before recipe generation
+2. **Missing Test Suite**: No pytest files, no automated testing
+   - All testing is manual through browser
+   - High risk of regressions
 
-### **📋 Sprint 3: User Experience Polish (Week of 9/9)**
-1. Add meal calendar visualization for weekly planning
-2. Build weekly feedback collection and rating system
-3. Implement error recovery and retry mechanisms
-4. Add analytics tracking for user behavior insights
+3. **Scraper Performance**: Takes 40-50 seconds (target: 25 seconds)
+   - Playwright automation is slow
+   - Multiple page loads and waits
 
-### **🔮 Sprint 4: Advanced Features (Week of 9/16)**
-1. SMS integration for notifications and updates
-2. Seasonal intelligence for produce availability
-3. Learning system that evolves with user preferences
-4. Advanced personalization based on cooking history
+### **Medium Priority Issues**
+1. **Cart Lock Time Calculation**: Shows wrong day and disappears on refresh
+2. **Mobile UI Scaling**: Recent fixes applied but needs ongoing attention
+3. **Redis Dependency**: No graceful degradation when Redis unavailable
 
 ---
 
-## 🆘 TROUBLESHOOTING
+## 📱 RECENT CRITICAL FIXES (September 2025)
 
-### **Common Issues**
+### **Mobile UI Fixes**
+- Added `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`
+- Updated CSS with `padding-bottom: calc(80px + env(safe-area-inset-bottom))`
+- Fixed bottom navigation being cut off on mobile devices
+
+### **Meals Tab Display Fixes**
+- Fixed `renderMealSuggestions()` to dynamically create missing `mealSuggestionsGrid`
+- Fixed `showMealLoadingState()` to preserve container structure
+- Eliminated "Loading Meal Suggestions forever" issue
+
+### **State Management Fixes**
+- Unified classList and style.display usage patterns
+- Fixed blank screen during cart refresh operations
+- Enhanced loading animations and progress indicators
+
+### **Cache Fallback Fixes**
+- Preserve swaps/addons/meals during cart lock scenarios
+- Complete data structure integrity in Redis fallbacks
+- Proper cache response handling
+
+---
+
+## 🔍 DEBUGGING PATTERNS
+
+### **Phone Number Issues (90% of "Data Not Found" Problems)**
 ```bash
-# Virtual environment not activated
-command not found: python
-# Fix: source venv/bin/activate
+# Symptoms: "User not found", old cart data, failed analysis
+# Quick fix: Check if phone normalization is working
+python -c "from server.services.phone_service import normalize_phone; print(normalize_phone('YOUR_PHONE'))"
+```
 
-# Server not restarting
-Changes not reflected
-# Fix: ps aux | grep server.py && kill [PID]
+### **State Management Issues**
+```javascript
+// Check if multiple sections are active (should never happen)
+console.log({
+    start: !startSection.style.display || startSection.style.display !== 'none',
+    loading: !loadingSection.style.display || loadingSection.style.display !== 'none',
+    cart: !cartSection.style.display || cartSection.style.display !== 'none'
+});
+// Only one should be true
+```
 
-# Scraper authentication fails
-Zipcode modal appears
-# Fix: Check EMAIL/PASSWORD in .env
-
-# Cart data not updating
-Using old test data
-# Fix: Check meal_planner.py uses latest JSON
-
-# Terminal shows no comprehensive output
-Missing individual items or boxes
-# Fix: venv not activated OR authentication failed
+### **Cache Issues**
+```bash
+# Check Redis cache status
+python -c "
+from server.services.cache_service import CacheService
+response = CacheService.get_cart_response('PHONE')
+print('Cache exists:', bool(response))
+if response: print('Cache type:', response.get('cache_type'))"
 ```
 
 ---
 
-## 📞 SUPPORT & RESOURCES
+## 🌍 ENVIRONMENT VARIABLES
 
-- **GitHub Issues:** Report bugs at project repository
-- **Documentation:** See `/docs` folder for detailed guides
-- **Test Data:** Sample JSONs in `/farm_box_data`
-- **Logs:** Check terminal output and `server.log`
-- **Debug Protocol:** ALWAYS check DEBUGGING_PROTOCOL.md first
+```bash
+# Farm to People Credentials (Required)
+EMAIL=your.email@domain.com          # or FTP_EMAIL
+PASSWORD=your_ftp_password           # or FTP_PWD
+
+# AI Services (Required)
+OPENAI_API_KEY=sk-...                # GPT-5 access (NOT GPT-3.5!)
+
+# Database (Required)
+SUPABASE_URL=https://...
+SUPABASE_KEY=eyJ...
+
+# SMS Service (Required)
+VONAGE_API_KEY=...
+VONAGE_API_SECRET=...
+VONAGE_PHONE_NUMBER=18334391183
+
+# Caching (Optional - falls back to memory)
+REDIS_URL=redis://localhost:6379
+```
 
 ---
 
-## 🚀 DEPLOYMENT CHECKLIST
+## 📁 KEY FILE LOCATIONS
 
-- [ ] All tests passing
-- [ ] Environment variables configured
-- [ ] Database migrations complete
-- [ ] Vonage webhook configured
-- [ ] SSL certificates ready
-- [ ] Monitoring enabled (Sentry/DataDog)
-- [ ] Error tracking setup
-- [ ] Documentation updated
-- [ ] Conversation state management tested
-- [ ] Rate limiting configured
+### **Main Application Files**
+- `server/server.py` - FastAPI main application (1700+ lines)
+- `server/templates/dashboard.html` - Frontend monolith (4094 lines)
+- `scrapers/comprehensive_scraper.py` - Cart scraping logic
+- `server/supabase_client.py` - Database operations
+
+### **Configuration Files**
+- `requirements.txt` - Python dependencies
+- `.env` - Environment variables (copy from .env.example)
+- `database/meal_planning_schema.sql` - Database schema
+
+### **Documentation**
+- `docs/archive/CLAUDE_v5.4.0_2025-09-17.md` - Previous detailed CLAUDE.md
+- `MOBILE_UI_MEALS_TAB_FIXES_SUMMARY.md` - Recent fixes documentation
+- `CRITICAL_FIXES_SESSION_SUMMARY.md` - Historical fixes
 
 ---
 
-**Last Updated:** August 24, 2025  
-**Version:** 2.1.0  
-**Status:** Development - Core complete, integration gaps identified  
-**Next Sprint:** Week of August 26 - Core Integration Focus
+## 🎯 DEVELOPMENT PRIORITIES
 
-*This guide provides the essential information for developing and maintaining the Farm to People AI Assistant. For detailed implementation specifics, refer to the documentation index above.*
+### **When Making Changes**
+1. **Always test cart scraping** with `python scrapers/comprehensive_scraper.py`
+2. **Always activate venv** before running Python commands
+3. **Check phone normalization** for any user data issues
+4. **Test mobile UI** - recent fixes require ongoing validation
+5. **Monitor Redis cache** - critical for performance
+
+### **Common Gotchas**
+- Don't assume GPT-3.5 - use GPT-5 only
+- Don't modify phone numbers without normalization
+- Don't break PWA navigation - Settings must use iframe pattern
+- Don't ignore Redis TTL - cache expiration affects user experience
+- Don't trust line numbers in dashboard.html - file changes frequently
+
+### **Testing Approach**
+- Manual testing through browser (no automated tests)
+- Use real Farm to People accounts for comprehensive testing
+- Test both mobile and desktop experiences
+- Verify cart lock fallback scenarios
+
+---
+
+**Last Updated:** September 17, 2025
+**Version:** 6.0.0 (Streamlined Architecture Documentation)
+**Archived Previous Version:** `docs/archive/CLAUDE_v5.4.0_2025-09-17.md`
