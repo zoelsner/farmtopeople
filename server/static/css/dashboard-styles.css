@@ -932,8 +932,12 @@ body {
     border: 3px solid #f1f5f9;
     border-top: 3px solid #3b82f6;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite !important;
     margin: 0 auto 20px;
+    display: block !important;
+    /* Force hardware acceleration for smooth animation */
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 .error-icon, .empty-icon {
