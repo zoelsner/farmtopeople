@@ -88,6 +88,61 @@ print(f'Cached meals: {len(meals) if meals else 0}')"
 
 ---
 
+## 🧠 DECISION-MAKING PRINCIPLES
+
+### **Confidence-Based Problem Solving**
+After the loading screen bug that took 70+ attempts, we learned the importance of evidence-based investigation:
+
+- **80-85% confidence**: Good for most decisions and implementations
+- **95% confidence**: Required when repeatedly failing (3+ attempts) or debugging complex issues
+- **Research first**: Use internet when knowledge might be dated or uncertain
+- **Evidence over assumptions**: "More research is never a bad thing"
+
+### **When to Escalate Confidence Requirements**
+- After 3+ failed attempts → increase to 90% confidence
+- After 5+ failed attempts → demand 95% confidence
+- Complex architectural decisions → start at 85% minimum
+- Production-breaking bugs → always require 95%
+
+### **Research-First Approach**
+From the loading screen bug experience (70+ attempts before success):
+1. **Gather ALL data** - Console logs, server logs, network responses
+2. **Verify assumptions** - Test each component individually
+3. **Check both sides** - Server AND client can have issues simultaneously
+4. **Document thoroughly** - Create CRITICAL_LESSONS files for major fixes
+
+### **Model Selection (2025)**
+**Current Choice: GPT-5 Mini with low reasoning**
+- **Why**: 6x fewer hallucinations than GPT-4o (4.8% vs 20.6%)
+- **Config**: 8K output tokens for meals, 2K for single meals
+- **Reasoning**: "low" level balances accuracy with speed
+- **Token allocation**: 50K input accommodates full context
+- **Fallback**: GPT-4o available for simple/fast tasks
+
+### **Internet Research Policy**
+Use web search when:
+- Comparing AI models or services (capabilities change rapidly)
+- Checking latest API features/pricing
+- Verifying best practices (frameworks evolve)
+- Debugging unusual patterns that don't match known issues
+- Confirming third-party service details or limitations
+
+### **Git Workflow Strategy**
+From this deployment experience:
+- **Daily work**: `feature/customer-automation` (all iterations and debugging)
+- **Production**: `main` branch (stable milestones only)
+- **Commit philosophy**: Feature branch shows the journey, main shows destinations
+- **Merge strategy**: Squash feature work into comprehensive main commits
+
+### **Feature Development Philosophy**
+"I really don't want feature creep" - Focus on:
+- **Core value adds** that AI uniquely enables
+- **Strategic additions** (smart swaps) over complex systems (pantry tracking)
+- **Direct cart value** - helps users maximize their FarmToTable investment
+- **"What this enables"** messaging over feature lists
+
+---
+
 ## 🏗️ HIGH-LEVEL ARCHITECTURE
 
 ### **Service Layer (12 Modular Services)**
@@ -95,7 +150,7 @@ print(f'Cached meals: {len(meals) if meals else 0}')"
 server/services/
 ├── phone_service.py       # E.164 normalization (CRITICAL for data isolation)
 ├── cache_service.py       # Redis with 2hr TTL for cart, 24hr for meals
-├── meal_generator.py      # GPT-5 integration (NEVER use GPT-3.5!)
+├── meal_generator.py      # GPT-5 Mini integration with low reasoning
 ├── cart_service.py        # Cart analysis orchestration
 ├── encryption_service.py  # Fernet encryption for FTP credentials
 ├── account_service.py     # User lookup and management
