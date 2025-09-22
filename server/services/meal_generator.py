@@ -58,6 +58,10 @@ def build_api_params(model_name, max_tokens_value, temperature_value=None):
         params["max_tokens"] = max_tokens_value
         print(f"📝 [MODEL COMPAT] Using max_tokens for {model_name}")
 
+    # Add JSON format for faster parsing
+    params["response_format"] = {"type": "json_object"}
+    print(f"📝 [MODEL COMPAT] Using JSON response format for faster parsing")
+
     # Handle temperature (GPT-5 only supports default temperature=1)
     model_lower = model_name.lower()
     if model_lower.startswith("gpt-5"):
@@ -65,7 +69,7 @@ def build_api_params(model_name, max_tokens_value, temperature_value=None):
         print(f"📝 [MODEL COMPAT] Skipping temperature for {model_name} (uses default)")
 
         # GPT-5 REQUIRES reasoning_effort parameter to avoid empty responses
-        reasoning_level = os.getenv("AI_REASONING_LEVEL", "low")
+        reasoning_level = os.getenv("AI_REASONING_LEVEL", "minimal")  # Fixed: now defaults to minimal
         params["reasoning_effort"] = reasoning_level  # Use configurable reasoning level
         print(f"📝 [MODEL COMPAT] Using reasoning_effort={reasoning_level} for {model_name}")
     elif temperature_value is not None:
@@ -457,7 +461,7 @@ async def generate_meals(cart_data: Dict[str, Any], preferences: Dict[str, Any] 
 
             # Build parameters for meals - GPT-5 Mini optimized token allocation
             if AI_MODEL.lower().startswith("gpt-5"):
-                token_limit = 8000  # 8K output tokens for detailed meal plans
+                token_limit = 4000  # 4K output tokens for detailed meal plans (reduced for speed)
                 print(f"📝 [GPT-5 MEAL CONFIG] Using {token_limit} output tokens for {actual_meal_count} meals")
             else:
                 token_limit = 800  # Standard GPT-4o limit
