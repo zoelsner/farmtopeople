@@ -626,16 +626,17 @@ async def generate_meals(cart_data: Dict[str, Any], preferences: Dict[str, Any] 
         if all_suggestions:
             print(f"🧩 Generating add-ons to complement meals...")
             try:
-                from services.meal_generator import generate_addons
-
                 # Extract current cart items for add-on generation
                 current_items = []
                 for box in cart_data.get("customizable_boxes", []) + cart_data.get("non_customizable_boxes", []):
                     for item in box.get("selected_items", []):
                         current_items.append(item["name"])
 
+                # Extract meal names for add-on generation
+                meal_names = [meal.get('name', 'Unknown') for meal in all_suggestions if meal.get('type') == 'meal']
+
                 # Generate add-ons based on the meals we just created
-                addons = generate_addons(all_suggestions, current_items, preferences or {})
+                addons = generate_universal_meal_addons(meal_names, current_items)
                 if addons:
                     print(f"✅ Generated {len(addons)} add-ons")
                 else:
