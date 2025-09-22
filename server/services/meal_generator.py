@@ -17,7 +17,7 @@ load_dotenv()
 
 # Configuration - Support GPT-5 Mini with reasoning for optimal meal planning
 AI_MODEL = os.getenv("AI_MODEL", "gpt-5-mini")  # Default to GPT-5 Mini for better accuracy
-AI_REASONING_LEVEL = os.getenv("AI_REASONING_LEVEL", "low")  # Low reasoning for balance
+AI_REASONING_LEVEL = os.getenv("AI_REASONING_LEVEL", "minimal")  # Minimal reasoning for fast JSON generation
 print(f"🤖 Meal Generator using model: {AI_MODEL}")
 if AI_MODEL.lower().startswith("gpt-5"):
     print(f"⚡ Reasoning level: {AI_REASONING_LEVEL}")

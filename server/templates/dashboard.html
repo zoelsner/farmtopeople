@@ -73,11 +73,29 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     
+    <!-- Critical CSS for immediate spinner animation (prevents first-load delay) -->
+    <style>
+        .loading-animation {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            border: 4px solid #e9ecef;
+            border-top: 4px solid #28a745;
+            border-radius: 50%;
+            animation: spin 1s linear infinite !important;
+            display: block !important;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+
     <!-- Professional Fitbod CSS for styling only -->
     <link rel="stylesheet" href="/static/css/fitbod_meal_planning.css">
 
     <!-- Dashboard-specific styles (extracted for maintainability) -->
-    <link rel="stylesheet" href="/static/css/dashboard-styles.css?v=20250921-motion-fix">
+    <link rel="stylesheet" href="/static/css/dashboard-styles.css?v=20250921-perf-fix">
 
 </head>
 <body>
