@@ -75,13 +75,19 @@
     
     <!-- Critical CSS for immediate spinner animation (prevents first-load delay) -->
     <style>
+        .spinner-container {
+            /* CSS containment prevents reflows from affecting spinner */
+            contain: style layout;
+            margin-bottom: 24px;
+        }
         .loading-animation {
             width: 80px;
             height: 80px;
-            margin: 0 auto 24px;
+            margin: 0 auto;
             border: 4px solid #e9ecef;
             border-top: 4px solid #28a745;
             border-radius: 50%;
+            /* Force immediate animation start - no JavaScript needed */
             animation: spin 1s linear infinite !important;
             -webkit-animation: spin 1s linear infinite !important;
             display: block !important;
@@ -89,10 +95,9 @@
             transform: translateZ(0);
             -webkit-transform: translateZ(0);
             will-change: transform;
-        }
-        .loading-animation.force-animate {
-            animation: spin 1s linear infinite !important;
-            -webkit-animation: spin 1s linear infinite !important;
+            /* Ensure animation starts immediately */
+            animation-play-state: running !important;
+            -webkit-animation-play-state: running !important;
         }
         @keyframes spin {
             from { transform: rotate(0deg); }
@@ -142,9 +147,15 @@
 
         <!-- Loading Screen - Shows During Analysis -->
         <div class="loading-screen section" id="loadingSection">
-            <div class="loading-animation"></div>
+            <!-- Isolated spinner container - NEVER modify this -->
+            <div class="spinner-container" style="contain: style layout;">
+                <div class="loading-animation"></div>
+            </div>
             <h2 class="loading-title">Analyzing Your Cart</h2>
-            <p class="loading-status" id="loadingStatus">Logging into Farm to People...</p>
+            <!-- Separate container for progress updates to prevent reflow on spinner -->
+            <div class="progress-container">
+                <p class="loading-status" id="loadingStatus">Logging into Farm to People...</p>
+            </div>
 
             <div class="loading-tip">
                 <h3>While you wait (20-30 seconds)</h3>
@@ -1064,18 +1075,8 @@
             loadingSection.style.cssText = ''; // CLEAR ALL inline styles
             loadingSection.classList.add('active');
 
-            // FORCE REFLOW: Ensure spinner animation starts immediately on first load
-            const spinner = loadingSection.querySelector('.loading-animation');
-            if (spinner) {
-                // Force reflow to trigger animation
-                spinner.offsetHeight; // Trigger reflow
-
-                // Use requestAnimationFrame to ensure animation starts after reflow
-                requestAnimationFrame(() => {
-                    // Add a class to force animation restart if needed
-                    spinner.classList.add('force-animate');
-                });
-            }
+            // SPINNER: Now purely CSS-driven with containment - no JavaScript manipulation needed
+            // The spinner will start animating immediately due to CSS rules
 
             console.log('🚨 AFTER showing loading:', {
                 loadingInline: loadingSection.style.cssText,
@@ -1137,10 +1138,21 @@
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
                 const status = statuses[Math.min(statusIndex, statuses.length - 1)];
 
+                console.log('🔄 PROGRESS UPDATE:', {
+                    statusIndex,
+                    elapsed,
+                    statusText: status.text,
+                    progress: status.progress
+                });
+
                 // Create smooth progress updates without affecting spinner
                 const loadingEl = document.getElementById('loadingStatus');
+                if (!loadingEl) {
+                    console.error('❌ PROGRESS ERROR: loadingStatus element not found!');
+                    return;
+                }
 
-                // Use requestAnimationFrame for smoother updates
+                // Use requestAnimationFrame for smoother updates - avoid reflow on spinner
                 requestAnimationFrame(() => {
                     loadingEl.innerHTML = `
                         <div style="margin-bottom: 12px;">${status.text}</div>
@@ -1152,16 +1164,20 @@
                             Cancel
                         </button>
                     `;
+                    console.log('✅ PROGRESS UPDATED: HTML set successfully');
                 });
             }
 
+            console.log('🚀 PROGRESS SYSTEM: Starting progress updates');
             updateLoadingStatus();
             statusInterval = setInterval(() => {
                 if (statusIndex < statuses.length - 1) {
                     statusIndex++;
+                    console.log('📈 PROGRESS ADVANCE: Moving to status', statusIndex);
                 }
                 updateLoadingStatus();
             }, 8000); // Slower updates for longer processes
+            console.log('✅ PROGRESS SYSTEM: Interval started with ID', statusInterval);
 
             // Cancel button is now included in updateLoadingStatus() function above
 
