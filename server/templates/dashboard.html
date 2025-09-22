@@ -83,11 +83,24 @@
             border-top: 4px solid #28a745;
             border-radius: 50%;
             animation: spin 1s linear infinite !important;
+            -webkit-animation: spin 1s linear infinite !important;
             display: block !important;
+            /* Force hardware acceleration for smoother animation */
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            will-change: transform;
+        }
+        .loading-animation.force-animate {
+            animation: spin 1s linear infinite !important;
+            -webkit-animation: spin 1s linear infinite !important;
         }
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
+        }
+        @-webkit-keyframes spin {
+            from { -webkit-transform: rotate(0deg); }
+            to { -webkit-transform: rotate(360deg); }
         }
     </style>
 
@@ -1051,6 +1064,19 @@
             loadingSection.style.cssText = ''; // CLEAR ALL inline styles
             loadingSection.classList.add('active');
 
+            // FORCE REFLOW: Ensure spinner animation starts immediately on first load
+            const spinner = loadingSection.querySelector('.loading-animation');
+            if (spinner) {
+                // Force reflow to trigger animation
+                spinner.offsetHeight; // Trigger reflow
+
+                // Use requestAnimationFrame to ensure animation starts after reflow
+                requestAnimationFrame(() => {
+                    // Add a class to force animation restart if needed
+                    spinner.classList.add('force-animate');
+                });
+            }
+
             console.log('🚨 AFTER showing loading:', {
                 loadingInline: loadingSection.style.cssText,
                 loadingClasses: loadingSection.className,
@@ -1858,6 +1884,21 @@
                 hasCachedMeals: !!cachedMeals
             });
 
+            // DEBUG: Log the actual addon data
+            if (addons && addons.length > 0) {
+                console.log('🔍 ADD-ONS DEBUG - Raw addon data:', addons);
+                addons.forEach((addon, index) => {
+                    console.log(`🔍 ADD-ON ${index + 1}:`, {
+                        item: addon.item,
+                        category: addon.category,
+                        price: addon.price,
+                        reason: addon.reason
+                    });
+                });
+            } else {
+                console.log('⚠️ ADD-ONS DEBUG - No addons received or empty array');
+            }
+
             try {
                 console.log('📍 Step 1: Inside try block - about to clear timers');
 
@@ -2302,11 +2343,26 @@
                 `).join('');
                 document.getElementById('suggestedSwaps').innerHTML = swapsHTML;
             } else {
-                document.getElementById('suggestedSwaps').innerHTML = '<div style="color: #666; padding: 10px;">No swaps needed - your selections look great!</div>';
+                console.log('⚠️ SWAPS DEBUG: No swaps to display');
+                // Show informative message about why no swaps are available
+                const noSwapsMessage = `
+                    <div style="color: #666; padding: 15px; text-align: center; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                        <div style="font-weight: 500; margin-bottom: 5px;">✅ No swaps available</div>
+                        <div style="font-size: 14px;">Your cart contains fixed items without alternatives</div>
+                    </div>
+                `;
+                document.getElementById('suggestedSwaps').innerHTML = noSwapsMessage;
             }
 
             // Show AI-generated fresh add-ons (2025-08-29: Fresh ingredients only, no pantry staples)
             console.log('🔍 Add-ons debug:', { addons, addonsLength: addons ? addons.length : 0 });
+
+            // Check if the recommendedAddons element exists
+            const recommendedAddonsElement = document.getElementById('recommendedAddons');
+            console.log('🔍 recommendedAddons element:', {
+                exists: !!recommendedAddonsElement,
+                currentHTML: recommendedAddonsElement ? recommendedAddonsElement.innerHTML : 'N/A'
+            });
 
             if (addons && addons.length > 0) {
                 console.log(`✅ Displaying ${addons.length} add-on recommendations`);
@@ -2342,12 +2398,24 @@
 
                 const addonsElement = document.getElementById('recommendedAddons');
                 if (addonsElement) {
+                    console.log('🔧 Setting addons HTML, length:', addonsHTML.length);
                     addonsElement.innerHTML = addonsHTML;
+                    console.log('✅ Addons HTML set successfully');
+
                     // Ensure addons section is visible
                     const addonsSection = document.getElementById('addonsSection');
                     if (addonsSection) {
                         addonsSection.style.display = '';
+                        console.log('✅ Addons section made visible');
+                    } else {
+                        console.error('❌ addonsSection element not found!');
                     }
+
+                    // Final verification
+                    console.log('🔍 Final addons verification:', {
+                        htmlSet: addonsElement.innerHTML.length > 0,
+                        sectionVisible: addonsSection ? addonsSection.style.display !== 'none' : 'section not found'
+                    });
                 } else {
                     console.error('❌ recommendedAddons element not found!');
                 }

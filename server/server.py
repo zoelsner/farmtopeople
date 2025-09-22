@@ -1688,15 +1688,33 @@ async def analyze_cart_api(request: Request, background_tasks: BackgroundTasks):
 
         # Check both arrays for boxes with alternatives (fixed from only checking customizable_boxes)
         has_alternatives = False
+        customizable_count = 0
+        non_customizable_with_alternatives = 0
+
         if cart_data:
             # Check customizable_boxes array
-            if cart_data.get("customizable_boxes"):
+            customizable_boxes = cart_data.get("customizable_boxes", [])
+            if customizable_boxes:
                 has_alternatives = True
+                customizable_count = len(customizable_boxes)
+                print(f"🔍 SWAP DEBUG: Found {customizable_count} customizable boxes")
+            else:
+                print("🔍 SWAP DEBUG: No customizable_boxes found")
+
             # Also check non_customizable_boxes for boxes with alternatives
-            for box in cart_data.get("non_customizable_boxes", []):
-                if box.get("available_alternatives") or box.get("customizable"):
+            non_customizable_boxes = cart_data.get("non_customizable_boxes", [])
+            print(f"🔍 SWAP DEBUG: Checking {len(non_customizable_boxes)} non-customizable boxes")
+
+            for i, box in enumerate(non_customizable_boxes):
+                box_has_alternatives = box.get("available_alternatives") or box.get("customizable")
+                print(f"🔍 SWAP DEBUG: Box {i+1}: has_alternatives={bool(box.get('available_alternatives'))}, customizable={bool(box.get('customizable'))}")
+                if box_has_alternatives:
                     has_alternatives = True
-                    break
+                    non_customizable_with_alternatives += 1
+
+            print(f"🔍 SWAP DEBUG SUMMARY: has_alternatives={has_alternatives}, customizable_count={customizable_count}, non_customizable_with_alternatives={non_customizable_with_alternatives}")
+        else:
+            print("🔍 SWAP DEBUG: No cart_data provided")
 
         if has_alternatives:
             try:
@@ -1869,6 +1887,9 @@ Return JSON format (generate appropriate suggestions based on cart):
                 print(f"⚠️ Could not generate AI swaps: {e}")
                 # Return empty swaps/addons rather than hardcoded ones
                 pass
+        else:
+            print("🔍 SWAP DEBUG: No alternatives available - skipping swap generation")
+            print("🔍 SWAP DEBUG: This is normal for carts with only fixed/non-customizable items")
         
         # Handle meal suggestions
         meals_start_time = log_timing_step("MEALS_START", "Starting meal generation phase")
