@@ -129,7 +129,26 @@
 
         <!-- Loading Screen - Shows During Analysis -->
         <div class="loading-screen section" id="loadingSection">
-            <div class="loading-animation" style="animation: spin 1s linear infinite !important; -webkit-animation: spin 1s linear infinite !important;"></div>
+            <div class="loading-animation" style="
+                animation: spin 1s linear infinite !important;
+                -webkit-animation: spin 1s linear infinite !important;
+                width: 40px;
+                height: 40px;
+                border: 3px solid #e9ecef;
+                border-top: 3px solid #007AFF;
+                border-radius: 50%;
+                margin: 0 auto 16px;
+            "></div>
+            <style>
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                @-webkit-keyframes spin {
+                    from { -webkit-transform: rotate(0deg); }
+                    to { -webkit-transform: rotate(360deg); }
+                }
+            </style>
             <h2 class="loading-title">Analyzing Your Cart</h2>
             <p class="loading-status" id="loadingStatus">Logging into Farm to People...</p>
 
@@ -168,13 +187,14 @@
                     </div>
                 </div>
 
-                <!-- Cart Overview - Protein and Fruit Counts -->
-                <div id="cartOverview" style="padding: 0 20px; margin-bottom: 15px;">
-                    <!-- Protein/fruit counts will be inserted here -->
-                </div>
 
                 <div id="suggestedMeals">
                     <!-- Suggested meals based on preferences will be inserted here -->
+                </div>
+
+                <!-- Cart Overview - Protein and Fruit Counts (MOVED below Suggested Meals) -->
+                <div id="cartOverview" style="padding: 0 20px; margin-bottom: 15px;">
+                    <!-- Protein/fruit counts will be inserted here -->
                 </div>
             </div>
 

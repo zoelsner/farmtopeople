@@ -1886,7 +1886,11 @@ Return JSON format (generate appropriate suggestions based on cart):
                 result = await generate_meals(cart_data, preferences=user_preferences)
                 if result['success']:
                     meals = result['meals']
-                    log_timing_step("MEALS_GPT_COMPLETE", f"Generated {len(meals)} meals successfully")
+                    # Extract add-ons from meal generator result
+                    if 'addons' in result and result['addons']:
+                        addons = result['addons']
+                        print(f"✅ Received {len(addons)} add-ons from meal generator")
+                    log_timing_step("MEALS_GPT_COMPLETE", f"Generated {len(meals)} meals and {len(addons)} add-ons")
 
                     # Cache the newly generated meals
                     cache_start = time.time()

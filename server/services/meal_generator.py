@@ -621,12 +621,38 @@ async def generate_meals(cart_data: Dict[str, Any], preferences: Dict[str, Any] 
         for item in all_suggestions:
             print(f"    {item.get('type', 'unknown').upper()}: {item.get('name', 'Unknown')} ({item.get('protein', 'Unknown')}g protein)")
 
+        # Step 4: Generate add-ons to complement the meals
+        addons = []
+        if all_suggestions:
+            print(f"🧩 Generating add-ons to complement meals...")
+            try:
+                from services.meal_generator import generate_addons
+
+                # Extract current cart items for add-on generation
+                current_items = []
+                for box in cart_data.get("customizable_boxes", []) + cart_data.get("non_customizable_boxes", []):
+                    for item in box.get("selected_items", []):
+                        current_items.append(item["name"])
+
+                # Generate add-ons based on the meals we just created
+                addons = generate_addons(all_suggestions, current_items, preferences or {})
+                if addons:
+                    print(f"✅ Generated {len(addons)} add-ons")
+                else:
+                    print(f"⚠️ No add-ons generated")
+
+            except Exception as addon_error:
+                print(f"⚠️ Failed to generate add-ons: {addon_error}")
+                addons = []
+
         return {
             "success": True,
             "meals": all_suggestions,  # Contains both meals and snacks
+            "addons": addons,  # Add-ons to complement the meals
             "meal_count": len(actual_meals),
             "snack_count": len(actual_snacks),
-            "total_suggestions": len(all_suggestions)
+            "total_suggestions": len(all_suggestions),
+            "addon_count": len(addons)
         }
 
     except json.JSONDecodeError as e:
