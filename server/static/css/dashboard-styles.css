@@ -124,15 +124,25 @@ body {
     border: 4px solid #e9ecef;
     border-top: 4px solid #28a745;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-    -webkit-animation: spin 1s linear infinite; /* Safari support */
+    animation: spin 1s linear infinite !important;
+    -webkit-animation: spin 1s linear infinite !important; /* Safari support */
     will-change: transform; /* Optimize for animation */
     transform: translateZ(0); /* Force hardware acceleration */
+    display: block !important; /* Ensure visibility */
 }
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Override reduced motion preference for loading spinners - they're essential for UX */
+@media (prefers-reduced-motion: reduce) {
+    .loading-animation,
+    .spinner {
+        animation: spin 1s linear infinite !important;
+        -webkit-animation: spin 1s linear infinite !important;
+    }
 }
 
 @-webkit-keyframes spin {
