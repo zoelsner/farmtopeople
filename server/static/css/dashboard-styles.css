@@ -112,6 +112,11 @@ body {
     display: none;
 }
 
+/* Fix specificity conflict - ensure loading screen shows when active */
+.loading-screen.section.active {
+    display: block !important;
+}
+
 .loading-animation {
     width: 80px;
     height: 80px;
@@ -388,6 +393,7 @@ body {
 .section.active {
     display: block;
 }
+
 
 /* Responsive adjustments */
 @media (max-width: 380px) {

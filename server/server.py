@@ -1335,7 +1335,7 @@ async def generate_swaps_async(cart_data: dict, user_preferences: dict, normaliz
         prompt = f"""Analyze this Farm to People cart and suggest smart swaps.
 
 CURRENT CART BY CATEGORY:
-- Proteins: {', '.join(selected_by_category['protein']) if selected_by_category['protein'] else 'None'}
+- Proteins: {', '.join(selected_by_category['protein']) if selected_by_category['protein'] else 'None'} ({len(selected_by_category['protein'])} proteins total)
 - Produce: {', '.join(selected_by_category['produce']) if selected_by_category['produce'] else 'None'}
 - Grocery: {', '.join(selected_by_category['grocery']) if selected_by_category['grocery'] else 'None'}
 
@@ -1360,10 +1360,11 @@ RECENT USER SWAPS (DO NOT REVERSE THESE):
 1. SWAPS: Suggest 1-5 swaps ONLY if they would SIGNIFICANTLY improve the cart:
    - NEVER suggest reversing a recent swap shown above (critical rule!)
    - NEVER suggest cross-category swaps (turkey → corn is INVALID)
+   - NEVER suggest protein swaps for "variety" if there's only 1 protein in cart
    - Violates dietary restrictions (ALWAYS suggest swapping)
    - Poor fit for health goals (high priority)
    - Better matches preferred cuisine/cooking methods
-   - Improves protein variety across entire cart
+   - Improves protein variety ONLY if cart has 2+ different proteins
    - If current cart already aligns with preferences well, return EMPTY swaps array
 
 Return JSON format:
@@ -1774,10 +1775,11 @@ First, analyze if the current cart already aligns well with the user's preferenc
 
 1. SWAPS: Suggest 1-5 swaps ONLY if they would SIGNIFICANTLY improve the cart:
    - NEVER suggest reversing a recent swap shown above (critical rule!)
+   - NEVER suggest protein swaps for "variety" if there's only 1 protein in cart
    - Violates dietary restrictions (ALWAYS suggest swapping)
    - Poor fit for health goals (high priority)
    - Better matches preferred cuisine/cooking methods
-   - Improves protein variety across entire cart
+   - Improves protein variety ONLY if cart has 2+ different proteins
    - Better recipe compatibility with other ingredients
    - If current cart already aligns with preferences well, return EMPTY swaps array
    - Quality over quantity: Better to suggest 0 swaps than random ones
@@ -1844,7 +1846,7 @@ Return JSON format (generate appropriate suggestions based on cart):
 
                 elapsed = time.time() - api_start_time
                 print(f"⏱️ [T+{elapsed:.1f}s] Fresh cart data detected - generating meal suggestions with GPT-5")
-                result = await generate_meals(cart_data, user_preferences)
+                result = await generate_meals(cart_data, preferences=user_preferences)
                 if result['success']:
                     meals = result['meals']
                     elapsed = time.time() - api_start_time
@@ -1975,6 +1977,11 @@ Return JSON format (generate appropriate suggestions based on cart):
             print(f"⚠️ Skipping cache - invalid cart_data structure (missing selected_items in customizable boxes)")
 
         total_elapsed = time.time() - api_start_time
+        # Calculate scrape_elapsed (was undefined causing NameError)
+        scrape_elapsed = 0  # Default if no scraping happened
+        if 'scrape_start_time' in locals():
+            scrape_elapsed = scrape_end_time - scrape_start_time if 'scrape_end_time' in locals() else 0
+
         print(f"""⏱️ [T+{total_elapsed:.1f}s] ====== TOTAL API PROCESSING TIME ======
         Breakdown:
         - Scraping: {scrape_elapsed:.1f}s
@@ -2019,7 +2026,7 @@ async def refresh_meal_suggestions(request: Request):
                     print(f"✅ Loaded preferences for meal refresh")
         
         # Use meal generator service
-        result = await generate_meals(cart_data, user_preferences)
+        result = await generate_meals(cart_data, preferences=user_preferences)
 
         if result['success']:
             # Cache the newly generated meals to Redis
