@@ -490,7 +490,15 @@ async def generate_meals(cart_data: Dict[str, Any], preferences: Dict[str, Any] 
                 gpt_response = gpt_response.split("```")[1].strip()
 
             # Parse JSON
-            meals = json.loads(gpt_response)
+            parsed_response = json.loads(gpt_response)
+
+            # Handle both direct array and object with meals key (GPT-4o returns object format)
+            if isinstance(parsed_response, dict) and 'meals' in parsed_response:
+                meals = parsed_response['meals']
+            elif isinstance(parsed_response, list):
+                meals = parsed_response
+            else:
+                raise ValueError(f"Unexpected GPT response format: {type(parsed_response)}")
 
             # Add type field, ensure protein compatibility, and categorize by protein content
             for i, meal in enumerate(meals):
@@ -621,39 +629,17 @@ async def generate_meals(cart_data: Dict[str, Any], preferences: Dict[str, Any] 
         for item in all_suggestions:
             print(f"    {item.get('type', 'unknown').upper()}: {item.get('name', 'Unknown')} ({item.get('protein', 'Unknown')}g protein)")
 
-        # Step 4: Generate add-ons to complement the meals
-        addons = []
-        if all_suggestions:
-            print(f"🧩 Generating add-ons to complement meals...")
-            try:
-                # Extract current cart items for add-on generation
-                current_items = []
-                for box in cart_data.get("customizable_boxes", []) + cart_data.get("non_customizable_boxes", []):
-                    for item in box.get("selected_items", []):
-                        current_items.append(item["name"])
-
-                # Extract meal names for add-on generation
-                meal_names = [meal.get('name', 'Unknown') for meal in all_suggestions if meal.get('type') == 'meal']
-
-                # Generate add-ons based on the meals we just created
-                addons = generate_universal_meal_addons(meal_names, current_items)
-                if addons:
-                    print(f"✅ Generated {len(addons)} add-ons")
-                else:
-                    print(f"⚠️ No add-ons generated")
-
-            except Exception as addon_error:
-                print(f"⚠️ Failed to generate add-ons: {addon_error}")
-                addons = []
+        # Add-ons are now generated separately in server.py to avoid duplication
+        # This keeps meal generation focused on meals only
 
         return {
             "success": True,
             "meals": all_suggestions,  # Contains both meals and snacks
-            "addons": addons,  # Add-ons to complement the meals
+            "addons": [],  # Add-ons handled separately in server.py
             "meal_count": len(actual_meals),
             "snack_count": len(actual_snacks),
             "total_suggestions": len(all_suggestions),
-            "addon_count": len(addons)
+            "addon_count": 0  # Add-ons handled separately now
         }
 
     except json.JSONDecodeError as e:
@@ -791,7 +777,8 @@ Format:
 
 async def generate_meal_addons(meals: List[Dict], cart_data: Dict, preferences: Dict = None) -> List[Dict]:
     """
-    Generate add-on items that complement specific generated meals.
+    Generate add-on items using AI to suggest ingredients that complement meals.
+    Uses fixed product catalog for consistent pricing and availability.
 
     Args:
         meals: List of generated meal suggestions
@@ -799,9 +786,11 @@ async def generate_meal_addons(meals: List[Dict], cart_data: Dict, preferences: 
         preferences: User preferences for personalization
 
     Returns:
-        List of add-on dictionaries
+        List of add-on product dictionaries with real prices
     """
     import time
+    from services.addon_catalog import get_available_addon_keys, map_suggestions_to_products
+
     addon_gen_start = time.time()
 
     try:
@@ -821,43 +810,145 @@ async def generate_meal_addons(meals: List[Dict], cart_data: Dict, preferences: 
         for item in cart_data.get("individual_items", []):
             current_items.append(item["name"])
 
-        # Extract meal names for context
-        meal_names = [meal.get('name', 'Unknown') for meal in meals if meal.get('type') == 'meal']
+        # Extract full meal context, not just names
+        meal_list = [meal for meal in meals if meal.get('type') == 'meal']
 
-        if not meal_names:
+        if not meal_list:
             print("⚠️ No meals found for add-on generation")
             return []
 
-        # PRIORITY 1: Check for protein gaps
-        protein_gap_addons = check_protein_gap(current_items, meal_names, preferences)
+        # Format meal context with all available information
+        def format_meal_context(meals):
+            """Build rich context from meal objects"""
+            context_lines = []
+            for i, meal in enumerate(meals, 1):
+                context_lines.append(f"MEAL {i}: {meal.get('name', 'Unknown')}")
+                if meal.get('ingredients_used'):
+                    context_lines.append(f"  Ingredients: {', '.join(meal['ingredients_used'])}")
+                if meal.get('description'):
+                    context_lines.append(f"  Description: {meal['description']}")
+                if meal.get('cooking_time'):
+                    context_lines.append(f"  Cooking time: {meal['cooking_time']}")
+            return '\n'.join(context_lines)
 
-        # PRIORITY 2: Always generate meal-enhancing add-ons regardless of protein gap
-        meal_enhancing_addons = generate_universal_meal_addons(meal_names, current_items)
+        # Get household context from preferences
+        household_size = preferences.get('household_size', '2 people') if preferences else '2 people'
+        dietary_restrictions = preferences.get('dietary_restrictions', []) if preferences else []
+        cooking_skill = preferences.get('skill_level', 'intermediate') if preferences else 'intermediate'
+        dislikes = preferences.get('dislikes', []) if preferences else []
 
-        # Combine both types of add-ons
-        all_addons = protein_gap_addons + meal_enhancing_addons
+        # Get available add-on options from catalog
+        available_items = get_available_addon_keys()
 
-        if all_addons:
-            elapsed = time.time() - addon_gen_start
-            print(f"⏱️ Generated {len(all_addons)} add-ons ({len(protein_gap_addons)} protein + {len(meal_enhancing_addons)} enhancing) (took {elapsed:.2f}s)")
-            return all_addons[:3]  # Cap at 3 total add-ons
+        # Build dynamic master prompt
+        prompt = f"""You help home cooks remember fresh ingredients they often forget but NEED for their meals.
 
-        # FALLBACK: Get real add-ons from Farm to People catalog
-        real_addons = get_real_meal_addons(meal_names, current_items)
-        if real_addons:
-            elapsed = time.time() - addon_gen_start
-            print(f"⏱️ Found {len(real_addons)} real FTP add-ons for meals (took {elapsed:.2f}s)")
-            return real_addons
+MEALS BEING PREPARED:
+{format_meal_context(meal_list)}
 
-        # PRIORITY 3: Fallback to universal items
-        fallback_addons = get_universal_addons()
+HOUSEHOLD CONTEXT:
+- Size: {household_size}
+- Dietary restrictions: {', '.join(dietary_restrictions) if dietary_restrictions else 'None'}
+- Cooking skill: {cooking_skill}
+- Dislikes: {', '.join(dislikes) if dislikes else 'None'}
+
+ALREADY IN CART:
+{', '.join(current_items[:15])}
+
+YOUR TASK:
+Analyze what fresh ingredients are CRITICAL for these specific meals but might be forgotten.
+
+RULES:
+1. Read each meal's ingredients and description carefully
+2. Identify cuisine type from context (don't assume)
+3. Consider what fresh herbs/aromatics are ESSENTIAL (not optional)
+4. Scale quantities: if multiple meals need same herb, suggest 2 bunches
+5. NEVER suggest items already in cart or their close variants
+6. Respect dietary restrictions - never suggest restricted items
+7. Focus on fresh items that would significantly impact the meal if missing
+
+AVAILABLE ITEMS TO CHOOSE FROM:
+{', '.join(available_items)}
+
+CRITICAL THINKING:
+- What fresh herb defines this dish? (based on actual cuisine, not assumptions)
+- What acid brightens it? (lime for Mexican/Thai, lemon for Mediterranean)
+- What aromatics are foundational? (garlic, ginger, shallots based on cuisine)
+- What accompaniment is essential? (bread for soup, tortillas for Mexican dishes)
+
+Return 2-3 items as JSON array with specific reasoning tied to the actual meals above:
+[
+  {{"item": "item_key", "reason": "specific reason related to meal name and why it's essential"}}
+]"""
+
+        # Call AI for suggestions
+        response = client.chat.completions.create(
+            model=AI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful chef focused on fresh ingredients people often forget. Think herbs, fresh produce, and items that make meals special. Return only valid JSON."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=200,
+            temperature=0.7,
+            response_format={"type": "json_object"}
+        )
+
+        # Parse AI response
+        ai_response = response.choices[0].message.content.strip()
+
+        # Handle various response formats from GPT
+        try:
+            parsed = json.loads(ai_response)
+            if isinstance(parsed, dict):
+                # Could be {"suggestions": [...]} or {"addons": [...]} or direct items
+                ai_suggestions = parsed.get('suggestions', parsed.get('addons', []))
+                # If still no list found, check if it's a single-level dict with items
+                if not ai_suggestions and 'item' in parsed:
+                    ai_suggestions = [parsed]  # Single item response
+            elif isinstance(parsed, list):
+                ai_suggestions = parsed
+            else:
+                # Unexpected format
+                print(f"⚠️ Unexpected AI response format: {type(parsed)}")
+                ai_suggestions = []
+        except json.JSONDecodeError:
+            print(f"⚠️ Failed to parse AI response as JSON")
+            ai_suggestions = []
+
+        if not ai_suggestions:
+            # Fallback suggestions
+            ai_suggestions = [
+                {"item": "lemons", "reason": "brightens flavors"},
+                {"item": "garlic", "reason": "essential aromatic base"}
+            ]
+
+        # Map AI suggestions to real products
+        addon_products = map_suggestions_to_products(ai_suggestions)
+
+        # Filter out items already in cart (case-insensitive)
+        current_items_lower = [item.lower() for item in current_items]
+        filtered_addons = []
+        for addon in addon_products:
+            addon_name_lower = addon['name'].lower()
+            if not any(cart_item in addon_name_lower for cart_item in current_items_lower):
+                filtered_addons.append(addon)
+
         elapsed = time.time() - addon_gen_start
-        print(f"⏱️ Using {len(fallback_addons)} universal add-ons as fallback (took {elapsed:.2f}s)")
-        return fallback_addons
+        print(f"⏱️ AI suggested {len(filtered_addons)} add-ons in {elapsed:.2f}s")
+
+        return filtered_addons[:3]  # Return max 3 add-ons
 
     except Exception as e:
-        print(f"❌ Error generating meal add-ons: {e}")
-        return []
+        print(f"❌ Error generating AI add-ons: {e}")
+        # Fallback to simple suggestions
+        from services.addon_catalog import ADDON_CATALOG
+        fallback = [
+            ADDON_CATALOG['lemons'].copy(),
+            ADDON_CATALOG['garlic'].copy()
+        ]
+        for item in fallback:
+            item['reason'] = item.pop('reason_template', 'Essential ingredient')
+        return fallback[:2]
 
 
 def check_protein_gap(current_items: List[str], meal_names: List[str], preferences: Dict = None) -> List[Dict]:
@@ -942,68 +1033,7 @@ def is_protein_item(item_name: str) -> bool:
     return any(keyword in name for keyword in protein_keywords)
 
 
-def generate_universal_meal_addons(meal_names: List[str], current_items: List[str]) -> List[Dict]:
-    """
-    Generate meal-enhancing add-ons that complement any meals.
-    These are universal ingredients that improve flavor and presentation.
-    """
-    try:
-        # Convert current items to lowercase for checking
-        current_lower = [item.lower() for item in current_items]
-
-        addons = []
-
-        # Fresh herbs for garnishing and flavor
-        if not any('parsley' in item for item in current_lower):
-            addons.append({
-                "item": "Organic Italian Parsley",
-                "price": "$3.29",
-                "reason": "Versatile herb for garnishing",
-                "category": "produce"
-            })
-
-        # Citrus for brightness
-        if not any('lemon' in item for item in current_lower):
-            addons.append({
-                "item": "Organic Lemons (3 count)",
-                "price": "$4.50",
-                "reason": "Brightens any dish",
-                "category": "produce"
-            })
-
-        # Quality finishing oil
-        if not any('olive oil' in item for item in current_lower):
-            addons.append({
-                "item": "Extra Virgin Olive Oil",
-                "price": "$12.99",
-                "reason": "Premium finishing oil for drizzling",
-                "category": "grocery"
-            })
-
-        # For chicken dishes - enhance with herbs
-        if any('chicken' in meal.lower() for meal in meal_names):
-            if not any('rosemary' in item for item in current_lower) and len(addons) < 2:
-                addons.append({
-                    "item": "Fresh Rosemary",
-                    "price": "$2.99",
-                    "reason": "Perfect herb pairing for chicken dishes",
-                    "category": "produce"
-                })
-
-        # For any savory dishes - add garlic if missing
-        if not any('garlic' in item for item in current_lower) and len(addons) < 2:
-            addons.append({
-                "item": "Organic Garlic Bulbs (3 count)",
-                "price": "$3.50",
-                "reason": "Essential flavor base for cooking",
-                "category": "produce"
-            })
-
-        return addons[:2]  # Return max 2 universal add-ons
-
-    except Exception as e:
-        print(f"❌ Error generating universal add-ons: {e}")
-        return []
+# Function removed - now using AI-driven add-on generation with fixed catalog mapping
 
 
 def get_preferred_proteins(preferences: Dict = None) -> List[str]:

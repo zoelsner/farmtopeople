@@ -2007,10 +2007,10 @@ Return JSON format (generate appropriate suggestions based on cart):
 
                 if meals_result.get('success'):
                     meals = meals_result['meals']
-                    # Extract add-ons from meal generator result
+                    # Extract add-ons from meal generator result (should be empty now)
                     if 'addons' in meals_result and meals_result['addons']:
                         addons = meals_result['addons']
-                        print(f"✅ Received {len(addons)} add-ons from parallel meal generator")
+                        print(f"✅ Received {len(addons)} add-ons from meal generator")
 
                 # Process swaps result
                 if isinstance(swaps_parallel, Exception):

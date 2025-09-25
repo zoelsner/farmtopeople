@@ -2171,17 +2171,39 @@
             // Display summary with category counts - all in one row
             const summaryItems = [];
             
-            if (categoryCounts.protein > 0) {
+            // Create a cleaner, more professional nutrition summary
+            if (categoryCounts.protein > 0 || categoryCounts.fruit > 0) {
                 summaryItems.push(`
-                    <span style="font-size: 18px; color: #333; font-weight: 500;">${categoryCounts.protein}× protein</span>
-                `);
-            }
-            
-            // Remove produce from summary - user only wants protein and fruit counts
-            
-            if (categoryCounts.fruit > 0) {
-                summaryItems.push(`
-                    <span style="font-size: 18px; color: #333; font-weight: 500;">${categoryCounts.fruit}× fruit</span>
+                    <div style="
+                        display: flex;
+                        justify-content: center;
+                        gap: 30px;
+                        padding: 12px 0;
+                        border-radius: 12px;
+                        background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+                        margin: 10px 0;
+                    ">
+                        ${categoryCounts.protein > 0 ? `
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; font-weight: 700; color: #e74c3c;">
+                                ${categoryCounts.protein}
+                            </div>
+                            <div style="font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">
+                                Proteins
+                            </div>
+                        </div>
+                        ` : ''}
+                        ${categoryCounts.fruit > 0 ? `
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; font-weight: 700; color: #f39c12;">
+                                ${categoryCounts.fruit}
+                            </div>
+                            <div style="font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">
+                                Fruits
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
                 `);
             }
             
@@ -2420,10 +2442,15 @@
                         <div class="addon-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
                             <div class="item-details" style="flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div class="item-name" style="font-weight: 600;">${addon.item}</div>
+                                    <div class="item-name" style="font-weight: 600;">${addon.name || addon.item}</div>
                                     <div class="item-price" style="color: #2e7d32; font-weight: 600;">${addon.price || '$3.99'}</div>
                                 </div>
-                                <div class="item-meta" style="color: #666; font-size: 14px; margin-top: 2px;">${addon.reason}</div>
+                                <div class="item-vendor" style="color: #888; font-size: 13px; margin-top: 2px;">
+                                    ${addon.vendor ? addon.vendor + ' • ' : ''}${addon.unit || ''}
+                                </div>
+                                <div class="item-reason" style="color: #666; font-size: 14px; margin-top: 4px; font-style: italic;">
+                                    ${addon.reason}
+                                </div>
                             </div>
                             <span class="category-tag" style="
                                 background: rgba(255, 255, 255, 0.7);
@@ -2511,10 +2538,15 @@
                         <div class="addon-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
                             <div class="item-details" style="flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div class="item-name" style="font-weight: 600;">${addon.item}</div>
+                                    <div class="item-name" style="font-weight: 600;">${addon.name || addon.item}</div>
                                     <div class="item-price" style="color: #2e7d32; font-weight: 600;">${addon.price || '$3.99'}</div>
                                 </div>
-                                <div class="item-meta" style="color: #666; font-size: 14px; margin-top: 2px;">${addon.reason}</div>
+                                <div class="item-vendor" style="color: #888; font-size: 13px; margin-top: 2px;">
+                                    ${addon.vendor ? addon.vendor + ' • ' : ''}${addon.unit || ''}
+                                </div>
+                                <div class="item-reason" style="color: #666; font-size: 14px; margin-top: 4px; font-style: italic;">
+                                    ${addon.reason}
+                                </div>
                             </div>
                             <span class="category-tag" style="
                                 background: rgba(255, 255, 255, 0.7);

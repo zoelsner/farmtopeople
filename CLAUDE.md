@@ -380,6 +380,45 @@ REDIS_URL=redis://localhost:6379
 
 ---
 
-**Last Updated:** September 17, 2025
-**Version:** 6.0.0 (Streamlined Architecture Documentation)
+---
+
+## 🚀 FUTURE FEATURE IDEAS
+
+### **"Level Up" Add-Ons Gamification**
+**Concept:** Transform add-ons from utilitarian "don't forget" lists into exciting meal enhancements
+
+Instead of "You need these items", present as:
+- "🎯 Level Up Your Tacos" → adds cilantro, lime, hot sauce ($4.99)
+- "⭐ Level Up Again!" → adds avocado, sour cream ($3.99)
+- "🚀 Max Level" → adds specialty cheese, pickled jalapeños ($5.99)
+
+**Benefits:**
+- Positive framing - enhancing, not missing
+- Gamification appeals to achievement mindset
+- Progressive levels of enhancement
+- Reduces purchase pressure (feels optional)
+- Makes grocery planning fun
+
+**UI Concept:**
+```
+Your Meal: Chicken Tacos
+━━━━━━━━━━━━━━━━━━━━━━
+Base Level ✅ (you have everything needed)
+
+[🎯 LEVEL UP! +$4.99]
+Add: Fresh cilantro, lime, hot sauce
+"Take your tacos from good to amazing!"
+```
+
+**Implementation Ideas:**
+- Different level-up packages per meal type
+- Track which users frequently "level up"
+- Show "achievement unlocked" animations
+- Seasonal level-ups (holiday herbs, summer fruits)
+- Progressive disclosure (show next level after current)
+
+---
+
+**Last Updated:** September 24, 2025
+**Version:** 6.1.0 (Added Future Features & Swap Detection Improvements)
 **Archived Previous Version:** `docs/archive/CLAUDE_v5.4.0_2025-09-17.md`
